@@ -1,0 +1,11 @@
+﻿== Getting Started ==
+To get started download the source using:
+{{{
+git clone git://github.com/bhatti/PlexRBAC.git
+}}}
+You will need to install Java 1.6 and Maven 2.0+ before start using the PlexRBAC.
+
+== Building ==
+Type "mvn" to build the project. Maven will download a bunch of files that may take a few minutes and will cache those locally and will then proceed to compile, test and build war file.
+
+

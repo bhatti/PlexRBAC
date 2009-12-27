@@ -1,0 +1,36 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:amq="http://activemq.apache.org/schema/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://camel.apache.org/schema/spring/camel-spring.xsd http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+
+        <!-- You can use a <packages> element for each root package to search for Java routes -->
+        <packageScan>
+           <packages>com.plexobject.rbac</packages>
+        </packageScan>
+
+        <!-- You can use Spring XML syntax to define the routes here using the <route> element 
+        <route>
+            <from uri="activemq:secondary_test_dataQ.incoming"/>
+            <to uri="activemq:secondary_test_dataQ.ready"/>
+        </route>
+-->
+    </camelContext>
+
+    <!--
+       Lets configure some Camel endpoints
+    
+       http://camel.apache.org/components.html
+    -->
+
+    <!-- configure the camel activemq component to use the current broker -->
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent" >
+        <property name="connectionFactory">
+          <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+            <property name="brokerURL" value="vm://localhost?create=false&amp;waitForStart=10000" />
+    	    <property name="userName" value="system"/>
+    	    <property name="password" value="manager}"/>    
+          </bean>
+        </property>
+    </bean>
+</beans>

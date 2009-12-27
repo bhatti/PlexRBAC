@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<import resource="classpath:/embedded-activemq.xml" />
+
+	<bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+    		<property name="connectionFactory">
+      		<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+       		 <property name="brokerURL">
+       		   <value>tcp://${activemq.server.name}:${activemq.server.port}</value>
+       		 </property>
+      		</bean>
+    		</property>
+  	</bean>
+
+	<bean id="testQ" class="org.apache.activemq.command.ActiveMQQueue">
+       		<property name="physicalName" value="com.plexobject.rbac.testQ" />
+	</bean>
+
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="jmsFactory" />
+	</bean>
+
+<!--
+	<bean id="secondary_test_dataMessageListenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+		<property name="connectionFactory" ref="jmsFactory" />
+		<property name="destination" ref="secondary_test_dataQ" />
+		<property name="messageListener" ref="secondary_test_dataIndexHandler" />
+		<property name="exceptionListener" ref="secondary_test_dataIndexHandler" />
+		<property name="sessionTransacted" value="true" />
+		<property name="concurrentConsumers" value="1" />
+		<property name="receiveTimeout" value="2000" />
+		<property name="recoveryInterval" value="3000" />
+	</bean>
+-->
+</beans>

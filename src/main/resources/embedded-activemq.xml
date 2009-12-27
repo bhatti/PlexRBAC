@@ -1,0 +1,112 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:amq="http://activemq.apache.org/schema/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+	<!--
+		Allows us to use system properties as variables in this configuration
+		file
+	-->
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<value>classpath:/credentials.properties
+			</value>
+		</property>
+	</bean>
+
+	<!--
+		The <broker> element is used to configure the ActiveMQ broker.
+	-->
+	<broker xmlns="http://activemq.apache.org/schema/core"
+		brokerName="localhost" persistent="true" useJmx="true" dataDirectory="./data">
+
+		<!--
+			The managementContext is used to configure how ActiveMQ is exposed in
+			JMX. By default, ActiveMQ uses the MBean server that is started by
+			the JVM. For more information, see:
+
+			http://activemq.apache.org/jmx.html
+		-->
+		<managementContext>
+			<managementContext createConnector="true" />
+		</managementContext>
+
+		<!--
+			Configure message persistence for the broker. The default persistence
+			mechanism is the KahaDB store (identified by the kahaDB tag). For
+			more information, see: http://activemq.apache.org/persistence.html
+		-->
+		<persistenceAdapter>
+			<kahaDB directory="./data/kahadb" />
+		</persistenceAdapter>
+
+
+		<!--
+			For better performances use VM cursor and small memory limit. For
+			more information, see:
+
+			http://activemq.apache.org/message-cursors.html Also, if your
+			producer is "hanging", it's probably due to producer flow control.
+			For more information, see:
+			http://activemq.apache.org/producer-flow-control.html
+
+			<destinationPolicy> <policyMap> <policyEntries> <policyEntry
+			topic=">" producerFlowControl="true" memoryLimit="512mb">
+			<pendingSubscriberPolicy> <vmCursor /> </pendingSubscriberPolicy>
+			</policyEntry> <policyEntry queue=">" producerFlowControl="true"
+			memoryLimit="512mb"> <deadLetterStrategy>
+			<individualDeadLetterStrategy queuePrefix="DLQ." />
+			</deadLetterStrategy> </policyEntry> </policyEntries> </policyMap>
+			</destinationPolicy>
+		-->
+
+		<!--
+			The systemUsage controls the maximum amount of space the broker will
+			use before slowing down producers. For more information, see:
+
+			http://activemq.apache.org/producer-flow-control.html <systemUsage>
+			<systemUsage> <memoryUsage> <memoryUsage limit="20 mb"/>
+			</memoryUsage> <storeUsage> <storeUsage limit="1 gb" name="foo"/>
+			</storeUsage> <tempUsage> <tempUsage limit="100 mb"/> </tempUsage>
+			</systemUsage> </systemUsage> <sslContext> <sslContext
+			keyStore="file:${activemq.base}/conf/broker.ks"
+			keyStorePassword="password"
+			trustStore="file:${activemq.base}/conf/broker.ts"
+			trustStorePassword="password"/> </sslContext>
+		-->
+
+		<!--
+			The transport connectors expose ActiveMQ over a given protocol to
+			clients and other brokers. For more information, see:
+
+			http://activemq.apache.org/configuring-transports.html
+			<transportConnector name="ssl" uri="ssl://localhost:61617"/>
+			<transportConnector name="stomp" uri="stomp://localhost:61613"/>
+			<transportConnector name="xmpp" uri="xmpp://localhost:61222"/>
+
+			<networkConnectors> <networkConnector name="default-localhost"
+			uri="multicast://default"/> </networkConnectors>
+		-->
+		<transportConnectors>
+			<transportConnector name="openwire" uri="tcp://0.0.0.0:61616"
+				discoveryUri="multicast://default" />
+		</transportConnectors>
+
+
+
+	</broker>
+
+	<!--
+		Uncomment to enable Camel Take a look at activemq-camel.xml for more
+		details
+	<import resource="classpath:/camel.xml" />
+	-->
+
+
+	<!--
+		Enable web consoles, REST and Ajax APIs Take a look at
+		activemq-jetty.xml for more details <import resource="jetty.xml"/>
+	-->
+
+</beans>

@@ -1,0 +1,53 @@
+<?xml version="1.0"  encoding="ISO-8859-1"?>
+<!DOCTYPE Configure PUBLIC 
+ "-//Mort Bay Consulting//DTD Configure 1.2//EN"
+ "http://jetty.mortbay.org/configure_1_2.dtd">
+                                                                        
+<Configure class="org.mortbay.jetty.Server">
+  <Call name="addListener">
+    <Arg>
+      <New class="org.mortbay.http.SocketListener">
+        <Set name="Port">
+          <SystemProperty name="jetty.port" default="8080"/>
+        </Set>
+        <Set name="MinThreads">5</Set>
+        <Set name="MaxThreads">255</Set>
+        <Set name="MaxIdleTimeMs">30000</Set>
+        <Set name="MaxReadTimeMs">10000</Set>
+        <Set name="MaxStopTimeMs">5000</Set>
+        <Set name="LowResourcePersistTimeMs">5000</Set>
+      </New>
+      <SystemProperty name="com.sun.management.jmxremote.port" default="9003"/>
+      <SystemProperty name="com.sun.management.jmxremote.ssl" default="false"/>
+      <SystemProperty name="com.sun.management.jmxremote.authenticate" default="false"/>
+      <SystemProperty name="com.sun.management.jmxremote" default=""/>
+      <SystemProperty name="Dactivemq.base" default="."/>
+    </Arg>
+  </Call>
+                                                                        
+  <Call name="addWebApplications">
+    <Arg></Arg>
+    <Arg>
+      <SystemProperty name="jetty.home" default="."/>/webapps/
+    </Arg>
+    <Set name="defaultsDescriptor">
+      <SystemProperty name="jetty.home" 
+       default="."/>/etc/webdefault.xml
+    </Set>
+  </Call>
+
+    <jetty xmlns="http://mortbay.com/schemas/jetty/1.0">
+        <connectors>
+            <nioConnector port="8161"/>
+        </connectors>
+
+<!--
+        <handlers>
+            <webAppContext contextPath="/admin" resourceBase="${activemq.base}/webapps/admin" logUrlOnStart="true"/>
+            <webAppContext contextPath="/camel" resourceBase="${activemq.base}/webapps/camel" logUrlOnStart="true"/>
+            <webAppContext contextPath="/demo" resourceBase="${activemq.base}/webapps/demo" logUrlOnStart="true"/>
+            <webAppContext contextPath="/fileserver" resourceBase="${activemq.base}/webapps/fileserver" logUrlOnStart="true"/>
+        </handlers>
+-->
+    </jetty>
+</Configure>

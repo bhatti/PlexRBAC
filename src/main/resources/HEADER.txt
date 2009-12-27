@@ -1,0 +1,6 @@
+^checkstyle
+^\s*$
+^/\*\s*$
+^ \* Copyright (C) PlexObject Solutions, Inc. 1998-2010\s*$
+^ \*/\s*$
+^\s*$
