@@ -72,7 +72,7 @@ public class ApplicationDAOBDBTest {
             dao.save(app);
         }
         for (int i = 0; i < 10; i++) {
-            Application app = dao.findByName("name" + i);
+            Application app = dao.findByID("name" + i);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("app " + app);
             }

@@ -13,12 +13,9 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
 
-import com.sleepycat.persist.model.DeleteAction;
-import com.sleepycat.persist.model.Entity;
-import com.sleepycat.persist.model.Relationship;
-import com.sleepycat.persist.model.SecondaryKey;
+import com.sleepycat.persist.model.Persistent;
 
-@Entity
+@Persistent
 public class ContextProperty implements Validatable {
     private static final Logger LOGGER = Logger
             .getLogger(ContextProperty.class);
@@ -211,9 +208,8 @@ public class ContextProperty implements Validatable {
         }
     }
 
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = DynamicPermission.class, onRelatedEntityDelete = DeleteAction.CASCADE)
-    private Integer permissionId;
-    private DynamicPermission permission;
+    ContextProperty() {
+    }
 
     public ContextProperty(String name, Type type, Operator operator,
             String value) {
@@ -221,22 +217,6 @@ public class ContextProperty implements Validatable {
         setType(type);
         setOperator(operator);
         setValue(value);
-    }
-
-    Integer getPermissionId() {
-        return permissionId;
-    }
-
-    void setPermissionId(Integer permissionId) {
-        this.permissionId = permissionId;
-    }
-
-    public DynamicPermission getPermission() {
-        return permission;
-    }
-
-    public void setPermission(DynamicPermission permission) {
-        this.permission = permission;
     }
 
     private String name;
@@ -312,8 +292,7 @@ public class ContextProperty implements Validatable {
             return false;
         }
         ContextProperty rhs = (ContextProperty) object;
-        return new EqualsBuilder().append(this.permission, rhs.permission)
-                .append(this.name, rhs.name).isEquals();
+        return new EqualsBuilder().append(this.name, rhs.name).isEquals();
     }
 
     /**
@@ -330,9 +309,8 @@ public class ContextProperty implements Validatable {
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("name", this.name).append(
-                "type", this.type).append("operator", this.operator).append(
-                "value", this.value).toString();
+        return this.name + ":" + this.type + " " + this.operator + " "
+                + this.value;
     }
 
     @Override

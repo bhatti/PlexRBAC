@@ -8,9 +8,8 @@ import com.sleepycat.persist.evolve.IncompatibleClassException;
 public class PermissionDAOBDB extends BaseDAOBDB<Permission, Integer> implements
         PermissionDAO {
 
-    public PermissionDAOBDB(String databaseDir, String tableName)
+    public PermissionDAOBDB(String databaseDir, String storeName)
             throws IncompatibleClassException, DatabaseException {
-        super(databaseDir, tableName);
+        super(databaseDir, storeName);
     }
-
 }

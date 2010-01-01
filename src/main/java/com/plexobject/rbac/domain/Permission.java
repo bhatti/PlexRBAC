@@ -1,6 +1,8 @@
 package com.plexobject.rbac.domain;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -31,18 +33,18 @@ public class Permission extends Auditable implements Validatable {
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String applicationName;
 
-    private Application application;
-    private String entityType = "Permission";
+    private Collection<ContextProperty> context = new HashSet<ContextProperty>();
 
     // for JPA
     Permission() {
     }
 
-    public Permission(final Application application, final String operation,
-            final String target) {
-        setApplication(application);
+    public Permission(final String applicationName, final String operation,
+            final String target, final Collection<ContextProperty> context) {
+        setApplicationName(applicationName);
         setOperation(operation);
         setTarget(target);
+        setContext(context);
     }
 
     public void setId(int id) {
@@ -51,15 +53,6 @@ public class Permission extends Auditable implements Validatable {
 
     public int getId() {
         return id;
-    }
-
-    /**
-     * The application that defines this permission
-     * 
-     * @return
-     */
-    public Application getApplication() {
-        return application;
     }
 
     /**
@@ -113,20 +106,29 @@ public class Permission extends Auditable implements Validatable {
         this.target = target;
     }
 
-    public void setApplication(Application application) {
-        if (application == null) {
-            throw new IllegalArgumentException("application not specified");
-        }
-
-        this.application = application;
-    }
-
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
     }
 
     public String getApplicationName() {
         return applicationName;
+    }
+
+    /**
+     * The context is runtime value that is checked
+     * 
+     * @return
+     */
+    public Collection<ContextProperty> getContext() {
+        return context;
+    }
+
+    public void setContext(Collection<ContextProperty> context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context is not specified");
+        }
+        this.context.clear();
+        this.context.addAll(context);
     }
 
     /**
@@ -138,9 +140,10 @@ public class Permission extends Auditable implements Validatable {
             return false;
         }
         Permission rhs = (Permission) object;
-        return new EqualsBuilder().append(this.application, rhs.application)
-                .append(this.operation, rhs.operation).append(this.target,
-                        rhs.target).isEquals();
+        return new EqualsBuilder().append(this.applicationName,
+                rhs.applicationName).append(this.operation, rhs.operation)
+                .append(this.target, rhs.target).append(this.context,
+                        rhs.context).isEquals();
     }
 
     /**
@@ -149,8 +152,8 @@ public class Permission extends Auditable implements Validatable {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(786529047, 1924536713).append(
-                this.application).append(this.operation).append(this.target)
-                .toHashCode();
+                this.applicationName).append(this.operation)
+                .append(this.target).toHashCode();
     }
 
     /**
@@ -159,8 +162,9 @@ public class Permission extends Auditable implements Validatable {
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", this.id).append(
-                "application", this.application).append("operation",
-                this.operation).append("target", target).toString();
+                "applicationName", this.applicationName).append("operation",
+                this.operation).append("target", target).append("context",
+                this.context).toString();
     }
 
     @Override
@@ -174,8 +178,8 @@ public class Permission extends Auditable implements Validatable {
         }
 
         if (applicationName == null) {
-            errorsByField
-                    .put("applicationName", "applicationName is not specified");
+            errorsByField.put("applicationName",
+                    "applicationName is not specified");
         }
 
         if (errorsByField.size() > 0) {
@@ -183,11 +187,37 @@ public class Permission extends Auditable implements Validatable {
         }
     }
 
-    void setEntityType(String entityType) {
-        this.entityType = entityType;
+    public boolean impliesContext(final String... keyValues) {
+        Map<String, String> userContext = new HashMap<String, String>();
+        for (int i = 0; i < keyValues.length - 1; i += 2) {
+            userContext.put(keyValues[i], keyValues[i + 1]);
+        }
+        return impliesContext(userContext);
     }
 
-    String getEntityType() {
-        return entityType;
+    /**
+     * This context verifies if the user context includes the context defined in
+     * the permission
+     * 
+     * @param userContext
+     * @return
+     */
+    public boolean impliesContext(final Map<String, String> userContext) {
+        if (userContext == context) {
+            return true;
+        }
+        if (userContext == null) {
+            return false;
+        }
+        for (ContextProperty cp : context) {
+            final String userValue = userContext.get(cp.getName());
+            if (userValue == null) {
+                return false;
+            }
+            if (!cp.implies(userValue)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

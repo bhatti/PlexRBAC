@@ -9,9 +9,11 @@ import java.util.List;
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
 
+import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.dao.BaseDAO;
 import com.plexobject.rbac.dao.PersistenceException;
 import com.plexobject.rbac.domain.Auditable;
+import com.plexobject.rbac.domain.Validatable;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
 import com.plexobject.rbac.utils.CurrentUserRequest;
@@ -27,7 +29,10 @@ import com.sleepycat.persist.evolve.IncompatibleClassException;
 
 public class BaseDAOBDB<T, ID> implements BaseDAO<T, ID> {
     final Logger LOGGER = Logger.getLogger(getClass());
-
+    private static final String DATABASE_DIR = Configuration.getInstance()
+            .getProperty("database.dir", "plexrbac");
+    private static final String DATABASE_NAME = Configuration.getInstance()
+            .getProperty("database.name", "rbac_db");
     private final Class<T> entityBeanType;
     private final Class<ID> pkType;
 
@@ -36,20 +41,24 @@ public class BaseDAOBDB<T, ID> implements BaseDAO<T, ID> {
     EntityStore store;
     PrimaryIndex<ID, T> primaryIndex;
 
+    public BaseDAOBDB() throws IncompatibleClassException, DatabaseException {
+        this(DATABASE_DIR, DATABASE_NAME);
+    }
+
     @SuppressWarnings("unchecked")
-    public BaseDAOBDB(final String databaseDir, final String tableName)
+    public BaseDAOBDB(final String databaseDir, final String storeName)
             throws IncompatibleClassException, DatabaseException {
         if (GenericValidator.isBlankOrNull(databaseDir)) {
             throw new IllegalArgumentException("databaseDir is not specified");
         }
-        if (GenericValidator.isBlankOrNull(tableName)) {
+        if (GenericValidator.isBlankOrNull(storeName)) {
             throw new IllegalArgumentException("tableName is not specified");
         }
         this.entityBeanType = (Class<T>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[0];
         this.pkType = (Class<ID>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[1];
-        this.tableName = tableName;
+        this.tableName = storeName;
         // Open the DB environment. Create if they do not already exist.
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
@@ -64,7 +73,7 @@ public class BaseDAOBDB<T, ID> implements BaseDAO<T, ID> {
         StoreConfig storeConfig = new StoreConfig();
         storeConfig.setAllowCreate(true);
         storeConfig.setDeferredWrite(true);
-        store = new EntityStore(dbEnvironment, tableName, storeConfig);
+        store = new EntityStore(dbEnvironment, storeName, storeConfig);
         primaryIndex = store.getPrimaryIndex(pkType, entityBeanType);
     }
 
@@ -174,6 +183,10 @@ public class BaseDAOBDB<T, ID> implements BaseDAO<T, ID> {
     public T save(T object) throws PersistenceException {
         final Timing timer = Metric.newTiming(getClass().getName() + ".remove");
         try {
+            // call validation
+            if (object instanceof Validatable) {
+                ((Validatable) object).validate();
+            }
             if (object instanceof Auditable) {
                 Auditable auditable = (Auditable) object;
                 if (auditable.getCreatedBy() == null) {

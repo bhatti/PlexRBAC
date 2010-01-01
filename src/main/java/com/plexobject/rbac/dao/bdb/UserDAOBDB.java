@@ -12,9 +12,9 @@ import com.sleepycat.persist.evolve.IncompatibleClassException;
 public class UserDAOBDB extends BaseDAOBDB<User, Integer> implements UserDAO {
     private SecondaryIndex<String, Integer, User> usernameIndex;
 
-    public UserDAOBDB(String databaseDir, String tableName)
+    public UserDAOBDB(String databaseDir, String storeName)
             throws IncompatibleClassException, DatabaseException {
-        super(databaseDir, tableName);
+        super(databaseDir, storeName);
         usernameIndex = store.getSecondaryIndex(primaryIndex, String.class,
                 "username");
 

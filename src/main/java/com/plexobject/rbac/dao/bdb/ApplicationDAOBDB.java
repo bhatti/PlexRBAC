@@ -15,9 +15,9 @@ public class ApplicationDAOBDB extends BaseDAOBDB<Application, String>
         implements ApplicationDAO {
     private SecondaryIndex<String, String, Application> ownerIndex;
 
-    public ApplicationDAOBDB(String databaseDir, String tableName)
+    public ApplicationDAOBDB(String databaseDir, String storeName)
             throws IncompatibleClassException, DatabaseException {
-        super(databaseDir, tableName);
+        super(databaseDir, storeName);
         ownerIndex = store.getSecondaryIndex(primaryIndex, String.class,
                 "ownerUsername");
     }
@@ -34,10 +34,5 @@ public class ApplicationDAOBDB extends BaseDAOBDB<Application, String>
         } finally {
             timer.stop();
         }
-    }
-
-    @Override
-    public Application findByName(String name) {
-        return super.findByID(name);
     }
 }

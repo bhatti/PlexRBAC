@@ -20,8 +20,6 @@ public class Role extends Auditable implements Validatable {
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String applicationName;
 
-    private Application application;
-
     public int getId() {
         return id;
     }
@@ -46,14 +44,6 @@ public class Role extends Auditable implements Validatable {
         this.applicationName = applicationName;
     }
 
-    public Application getApplication() {
-        return application;
-    }
-
-    public void setApplication(Application application) {
-        this.application = application;
-    }
-
     /**
      * @see java.lang.Object#equals(Object)
      */
@@ -63,8 +53,9 @@ public class Role extends Auditable implements Validatable {
             return false;
         }
         Role rhs = (Role) object;
-        return new EqualsBuilder().append(this.application, rhs.application)
-                .append(this.rolename, rhs.rolename).isEquals();
+        return new EqualsBuilder().append(this.applicationName,
+                rhs.applicationName).append(this.rolename, rhs.rolename)
+                .isEquals();
     }
 
     /**
@@ -72,8 +63,8 @@ public class Role extends Auditable implements Validatable {
      */
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(786529047, 1924536713).append(this.rolename)
-                .toHashCode();
+        return new HashCodeBuilder(786529047, 1924536713).append(
+                applicationName).append(this.rolename).toHashCode();
     }
 
     /**
@@ -81,7 +72,8 @@ public class Role extends Auditable implements Validatable {
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("rolename", this.rolename)
+        return new ToStringBuilder(this).append("applicationName",
+                this.applicationName).append("rolename", this.rolename)
                 .toString();
     }
 
@@ -93,8 +85,8 @@ public class Role extends Auditable implements Validatable {
         }
 
         if (applicationName == null) {
-            errorsByField
-                    .put("applicationName", "applicationName is not specified");
+            errorsByField.put("applicationName",
+                    "applicationName is not specified");
         }
 
         if (errorsByField.size() > 0) {

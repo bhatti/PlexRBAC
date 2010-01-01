@@ -17,9 +17,9 @@ public class SecurityErrorDAOBDB extends BaseDAOBDB<SecurityError, Integer> impl
         SecurityErrorDAO {
     private SecondaryIndex<Date, Integer, SecurityError> createdAtIndex;
 
-    public SecurityErrorDAOBDB(String databaseDir, String tableName)
+    public SecurityErrorDAOBDB(String databaseDir, String storeName)
             throws IncompatibleClassException, DatabaseException {
-        super(databaseDir, tableName);
+        super(databaseDir, storeName);
         createdAtIndex = store.getSecondaryIndex(primaryIndex, Date.class,
                 "createdAt");
 
