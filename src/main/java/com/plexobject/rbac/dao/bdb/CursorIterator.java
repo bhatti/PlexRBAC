@@ -10,7 +10,7 @@ import com.sleepycat.persist.EntityCursor;
 public class CursorIterator<V> implements Iterator<V> {
     private static final Logger LOGGER = Logger.getLogger(CursorIterator.class);
 
-    private final EntityCursor<V> cursor;
+    private EntityCursor<V> cursor;
     private Iterator<V> iterator;
 
     public CursorIterator(final EntityCursor<V> cursor) {
@@ -23,12 +23,20 @@ public class CursorIterator<V> implements Iterator<V> {
         if (iterator.hasNext()) {
             return true;
         } else {
-            try {
-                cursor.close();
-            } catch (DatabaseException e) {
-                LOGGER.error("failed to close cursor", e);
-            }
+            close();
             return false;
+        }
+    }
+
+    public void close() {
+        try {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+                iterator = null;
+            }
+        } catch (DatabaseException e) {
+            LOGGER.error("failed to close cursor", e);
         }
     }
 

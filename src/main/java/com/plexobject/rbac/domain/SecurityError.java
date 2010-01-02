@@ -17,20 +17,21 @@ public class SecurityError extends Auditable implements Validatable {
     private int id;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Permission.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private Integer permissionId;
-    private Permission permission;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private Integer applicationName;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String username;
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
+    private String operation;
     private Map<String, String> userContext;
 
     // for JPA
     SecurityError() {
     }
 
-    public SecurityError(final Permission permission,
+    public SecurityError(final Integer permissionId,
             final Map<String, String> userContext) {
-        setPermission(permission);
+        setPermissionId(permissionId);
         setUserContext(userContext);
     }
 
@@ -53,17 +54,6 @@ public class SecurityError extends Auditable implements Validatable {
         this.userContext = userContext;
     }
 
-    public void setPermission(final Permission permission) {
-        if (permission == null) {
-            throw new IllegalArgumentException("permission not specified");
-        }
-        this.permission = permission;
-    }
-
-    public Permission getPermission() {
-        return permission;
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }
@@ -81,15 +71,24 @@ public class SecurityError extends Auditable implements Validatable {
         return permissionId;
     }
 
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
     /**
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append(
-                "applicationName", applicationName).append("username", username)
-                .append("permission", this.permission).append("context",
-                        userContext).toString();
+                "applicationName", applicationName)
+                .append("username", username).append("permissionId",
+                        this.permissionId).append("context", userContext)
+                .toString();
     }
 
     @Override
@@ -97,8 +96,8 @@ public class SecurityError extends Auditable implements Validatable {
         final Map<String, String> errorsByField = new HashMap<String, String>();
 
         if (applicationName == null) {
-            errorsByField
-                    .put("applicationName", "applicationNameis not specified");
+            errorsByField.put("applicationName",
+                    "applicationNameis not specified");
         }
         if (permissionId == null) {
             errorsByField.put("permissionId", "permissionId is not specified");

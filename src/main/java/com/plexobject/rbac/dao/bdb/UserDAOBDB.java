@@ -23,7 +23,7 @@ public class UserDAOBDB extends BaseDAOBDB<User, Integer> implements UserDAO {
     @Override
     public User findByName(String username) {
         final Timing timer = Metric.newTiming(getClass().getName()
-                + ".findByID");
+                + ".findByName");
         try {
             return usernameIndex.get(username);
         } catch (DatabaseException e) {

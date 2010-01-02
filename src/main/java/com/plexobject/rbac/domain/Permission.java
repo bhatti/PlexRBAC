@@ -1,8 +1,6 @@
 package com.plexobject.rbac.domain;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -33,18 +31,18 @@ public class Permission extends Auditable implements Validatable {
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String applicationName;
 
-    private Collection<ContextProperty> context = new HashSet<ContextProperty>();
+    private String expression;
 
     // for JPA
     Permission() {
     }
 
     public Permission(final String applicationName, final String operation,
-            final String target, final Collection<ContextProperty> context) {
+            final String target, final String expression) {
         setApplicationName(applicationName);
         setOperation(operation);
         setTarget(target);
-        setContext(context);
+        setExpression(expression);
     }
 
     public void setId(int id) {
@@ -115,20 +113,18 @@ public class Permission extends Auditable implements Validatable {
     }
 
     /**
-     * The context is runtime value that is checked
      * 
      * @return
      */
-    public Collection<ContextProperty> getContext() {
-        return context;
+    public String getExpression() {
+        return expression;
     }
 
-    public void setContext(Collection<ContextProperty> context) {
-        if (context == null) {
-            throw new IllegalArgumentException("Context is not specified");
+    public void setExpression(final String expression) {
+        if (GenericValidator.isBlankOrNull(expression)) {
+            throw new IllegalArgumentException("expression is not specified");
         }
-        this.context.clear();
-        this.context.addAll(context);
+        this.expression = expression;
     }
 
     /**
@@ -142,8 +138,8 @@ public class Permission extends Auditable implements Validatable {
         Permission rhs = (Permission) object;
         return new EqualsBuilder().append(this.applicationName,
                 rhs.applicationName).append(this.operation, rhs.operation)
-                .append(this.target, rhs.target).append(this.context,
-                        rhs.context).isEquals();
+                .append(this.target, rhs.target).append(this.expression,
+                        rhs.expression).isEquals();
     }
 
     /**
@@ -163,8 +159,8 @@ public class Permission extends Auditable implements Validatable {
     public String toString() {
         return new ToStringBuilder(this).append("id", this.id).append(
                 "applicationName", this.applicationName).append("operation",
-                this.operation).append("target", target).append("context",
-                this.context).toString();
+                this.operation).append("target", target).append("expression",
+                this.expression).toString();
     }
 
     @Override
@@ -185,39 +181,5 @@ public class Permission extends Auditable implements Validatable {
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }
-    }
-
-    public boolean impliesContext(final String... keyValues) {
-        Map<String, String> userContext = new HashMap<String, String>();
-        for (int i = 0; i < keyValues.length - 1; i += 2) {
-            userContext.put(keyValues[i], keyValues[i + 1]);
-        }
-        return impliesContext(userContext);
-    }
-
-    /**
-     * This context verifies if the user context includes the context defined in
-     * the permission
-     * 
-     * @param userContext
-     * @return
-     */
-    public boolean impliesContext(final Map<String, String> userContext) {
-        if (userContext == context) {
-            return true;
-        }
-        if (userContext == null) {
-            return false;
-        }
-        for (ContextProperty cp : context) {
-            final String userValue = userContext.get(cp.getName());
-            if (userValue == null) {
-                return false;
-            }
-            if (!cp.implies(userValue)) {
-                return false;
-            }
-        }
-        return true;
     }
 }

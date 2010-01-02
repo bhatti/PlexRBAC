@@ -2,8 +2,6 @@ package com.plexobject.rbac.dao.bdb;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,7 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.plexobject.rbac.domain.Application;
-import com.plexobject.rbac.domain.ContextProperty;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
@@ -67,20 +64,6 @@ public class PermissionDAOBDBTest {
         List<Permission> saved = new ArrayList<Permission>();
 
         for (int i = 0; i < 10; i++) {
-            final Collection<ContextProperty> context = Arrays
-                    .asList(
-                            new ContextProperty("amount",
-                                    ContextProperty.Type.NUMBER,
-                                    ContextProperty.Operator.LESS_OR_EQUALS,
-                                    "500"),
-                            new ContextProperty("dept",
-                                    ContextProperty.Type.STRING,
-                                    ContextProperty.Operator.CONTAINS, "sales"),
-                            new ContextProperty("time",
-                                    ContextProperty.Type.TIME,
-                                    ContextProperty.Operator.IN_RANGE,
-                                    "8:00am..5:00pm"));
-
             String operation = null;
             if (i == 0) {
                 operation = "(read|write|update|delete)";
@@ -92,8 +75,9 @@ public class PermissionDAOBDBTest {
                 operation = "(read|write)";
             }
             Permission permission = new Permission(app.getName(), operation,
-                    "database", context);
-            LOGGER.info("Saving " + permission);
+                    "database",
+                    "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
+            LOGGER.debug("Saving " + permission);
             permissionDAO.save(permission);
             saved.add(permission);
 
