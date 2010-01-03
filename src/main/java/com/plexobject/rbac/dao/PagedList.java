@@ -182,4 +182,9 @@ public class PagedList<T, ID> implements List<T> {
     public <T> T[] toArray(T[] a) {
         return list.toArray(a);
     }
+
+    @Override
+    public String toString() {
+        return list.toString();
+    }
 }

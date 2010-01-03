@@ -5,75 +5,87 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.dao.ApplicationDAO;
 import com.plexobject.rbac.dao.PermissionDAO;
+import com.plexobject.rbac.dao.SecurityErrorDAO;
 import com.plexobject.rbac.dao.bdb.DatabaseRegistry;
-import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.domain.Permission;
-import com.plexobject.rbac.eval.simple.SimpleEvaluator;
+import com.plexobject.rbac.eval.js.JavascriptEvaluator;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionManagerTest {
-    private static final Logger LOGGER = Logger
-            .getLogger(PermissionManagerTest.class);
+    private static final String TEST_DB_DIR = "test_db_dir_perms";
     private DatabaseRegistry databaseRegistry;
-    private ApplicationDAO appDAO;
     private PermissionDAO permissionDAO;
     private PermissionManager permissionManager;
 
     @Before
     public void setUp() throws Exception {
-        FileUtils.deleteDirectory(new File("test_db_dir"));
+        FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
         CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
-        databaseRegistry = new DatabaseRegistry("test_db_dir");
+        databaseRegistry = new DatabaseRegistry(TEST_DB_DIR);
 
-        appDAO = databaseRegistry.getApplicationDAO("appname");
-
+        final SecurityErrorDAO securityErrorDAO = databaseRegistry
+                .getSecurityErrorDAO("appname");
         permissionDAO = databaseRegistry.getPermissionDAO("appname");
         permissionManager = new PermissionManager(permissionDAO,
-                new SimpleEvaluator());
-
+                securityErrorDAO, new JavascriptEvaluator());
     }
 
     @After
     public void tearDown() throws Exception {
         databaseRegistry.close("appname");
-        FileUtils.deleteDirectory(new File("test_db_dir"));
+        FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();
+    }
+
+    @Test(expected = SecurityException.class)
+    public void testWithNoPermission() {
+        permissionManager
+                .check("read", toMap("amount", "100", "dept", "sales"));
     }
 
     @Test
     public void testCheck() {
-        final Application app = addPermissions();
-        permissionManager.check(app, "read", toMap("amount", "100", "time",
-                "12:00pm", "dept", "SALES"));
+        addPermission();
+
+        permissionManager
+                .check("read", toMap("amount", "100", "dept", "sales"));
+    }
+
+    private void addPermission() {
+        for (int i = 0; i < 2; i++) {
+            String operation = "(read|write|update|delete)";
+            Permission permission = new Permission(operation, "database",
+                    "amount <= 500 && dept == 'sales'");
+            permissionDAO.save(permission);
+        }
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadOperation() {
-        final Application app = addPermissions();
-        permissionManager.check(app, "xread", toMap("amount", "100", "time",
-                "12:00pm", "dept", "SALES"));
+        addPermission();
+        permissionManager.check("xread",
+                toMap("amount", "100", "dept", "sales"));
     }
 
-    private Application addPermissions() {
-        final Application app = new Application("app", "username");
-        appDAO.save(app);
-        for (int i = 0; i < 2; i++) {
-            String operation = "(read|write|update|delete)";
+    @Test(expected = SecurityException.class)
+    public void testCheckBadDept() {
+        addPermission();
+        permissionManager.check("read",
+                toMap("amount", "100", "dept", "xsales"));
+    }
 
-            Permission permission = new Permission(operation, "database",
-                    "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
-            LOGGER.info("Saving " + permission);
-            permissionDAO.save(permission);
-        }
-        return app;
+    @Test(expected = SecurityException.class)
+    public void testCheckBadAmount() {
+        addPermission();
+
+        permissionManager.check("read",
+                toMap("amount", "1000", "dept", "sales"));
     }
 
     private static Map<String, String> toMap(final String... keyValues) {

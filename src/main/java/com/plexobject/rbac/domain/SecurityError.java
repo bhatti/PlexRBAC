@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
-import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
@@ -16,9 +15,7 @@ public class SecurityError extends Auditable implements Validatable,
         Identifiable<Integer> {
     @PrimaryKey(sequence = "application_seq")
     private Integer id;
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Permission.class, onRelatedEntityDelete = DeleteAction.CASCADE)
-    private Integer permissionId;
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.CASCADE)
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String username;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String operation;
@@ -28,9 +25,10 @@ public class SecurityError extends Auditable implements Validatable,
     SecurityError() {
     }
 
-    public SecurityError(final Integer permissionId,
+    public SecurityError(final String username, final String operation,
             final Map<String, String> userContext) {
-        setPermissionId(permissionId);
+        setUsername(username);
+        setOperation(operation);
         setUserContext(userContext);
     }
 
@@ -61,15 +59,6 @@ public class SecurityError extends Auditable implements Validatable,
         return username;
     }
 
-    // for JPA
-    void setPermissionId(Integer permissionId) {
-        this.permissionId = permissionId;
-    }
-
-    Integer getPermissionId() {
-        return permissionId;
-    }
-
     public void setOperation(String operation) {
         this.operation = operation;
     }
@@ -84,17 +73,12 @@ public class SecurityError extends Auditable implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append("username",
-                username).append("permissionId", this.permissionId).append(
-                "context", userContext).toString();
+                username).append("context", userContext).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
-        if (permissionId == null) {
-            errorsByField.put("permissionId", "permissionId is not specified");
-        }
-
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }

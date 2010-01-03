@@ -11,6 +11,8 @@ import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.dao.ApplicationDAO;
 import com.plexobject.rbac.dao.PermissionDAO;
 import com.plexobject.rbac.dao.PersistenceException;
+import com.plexobject.rbac.dao.SecurityErrorDAO;
+import com.plexobject.rbac.dao.UserDAO;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
 import com.sleepycat.je.DatabaseConfig;
@@ -31,6 +33,10 @@ public class DatabaseRegistry {
     private Environment dbEnvironment;
     private StoreConfig storeConfig;
     private Map<String, EntityStore> stores = new HashMap<String, EntityStore>();
+    private Map<String, ApplicationDAO> applicationDAOs = new HashMap<String, ApplicationDAO>();
+    private Map<String, PermissionDAO> permissionDAOs = new HashMap<String, PermissionDAO>();
+    private Map<String, SecurityErrorDAO> securityErrorDAOs = new HashMap<String, SecurityErrorDAO>();
+    private Map<String, UserDAO> userDAOs = new HashMap<String, UserDAO>();
 
     public DatabaseRegistry() {
         this(DATABASE_DIR);
@@ -59,12 +65,42 @@ public class DatabaseRegistry {
         storeConfig.setDeferredWrite(true);
     }
 
-    public ApplicationDAO getApplicationDAO(final String storeName) {
-        return new ApplicationDAOBDB(getStore(storeName));
+    public synchronized ApplicationDAO getApplicationDAO(final String storeName) {
+        ApplicationDAO dao = applicationDAOs.get(storeName);
+        if (dao == null) {
+            dao = new ApplicationDAOBDB(getStore(storeName));
+            applicationDAOs.put(storeName, dao);
+        }
+        return dao;
     }
 
-    public PermissionDAO getPermissionDAO(final String storeName) {
-        return new PermissionDAOBDB(getStore(storeName));
+    public synchronized PermissionDAO getPermissionDAO(final String storeName) {
+        PermissionDAO dao = permissionDAOs.get(storeName);
+        if (dao == null) {
+            dao = new PermissionDAOBDB(getStore(storeName));
+            permissionDAOs.put(storeName, dao);
+        }
+        return dao;
+    }
+
+    public synchronized SecurityErrorDAO getSecurityErrorDAO(
+            final String storeName) {
+        SecurityErrorDAO dao = securityErrorDAOs.get(storeName);
+        if (dao == null) {
+            dao = new SecurityErrorDAOBDB(getStore(storeName));
+            securityErrorDAOs.put(storeName, dao);
+        }
+        return dao;
+    }
+
+    public synchronized UserDAO getUserDAO(final String storeName) {
+        UserDAO dao = userDAOs.get(storeName);
+        if (dao == null) {
+            dao = new UserDAOBDB(getStore(storeName));
+            userDAOs.put(storeName, dao);
+        }
+        return dao;
+
     }
 
     public synchronized EntityStore getStore(final String storeName) {

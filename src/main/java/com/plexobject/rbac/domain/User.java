@@ -8,6 +8,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
+import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
 /**
@@ -17,6 +18,7 @@ import com.sleepycat.persist.model.PrimaryKey;
  * @author bhatti_shahzad
  * 
  */
+@Entity
 public class User extends Auditable implements Validatable,
         Identifiable<Integer> {
     @PrimaryKey(sequence = "user_seq")
