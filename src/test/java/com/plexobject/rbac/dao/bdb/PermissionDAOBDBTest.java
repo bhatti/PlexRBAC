@@ -13,6 +13,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.plexobject.rbac.dao.ApplicationDAO;
+import com.plexobject.rbac.dao.PermissionDAO;
 import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.utils.CurrentUserRequest;
@@ -20,27 +22,28 @@ import com.plexobject.rbac.utils.CurrentUserRequest;
 public class PermissionDAOBDBTest {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionDAOBDBTest.class);
-    private ApplicationDAOBDB appDAO;
+    private DatabaseRegistry databaseRegistry;
 
-    private PermissionDAOBDB permissionDAO;
+    private ApplicationDAO appDAO;
+
+    private PermissionDAO permissionDAO;
 
     @Before
     public void setUp() throws Exception {
+        FileUtils.deleteDirectory(new File("test_db_dir"));
+
         CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
 
-        FileUtils.deleteDirectory(new File("test_db_dir"));
-        appDAO = new ApplicationDAOBDB("test_db_dir", "permissions");
-        permissionDAO = new PermissionDAOBDB("test_db_dir", "permissions");
+        databaseRegistry = new DatabaseRegistry("test_db_dir");
+
+        appDAO = databaseRegistry.getApplicationDAO("appname");
+
+        permissionDAO = databaseRegistry.getPermissionDAO("appname");
     }
 
     @After
     public void tearDown() throws Exception {
-        if (permissionDAO != null) {
-            permissionDAO.close();
-        }
-        if (appDAO != null) {
-            appDAO.close();
-        }
+        databaseRegistry.close("appname");
         FileUtils.deleteDirectory(new File("test_db_dir"));
         CurrentUserRequest.endRequest();
     }
@@ -74,8 +77,7 @@ public class PermissionDAOBDBTest {
             } else {
                 operation = "(read|write)";
             }
-            Permission permission = new Permission(app.getID(), operation,
-                    "database",
+            Permission permission = new Permission(operation, "database",
                     "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
             LOGGER.debug("Saving " + permission);
             permissionDAO.save(permission);

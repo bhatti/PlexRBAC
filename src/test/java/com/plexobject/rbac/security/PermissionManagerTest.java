@@ -10,8 +10,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.dao.bdb.ApplicationDAOBDB;
-import com.plexobject.rbac.dao.bdb.PermissionDAOBDB;
+import com.plexobject.rbac.dao.ApplicationDAO;
+import com.plexobject.rbac.dao.PermissionDAO;
+import com.plexobject.rbac.dao.bdb.DatabaseRegistry;
 import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.eval.simple.SimpleEvaluator;
@@ -20,19 +21,21 @@ import com.plexobject.rbac.utils.CurrentUserRequest;
 public class PermissionManagerTest {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionManagerTest.class);
-
-    private ApplicationDAOBDB appDAO;
-
-    private PermissionDAOBDB permissionDAO;
+    private DatabaseRegistry databaseRegistry;
+    private ApplicationDAO appDAO;
+    private PermissionDAO permissionDAO;
     private PermissionManager permissionManager;
 
     @Before
     public void setUp() throws Exception {
-        CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
-
         FileUtils.deleteDirectory(new File("test_db_dir"));
-        appDAO = new ApplicationDAOBDB("test_db_dir", "db");
-        permissionDAO = new PermissionDAOBDB("test_db_dir", "db");
+
+        CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
+        databaseRegistry = new DatabaseRegistry("test_db_dir");
+
+        appDAO = databaseRegistry.getApplicationDAO("appname");
+
+        permissionDAO = databaseRegistry.getPermissionDAO("appname");
         permissionManager = new PermissionManager(permissionDAO,
                 new SimpleEvaluator());
 
@@ -40,12 +43,7 @@ public class PermissionManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        if (permissionDAO != null) {
-            permissionDAO.close();
-        }
-        if (appDAO != null) {
-            appDAO.close();
-        }
+        databaseRegistry.close("appname");
         FileUtils.deleteDirectory(new File("test_db_dir"));
         CurrentUserRequest.endRequest();
     }
@@ -70,8 +68,7 @@ public class PermissionManagerTest {
         for (int i = 0; i < 2; i++) {
             String operation = "(read|write|update|delete)";
 
-            Permission permission = new Permission(app.getID(), operation,
-                    "database",
+            Permission permission = new Permission(operation, "database",
                     "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
             LOGGER.info("Saving " + permission);
             permissionDAO.save(permission);

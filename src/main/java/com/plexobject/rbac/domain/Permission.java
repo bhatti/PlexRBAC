@@ -8,7 +8,6 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
-import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
@@ -29,8 +28,6 @@ public class Permission extends Auditable implements Validatable,
     private String operation; // can be string or regular expression
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String target;
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
-    private String applicationName;
 
     private String expression;
 
@@ -38,9 +35,8 @@ public class Permission extends Auditable implements Validatable,
     Permission() {
     }
 
-    public Permission(final String applicationName, final String operation,
-            final String target, final String expression) {
-        setApplicationName(applicationName);
+    public Permission(final String operation, final String target,
+            final String expression) {
         setOperation(operation);
         setTarget(target);
         setExpression(expression);
@@ -105,14 +101,6 @@ public class Permission extends Auditable implements Validatable,
         this.target = target;
     }
 
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
     /**
      * 
      * @return
@@ -137,8 +125,7 @@ public class Permission extends Auditable implements Validatable,
             return false;
         }
         Permission rhs = (Permission) object;
-        return new EqualsBuilder().append(this.applicationName,
-                rhs.applicationName).append(this.operation, rhs.operation)
+        return new EqualsBuilder().append(this.operation, rhs.operation)
                 .append(this.target, rhs.target).append(this.expression,
                         rhs.expression).isEquals();
     }
@@ -148,9 +135,8 @@ public class Permission extends Auditable implements Validatable,
      */
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(786529047, 1924536713).append(
-                this.applicationName).append(this.operation)
-                .append(this.target).toHashCode();
+        return new HashCodeBuilder(786529047, 1924536713)
+                .append(this.operation).append(this.target).toHashCode();
     }
 
     /**
@@ -159,9 +145,8 @@ public class Permission extends Auditable implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", this.id).append(
-                "applicationName", this.applicationName).append("operation",
-                this.operation).append("target", target).append("expression",
-                this.expression).toString();
+                "operation", this.operation).append("target", target).append(
+                "expression", this.expression).toString();
     }
 
     @Override
@@ -173,12 +158,6 @@ public class Permission extends Auditable implements Validatable,
         if (GenericValidator.isBlankOrNull(target)) {
             errorsByField.put("target", "target is not specified");
         }
-
-        if (applicationName == null) {
-            errorsByField.put("applicationName",
-                    "applicationName is not specified");
-        }
-
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }

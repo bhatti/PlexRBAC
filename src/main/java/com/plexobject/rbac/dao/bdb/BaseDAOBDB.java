@@ -1,16 +1,13 @@
 package com.plexobject.rbac.dao.bdb;
 
-import java.io.File;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
 
-import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.dao.BaseDAO;
 import com.plexobject.rbac.dao.PagedList;
 import com.plexobject.rbac.dao.PersistenceException;
@@ -20,132 +17,35 @@ import com.plexobject.rbac.domain.Validatable;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
 import com.plexobject.rbac.utils.CurrentUserRequest;
-import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.EnvironmentLockedException;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
-import com.sleepycat.persist.StoreConfig;
-import com.sleepycat.persist.evolve.IncompatibleClassException;
 
 public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
         BaseDAO<T, ID> {
     static final int MAX_LIMIT = 512;
     static final int DEFAULT_LIMIT = 20;
     final Logger LOGGER = Logger.getLogger(getClass());
-    private static final String DATABASE_DIR = Configuration.getInstance()
-            .getProperty("database.dir", "plexrbac");
-    private static final String DATABASE_NAME = Configuration.getInstance()
-            .getProperty("database.name", "rbac_db");
     private final Class<T> entityBeanType;
     private final Class<ID> pkType;
+    private final EntityStore store;
 
-    private Environment dbEnvironment;
-    private final String tableName;
-    EntityStore store;
-    PrimaryIndex<ID, T> primaryIndex;
-
-    public BaseDAOBDB() throws IncompatibleClassException, DatabaseException {
-        this(DATABASE_DIR, DATABASE_NAME);
-    }
+    protected PrimaryIndex<ID, T> primaryIndex;
 
     @SuppressWarnings("unchecked")
-    public BaseDAOBDB(final String databaseDir, final String storeName)
-            throws IncompatibleClassException, DatabaseException {
-        if (GenericValidator.isBlankOrNull(databaseDir)) {
-            throw new IllegalArgumentException("databaseDir is not specified");
-        }
-        if (GenericValidator.isBlankOrNull(storeName)) {
-            throw new IllegalArgumentException("tableName is not specified");
-        }
+    public BaseDAOBDB(final EntityStore store) {
+        this.store = store;
         this.entityBeanType = (Class<T>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[0];
         this.pkType = (Class<ID>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[1];
-        this.tableName = storeName;
-        // Open the DB environment. Create if they do not already exist.
-        EnvironmentConfig envConfig = new EnvironmentConfig();
-        envConfig.setAllowCreate(true);
-        envConfig.setTransactional(false);
-        envConfig.setSharedCache(true);
-        // envConfig.setReadOnly(true);
-        final File dir = new File(databaseDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        dbEnvironment = new Environment(dir, envConfig);
-        StoreConfig storeConfig = new StoreConfig();
-        storeConfig.setAllowCreate(true);
-        storeConfig.setDeferredWrite(true);
-        store = new EntityStore(dbEnvironment, storeName, storeConfig);
-        primaryIndex = store.getPrimaryIndex(pkType, entityBeanType);
-    }
-
-    public String[] getAllDatabases() throws PersistenceException {
-        final Timing timer = Metric.newTiming(getClass().getName()
-                + ".getAllDatabases");
         try {
-            List<String> dbList = dbEnvironment.getDatabaseNames();
-            String[] dbNames = new String[dbList.size()];
-            for (int i = 0; i < dbList.size(); i++) {
-                dbNames[i] = dbList.get(i);
-            }
-            return dbNames;
-        } catch (EnvironmentLockedException e) {
-            throw new PersistenceException(e);
+            primaryIndex = store.getPrimaryIndex(pkType, entityBeanType);
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
-        } finally {
-            timer.stop();
         }
-    }
 
-    public void removeDatabase() {
-        final Timing timer = Metric.newTiming(getClass().getName()
-                + ".removeDatabase");
-        try {
-            dbEnvironment.removeDatabase(null, tableName);
-        } catch (EnvironmentLockedException e) {
-            throw new PersistenceException(e);
-        } catch (DatabaseException e) {
-            throw new PersistenceException(e);
-        } finally {
-            timer.stop();
-        }
-    }
-
-    public void createDatabase() {
-        final Timing timer = Metric.newTiming(getClass().getName()
-                + ".createDatabase");
-        try {
-            DatabaseConfig dbconfig = new DatabaseConfig();
-            dbconfig.setAllowCreate(true);
-            dbconfig.setSortedDuplicates(false);
-            dbconfig.setExclusiveCreate(false);
-            dbconfig.setReadOnly(false);
-            dbconfig.setTransactional(true);
-            dbEnvironment.openDatabase(null, tableName, dbconfig);
-        } catch (EnvironmentLockedException e) {
-            throw new PersistenceException(e);
-        } catch (DatabaseException e) {
-            throw new PersistenceException(e);
-        } finally {
-            timer.stop();
-        }
-    }
-
-    public void close() throws DatabaseException {
-        if (dbEnvironment == null) {
-            LOGGER.warn("already closed");
-            return;
-        }
-        store.close();
-        dbEnvironment.sync();
-        dbEnvironment.close();
-        dbEnvironment = null;
     }
 
     @Override
@@ -211,6 +111,7 @@ public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
     @Override
     public T save(T object) throws PersistenceException {
         final Timing timer = Metric.newTiming(getClass().getName() + ".remove");
+
         try {
             // call validation
             if (object instanceof Validatable) {
@@ -241,4 +142,11 @@ public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
         return entityBeanType;
     }
 
+    public void close(final String storeName) {
+        try {
+            store.close();
+        } catch (DatabaseException e) {
+            throw new PersistenceException(e);
+        }
+    }
 }

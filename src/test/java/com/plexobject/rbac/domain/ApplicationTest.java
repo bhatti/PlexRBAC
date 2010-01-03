@@ -9,7 +9,7 @@ public class ApplicationTest {
     public void testGetSetEmpty() {
         Application app = new Application();
         Assert.assertNull(app.getID());
-        Assert.assertNull(app.getOwnerUsername());
+        Assert.assertNull(app.getDescription());
     }
 
 }

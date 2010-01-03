@@ -18,8 +18,6 @@ public class SecurityError extends Auditable implements Validatable,
     private Integer id;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Permission.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private Integer permissionId;
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
-    private String applicationName;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String username;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
@@ -80,34 +78,19 @@ public class SecurityError extends Auditable implements Validatable,
         return operation;
     }
 
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
     /**
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("id", id).append(
-                "applicationName", applicationName)
-                .append("username", username).append("permissionId",
-                        this.permissionId).append("context", userContext)
-                .toString();
+        return new ToStringBuilder(this).append("id", id).append("username",
+                username).append("permissionId", this.permissionId).append(
+                "context", userContext).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
-
-        if (applicationName == null) {
-            errorsByField.put("applicationName",
-                    "applicationNameis not specified");
-        }
         if (permissionId == null) {
             errorsByField.put("permissionId", "permissionId is not specified");
         }

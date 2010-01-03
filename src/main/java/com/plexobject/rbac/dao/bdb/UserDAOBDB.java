@@ -6,17 +6,20 @@ import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.SecondaryIndex;
-import com.sleepycat.persist.evolve.IncompatibleClassException;
 
 public class UserDAOBDB extends BaseDAOBDB<User, Integer> implements UserDAO {
     private SecondaryIndex<String, Integer, User> usernameIndex;
 
-    public UserDAOBDB(String databaseDir, String storeName)
-            throws IncompatibleClassException, DatabaseException {
-        super(databaseDir, storeName);
-        usernameIndex = store.getSecondaryIndex(primaryIndex, String.class,
-                "username");
+    public UserDAOBDB(final EntityStore store) {
+        super(store);
+        try {
+            usernameIndex = store.getSecondaryIndex(primaryIndex, String.class,
+                    "username");
+        } catch (DatabaseException e) {
+            throw new PersistenceException(e);
+        }
 
     }
 

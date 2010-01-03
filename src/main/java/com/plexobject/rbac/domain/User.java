@@ -8,10 +8,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
-import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.PrimaryKey;
-import com.sleepycat.persist.model.Relationship;
-import com.sleepycat.persist.model.SecondaryKey;
 
 /**
  * This class defines a simple user class Note: This project does not deal with
@@ -25,8 +22,6 @@ public class User extends Auditable implements Validatable,
     @PrimaryKey(sequence = "user_seq")
     private Integer id;
     private String username;
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
-    private String applicationName;
 
     // for JPA
     User() {
@@ -64,8 +59,7 @@ public class User extends Auditable implements Validatable,
             return false;
         }
         User rhs = (User) object;
-        return new EqualsBuilder().append(this.applicationName,
-                rhs.applicationName).append(this.username, rhs.username)
+        return new EqualsBuilder().append(this.username, rhs.username)
                 .isEquals();
     }
 
@@ -83,29 +77,13 @@ public class User extends Auditable implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("applicationName",
-                applicationName).append("username", this.username).toString();
-    }
-
-    public void setApplicationName(String applicationName) {
-        if (GenericValidator.isBlankOrNull(applicationName)) {
-            throw new IllegalArgumentException(
-                    "applicationName is not specified");
-        }
-        this.applicationName = applicationName;
-    }
-
-    public String getApplicationName() {
-        return applicationName;
+        return new ToStringBuilder(this).append("username", this.username)
+                .toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
-        if (GenericValidator.isBlankOrNull(applicationName)) {
-            errorsByField.put("applicationName",
-                    "applicationName is not specified");
-        }
         if (GenericValidator.isBlankOrNull(username)) {
             errorsByField.put("username", "username is not specified");
         }

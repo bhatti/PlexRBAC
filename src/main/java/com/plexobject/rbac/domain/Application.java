@@ -10,8 +10,6 @@ import org.apache.commons.validator.GenericValidator;
 
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
-import com.sleepycat.persist.model.Relationship;
-import com.sleepycat.persist.model.SecondaryKey;
 
 /**
  * The application defines a user application that will define a set of
@@ -23,17 +21,23 @@ public class Application extends Auditable implements Validatable,
         Identifiable<String> {
     @PrimaryKey
     private String id;
-    private String descirption;
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
-    private String ownerUsername;
+    private String description;
 
     // for JPA
     Application() {
     }
 
-    public Application(final String id, final String owner) {
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Application(final String id, final String description) {
         setID(id);
-        setOwnerUsername(owner);
+        setDescription(description);
     }
 
     public void setID(String id) {
@@ -45,17 +49,6 @@ public class Application extends Auditable implements Validatable,
 
     public String getID() {
         return id;
-    }
-
-    public void setOwnerUsername(String ownerUsername) {
-        if (GenericValidator.isBlankOrNull(ownerUsername)) {
-            throw new IllegalArgumentException("ownerUsername is not specified");
-        }
-        this.ownerUsername = ownerUsername;
-    }
-
-    public String getOwnerUsername() {
-        return ownerUsername;
     }
 
     /**
@@ -93,20 +86,10 @@ public class Application extends Auditable implements Validatable,
         if (GenericValidator.isBlankOrNull(id)) {
             errorsByField.put("name", "application name is not specified");
         }
-        if (GenericValidator.isBlankOrNull(ownerUsername)) {
-            errorsByField.put("ownerUsername", "owner user is not specified");
-        }
+
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }
-    }
-
-    public void setDescirption(String descirption) {
-        this.descirption = descirption;
-    }
-
-    public String getDescirption() {
-        return descirption;
     }
 
 }

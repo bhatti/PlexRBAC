@@ -11,48 +11,54 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.plexobject.rbac.dao.ApplicationDAO;
 import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class ApplicationDAOBDBTest {
+    private static final String TEST_DB_DIR = "test_db_dirx";
+
     private static final Logger LOGGER = Logger
             .getLogger(ApplicationDAOBDBTest.class);
 
-    private ApplicationDAOBDB dao;
+    private ApplicationDAO dao;
+    private DatabaseRegistry databaseRegistry;
 
     @Before
     public void setUp() throws Exception {
-        CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
+        FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        FileUtils.deleteDirectory(new File("test_db_dir"));
-        dao = new ApplicationDAOBDB("test_db_dir", "app");
+        CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
+        databaseRegistry = new DatabaseRegistry(TEST_DB_DIR);
+        dao = databaseRegistry.getApplicationDAO("appname");
     }
 
     @After
     public void tearDown() throws Exception {
-        dao.close();
-
-        FileUtils.deleteDirectory(new File("test_db_dir"));
+        databaseRegistry.close("appname");
+        FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();
     }
 
     @Test
-    public void testFindByUser() {
-        final String username = "user " + System.currentTimeMillis();
-        for (int i = 0; i < 10; i++) {
-            Application app = new Application("name" + i, username);
-            dao.save(app);
+    public void testFindAll() {
+        try {
+            Collection<Application> all = dao.findAll(null, 100);
+            Assert.assertEquals(0, all.size());
+
+            final String username = "user " + System.currentTimeMillis();
+            for (int i = 0; i < 10; i++) {
+                Application app = new Application("name" + i, username);
+                dao.save(app);
+            }
+            all = dao.findAll(null, 10);
+            for (Application app : all) {
+                Assert.assertTrue(app.getID().startsWith("name"));
+            }
+            Assert.assertEquals(10, all.size());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        Collection<Application> all = dao.findByUser(username);
-        for (Application app : all) {
-            Assert.assertTrue(app.getID().startsWith("name"));
-        }
-        Assert.assertEquals(10, all.size());
-
-        all = dao.findByUser(username + "x");
-        Assert.assertEquals(0, all.size());
-
     }
 
     @Test
@@ -69,20 +75,6 @@ public class ApplicationDAOBDBTest {
             }
             Assert.assertNotNull(app);
         }
-    }
-
-    @Test
-    public void testFindAll() {
-        final String username = "user " + System.currentTimeMillis();
-        for (int i = 0; i < 10; i++) {
-            Application app = new Application("name" + i, username);
-            dao.save(app);
-        }
-        Collection<Application> all = dao.findAll(null, 10);
-        for (Application app : all) {
-            Assert.assertTrue(app.getID().startsWith("name"));
-        }
-        Assert.assertEquals(10, all.size());
     }
 
     @Test

@@ -13,18 +13,21 @@ import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.persist.EntityCursor;
+import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.SecondaryIndex;
-import com.sleepycat.persist.evolve.IncompatibleClassException;
 
 public class SecurityErrorDAOBDB extends BaseDAOBDB<SecurityError, Integer>
         implements SecurityErrorDAO {
     private SecondaryIndex<Date, Integer, SecurityError> createdAtIndex;
 
-    public SecurityErrorDAOBDB(String databaseDir, String storeName)
-            throws IncompatibleClassException, DatabaseException {
-        super(databaseDir, storeName);
-        createdAtIndex = store.getSecondaryIndex(primaryIndex, Date.class,
-                "createdAt");
+    public SecurityErrorDAOBDB(final EntityStore store) {
+        super(store);
+        try {
+            createdAtIndex = store.getSecondaryIndex(primaryIndex, Date.class,
+                    "createdAt");
+        } catch (DatabaseException e) {
+            throw new PersistenceException(e);
+        }
 
     }
 
@@ -55,9 +58,6 @@ public class SecurityErrorDAOBDB extends BaseDAOBDB<SecurityError, Integer>
                 SecurityError next = it.next();
                 if (firstKey != null
                         && firstKey.intValue() < next.getID().intValue()) {
-                    continue;
-                }
-                if (!next.getApplicationName().equals(appName)) {
                     continue;
                 }
                 all.add(next);

@@ -9,7 +9,6 @@ public class PermissionTest {
     public void testGetSet() {
         Permission p = new Permission();
         Assert.assertNull(p.getID());
-        Assert.assertNull(p.getApplicationName());
         Assert.assertNull(p.getOperation());
         Assert.assertNull(p.getTarget());
     }

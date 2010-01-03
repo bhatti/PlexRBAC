@@ -31,8 +31,7 @@ public class PermissionManager {
             throw new SecurityException("Username is not specified", username,
                     operation, userContext);
         }
-        Collection<Permission> all = permissionDAO
-                .getPermissionsForApplication(application.getID(), null, 20);
+        Collection<Permission> all = permissionDAO.findAll(null, 20);
         for (Permission permission : all) {
             if (!permission.impliesOperation(operation)) {
                 if (LOGGER.isInfoEnabled()) {
