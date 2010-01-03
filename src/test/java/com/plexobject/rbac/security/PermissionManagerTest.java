@@ -70,7 +70,7 @@ public class PermissionManagerTest {
         for (int i = 0; i < 2; i++) {
             String operation = "(read|write|update|delete)";
 
-            Permission permission = new Permission(app.getName(), operation,
+            Permission permission = new Permission(app.getID(), operation,
                     "database",
                     "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
             LOGGER.info("Saving " + permission);

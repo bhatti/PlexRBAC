@@ -20,9 +20,10 @@ import com.sleepycat.persist.model.SecondaryKey;
  * 
  */
 @Entity
-public class Permission extends Auditable implements Validatable {
+public class Permission extends Auditable implements Validatable,
+        Identifiable<Integer> {
     @PrimaryKey(sequence = "permission_seq")
-    private int id;
+    private Integer id;
 
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String operation; // can be string or regular expression
@@ -45,11 +46,11 @@ public class Permission extends Auditable implements Validatable {
         setExpression(expression);
     }
 
-    public void setId(int id) {
+    public void setID(Integer id) {
         this.id = id;
     }
 
-    public int getId() {
+    public Integer getID() {
         return id;
     }
 

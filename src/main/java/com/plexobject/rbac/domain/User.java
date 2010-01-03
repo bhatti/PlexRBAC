@@ -20,9 +20,10 @@ import com.sleepycat.persist.model.SecondaryKey;
  * @author bhatti_shahzad
  * 
  */
-public class User extends Auditable implements Validatable {
+public class User extends Auditable implements Validatable,
+        Identifiable<Integer> {
     @PrimaryKey(sequence = "user_seq")
-    private int id;
+    private Integer id;
     private String username;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String applicationName;
@@ -31,11 +32,11 @@ public class User extends Auditable implements Validatable {
     User() {
     }
 
-    public int getId() {
+    public Integer getID() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setID(Integer id) {
         this.id = id;
     }
 

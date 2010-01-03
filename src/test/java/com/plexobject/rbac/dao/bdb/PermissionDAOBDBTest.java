@@ -2,7 +2,7 @@ package com.plexobject.rbac.dao.bdb;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -74,7 +74,7 @@ public class PermissionDAOBDBTest {
             } else {
                 operation = "(read|write)";
             }
-            Permission permission = new Permission(app.getName(), operation,
+            Permission permission = new Permission(app.getID(), operation,
                     "database",
                     "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
             LOGGER.debug("Saving " + permission);
@@ -83,10 +83,9 @@ public class PermissionDAOBDBTest {
 
         }
 
-        Iterator<Permission> it = permissionDAO.findAll();
+        Collection<Permission> all = permissionDAO.findAll(null, 10);
         int count = 0;
-        while (it.hasNext()) {
-            Permission permission = it.next();
+        for (Permission permission : all) {
             Assert.assertEquals("expected " + saved.get(count) + ", but was "
                     + permission, permission, saved.get(count));
             if (LOGGER.isDebugEnabled()) {

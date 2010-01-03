@@ -13,18 +13,19 @@ import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
-public class Role extends Auditable implements Validatable {
+public class Role extends Auditable implements Validatable,
+        Identifiable<Integer> {
     @PrimaryKey(sequence = "role_seq")
-    private int id;
+    private Integer id;
     private String rolename;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String applicationName;
 
-    public int getId() {
+    public Integer getID() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setID(Integer id) {
         this.id = id;
     }
 

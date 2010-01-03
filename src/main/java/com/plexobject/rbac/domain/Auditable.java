@@ -17,14 +17,14 @@ public abstract class Auditable {
     private String updatedIPAddress;
 
     public Date getCreatedAt() {
-        return createdAt;
+        return createdAt != null ? new Date(createdAt.getTime()) : null;
     }
 
     public void setCreatedAt(Date createdAt) {
         if (createdAt == null) {
             throw new IllegalArgumentException("createdAt not specified");
         }
-        this.createdAt = createdAt;
+        this.createdAt = new Date(createdAt.getTime());
     }
 
     public String getCreatedBy() {
@@ -50,14 +50,14 @@ public abstract class Auditable {
     }
 
     public Date getUpdatedAt() {
-        return updatedAt;
+        return updatedAt != null ? new Date(updatedAt.getTime()) : null;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         if (updatedAt == null) {
             throw new IllegalArgumentException("updatedAt not specified");
         }
-        this.updatedAt = updatedAt;
+        this.updatedAt = new Date(updatedAt.getTime());
     }
 
     public String getUpdatedBy() {

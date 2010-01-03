@@ -34,7 +34,20 @@ public class Expression {
                 throw new IllegalArgumentException("illegal expression in "
                         + rawExpr + ", full " + expression);
             }
-            String value = StringUtils.join(tokens, " ", 2, tokens.length).replaceAll("\\s+", " ").trim();
+            String value = null;
+            int start, end;
+            if ((start = rawExpr.indexOf("'")) != -1
+                    && (end = rawExpr.lastIndexOf("'")) != -1 && start < end) {
+                value = rawExpr.substring(start + 1, end);
+            } else if ((start = rawExpr.indexOf("\"")) != -1
+                    && (end = rawExpr.lastIndexOf("\"")) != -1
+                    && start < end) {
+                value = rawExpr.substring(start + 1, end);
+            } else {
+                value = StringUtils.join(tokens, " ", 2, tokens.length)
+                        .replaceAll("\\s+", " ");
+            }
+            value = value.trim();
             String name = tokens[0];
             Type type = Type.isNumber(tokens[2]) ? Type.NUMBER : value
                     .indexOf(":") != -1 ? Type.TIME : Type.STRING;
@@ -92,7 +105,9 @@ public class Expression {
             return false;
         }
         Expression rhs = (Expression) object;
-        return new EqualsBuilder().append(this.name, rhs.name).isEquals();
+        return new EqualsBuilder().append(this.name, rhs.name).append(
+                this.type, rhs.type).append(this.operator, rhs.operator)
+                .append(this.value, rhs.value).isEquals();
     }
 
     /**

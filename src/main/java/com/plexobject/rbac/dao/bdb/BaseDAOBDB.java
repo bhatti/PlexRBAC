@@ -2,6 +2,7 @@ package com.plexobject.rbac.dao.bdb;
 
 import java.io.File;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -11,8 +12,10 @@ import org.apache.log4j.Logger;
 
 import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.dao.BaseDAO;
+import com.plexobject.rbac.dao.PagedList;
 import com.plexobject.rbac.dao.PersistenceException;
 import com.plexobject.rbac.domain.Auditable;
+import com.plexobject.rbac.domain.Identifiable;
 import com.plexobject.rbac.domain.Validatable;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
@@ -22,12 +25,16 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentLockedException;
+import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.StoreConfig;
 import com.sleepycat.persist.evolve.IncompatibleClassException;
 
-public class BaseDAOBDB<T, ID> implements BaseDAO<T, ID> {
+public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
+        BaseDAO<T, ID> {
+    static final int MAX_LIMIT = 512;
+    static final int DEFAULT_LIMIT = 20;
     final Logger LOGGER = Logger.getLogger(getClass());
     private static final String DATABASE_DIR = Configuration.getInstance()
             .getProperty("database.dir", "plexrbac");
@@ -142,15 +149,37 @@ public class BaseDAOBDB<T, ID> implements BaseDAO<T, ID> {
     }
 
     @Override
-    public Iterator<T> findAll() {
+    public PagedList<T, ID> findAll(ID firstKey, int limit) {
+        if (limit <= 0) {
+            limit = DEFAULT_LIMIT;
+        }
+        limit = Math.max(limit, MAX_LIMIT);
         final Timing timer = Metric
                 .newTiming(getClass().getName() + ".findAll");
+        EntityCursor<T> cursor = null;
+        List<T> all = new ArrayList<T>();
         try {
-            return new CursorIterator<T>(primaryIndex.entities());
+            cursor = primaryIndex.entities(firstKey, false, null, true);
+            Iterator<T> it = cursor.iterator();
+            ID lastKey = null;
+            for (int i = 0; it.hasNext() && i < limit; i++) {
+                T next = it.next();
+                all.add(next);
+                lastKey = next.getID();
+            }
+            return new PagedList<T, ID>(all, firstKey, lastKey, limit, all
+                    .size() == limit);
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
         } finally {
             timer.stop();
+            if (cursor != null) {
+                try {
+                    cursor.close();
+                } catch (DatabaseException e) {
+                    LOGGER.error("failed to close cursor", e);
+                }
+            }
         }
     }
 

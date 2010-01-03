@@ -19,9 +19,11 @@ import com.sleepycat.persist.model.SecondaryKey;
  * 
  */
 @Entity
-public class Application extends Auditable implements Validatable {
+public class Application extends Auditable implements Validatable,
+        Identifiable<String> {
     @PrimaryKey
-    private String name;
+    private String id;
+    private String descirption;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String ownerUsername;
 
@@ -29,20 +31,20 @@ public class Application extends Auditable implements Validatable {
     Application() {
     }
 
-    public Application(final String name, final String owner) {
-        setName(name);
+    public Application(final String id, final String owner) {
+        setID(id);
         setOwnerUsername(owner);
     }
 
-    public void setName(String name) {
-        if (GenericValidator.isBlankOrNull(name)) {
-            throw new IllegalArgumentException("name is not specified");
+    public void setID(String id) {
+        if (GenericValidator.isBlankOrNull(id)) {
+            throw new IllegalArgumentException("id is not specified");
         }
-        this.name = name;
+        this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getID() {
+        return id;
     }
 
     public void setOwnerUsername(String ownerUsername) {
@@ -65,7 +67,7 @@ public class Application extends Auditable implements Validatable {
             return false;
         }
         Application rhs = (Application) object;
-        return new EqualsBuilder().append(this.name, rhs.name).isEquals();
+        return new EqualsBuilder().append(this.id, rhs.id).isEquals();
     }
 
     /**
@@ -73,7 +75,7 @@ public class Application extends Auditable implements Validatable {
      */
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(786529047, 1924536713).append(this.name)
+        return new HashCodeBuilder(786529047, 1924536713).append(this.id)
                 .toHashCode();
     }
 
@@ -82,13 +84,13 @@ public class Application extends Auditable implements Validatable {
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("name", this.name).toString();
+        return new ToStringBuilder(this).append("name", this.id).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
-        if (GenericValidator.isBlankOrNull(name)) {
+        if (GenericValidator.isBlankOrNull(id)) {
             errorsByField.put("name", "application name is not specified");
         }
         if (GenericValidator.isBlankOrNull(ownerUsername)) {
@@ -97,6 +99,14 @@ public class Application extends Auditable implements Validatable {
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }
+    }
+
+    public void setDescirption(String descirption) {
+        this.descirption = descirption;
+    }
+
+    public String getDescirption() {
+        return descirption;
     }
 
 }

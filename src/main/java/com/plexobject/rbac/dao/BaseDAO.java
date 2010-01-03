@@ -1,13 +1,13 @@
 package com.plexobject.rbac.dao;
 
-import java.util.Iterator;
+import com.plexobject.rbac.domain.Identifiable;
 
-public interface BaseDAO<T, ID> {
+public interface BaseDAO<T extends Identifiable<ID>, ID> {
     T findByID(ID id) throws PersistenceException;
 
     T save(T object) throws PersistenceException;
 
     boolean remove(ID id) throws PersistenceException;
 
-    Iterator<T> findAll();
+    PagedList<T, ID> findAll(ID lastKey, int limit);
 }

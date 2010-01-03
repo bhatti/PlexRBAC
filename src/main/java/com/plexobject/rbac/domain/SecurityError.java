@@ -12,13 +12,14 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
 @Entity
-public class SecurityError extends Auditable implements Validatable {
+public class SecurityError extends Auditable implements Validatable,
+        Identifiable<Integer> {
     @PrimaryKey(sequence = "application_seq")
-    private int id;
+    private Integer id;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Permission.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private Integer permissionId;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Application.class, onRelatedEntityDelete = DeleteAction.CASCADE)
-    private Integer applicationName;
+    private String applicationName;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.CASCADE)
     private String username;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
@@ -35,11 +36,11 @@ public class SecurityError extends Auditable implements Validatable {
         setUserContext(userContext);
     }
 
-    public void setId(int id) {
+    public void setID(Integer id) {
         this.id = id;
     }
 
-    public int getId() {
+    public Integer getID() {
         return id;
     }
 
@@ -77,6 +78,14 @@ public class SecurityError extends Auditable implements Validatable {
 
     public String getOperation() {
         return operation;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
     }
 
     /**

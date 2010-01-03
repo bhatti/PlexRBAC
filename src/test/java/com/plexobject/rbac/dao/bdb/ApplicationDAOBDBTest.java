@@ -1,7 +1,7 @@
 package com.plexobject.rbac.dao.bdb;
 
 import java.io.File;
-import java.util.Iterator;
+import java.util.Collection;
 
 import junit.framework.Assert;
 
@@ -44,23 +44,14 @@ public class ApplicationDAOBDBTest {
             dao.save(app);
         }
 
-        Iterator<Application> it = dao.findByUser(username);
-        int count = 0;
-        while (it.hasNext()) {
-            Application app = it.next();
-            Assert.assertTrue(app.getName().startsWith("name"));
-            count++;
+        Collection<Application> all = dao.findByUser(username);
+        for (Application app : all) {
+            Assert.assertTrue(app.getID().startsWith("name"));
         }
-        Assert.assertEquals(10, count);
+        Assert.assertEquals(10, all.size());
 
-        it = dao.findByUser(username + "x");
-        count = 0;
-        while (it.hasNext()) {
-            Application app = it.next();
-            Assert.assertTrue(app.getName().startsWith("name"));
-            count++;
-        }
-        Assert.assertEquals(0, count);
+        all = dao.findByUser(username + "x");
+        Assert.assertEquals(0, all.size());
 
     }
 
@@ -87,14 +78,11 @@ public class ApplicationDAOBDBTest {
             Application app = new Application("name" + i, username);
             dao.save(app);
         }
-        Iterator<Application> it = dao.findAll();
-        int count = 0;
-        while (it.hasNext()) {
-            Application app = it.next();
-            Assert.assertTrue(app.getName().startsWith("name"));
-            count++;
+        Collection<Application> all = dao.findAll(null, 10);
+        for (Application app : all) {
+            Assert.assertTrue(app.getID().startsWith("name"));
         }
-        Assert.assertEquals(10, count);
+        Assert.assertEquals(10, all.size());
     }
 
     @Test

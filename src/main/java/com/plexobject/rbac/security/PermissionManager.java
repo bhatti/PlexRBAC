@@ -1,17 +1,15 @@
 package com.plexobject.rbac.security;
 
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
 
 import com.plexobject.rbac.dao.PermissionDAO;
-import com.plexobject.rbac.dao.bdb.CursorIterator;
 import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.eval.PredicateEvaluator;
-import com.plexobject.rbac.eval.simple.SimpleEvaluator;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionManager {
@@ -33,30 +31,24 @@ public class PermissionManager {
             throw new SecurityException("Username is not specified", username,
                     operation, userContext);
         }
-        Iterator<Permission> it = permissionDAO
-                .getPermissionsForApplication(application.getName());
-        try {
-            while (it.hasNext()) {
-                Permission permission = it.next();
-                if (!permission.impliesOperation(operation)) {
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("Operation " + operation
-                                + " is not permitted by permission "
-                                + permission);
-                    }
+        Collection<Permission> all = permissionDAO
+                .getPermissionsForApplication(application.getID(), null, 20);
+        for (Permission permission : all) {
+            if (!permission.impliesOperation(operation)) {
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Operation " + operation
+                            + " is not permitted by permission " + permission);
+                }
+                throw new SecurityException(permission, username, operation,
+                        userContext);
+            }
+            if (!GenericValidator.isBlankOrNull(permission.getExpression())) {
+                if (!evaluator
+                        .evaluate(permission.getExpression(), userContext)) {
                     throw new SecurityException(permission, username,
                             operation, userContext);
                 }
-                if (!GenericValidator.isBlankOrNull(permission.getExpression())) {
-                    if (!evaluator.evaluate(permission.getExpression(),
-                            userContext)) {
-                        throw new SecurityException(permission, username,
-                                operation, userContext);
-                    }
-                }
             }
-        } finally {
-            ((CursorIterator<Permission>) it).close();
         }
     }
 }

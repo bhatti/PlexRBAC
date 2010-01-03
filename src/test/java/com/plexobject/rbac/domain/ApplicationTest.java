@@ -8,7 +8,7 @@ public class ApplicationTest {
     @Test
     public void testGetSetEmpty() {
         Application app = new Application();
-        Assert.assertNull(app.getName());
+        Assert.assertNull(app.getID());
         Assert.assertNull(app.getOwnerUsername());
     }
 
