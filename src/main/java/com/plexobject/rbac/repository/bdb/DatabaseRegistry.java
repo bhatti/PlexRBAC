@@ -34,11 +34,11 @@ public class DatabaseRegistry {
     private Environment dbEnvironment;
     private StoreConfig storeConfig;
     private Map<String, EntityStore> stores = new HashMap<String, EntityStore>();
-    private Map<String, ApplicationRepository> applicationRepositorys = new HashMap<String, ApplicationRepository>();
-    private Map<String, PermissionRepository> permissionRepositorys = new HashMap<String, PermissionRepository>();
-    private Map<String, SecurityErrorRepository> securityErrorRepositorys = new HashMap<String, SecurityErrorRepository>();
-    private Map<String, UserRepository> userRepositorys = new HashMap<String, UserRepository>();
-    private Map<String, RoleRepository> roleRepositorys = new HashMap<String, RoleRepository>();
+    private Map<String, ApplicationRepository> applicationRepositories = new HashMap<String, ApplicationRepository>();
+    private Map<String, PermissionRepository> permissionRepositories = new HashMap<String, PermissionRepository>();
+    private Map<String, SecurityErrorRepository> securityErrorRepositories = new HashMap<String, SecurityErrorRepository>();
+    private Map<String, UserRepository> userRepositories = new HashMap<String, UserRepository>();
+    private Map<String, RoleRepository> roleRepositories = new HashMap<String, RoleRepository>();
 
     public DatabaseRegistry() {
         this(DATABASE_DIR);
@@ -67,48 +67,52 @@ public class DatabaseRegistry {
         storeConfig.setDeferredWrite(true);
     }
 
-    public synchronized ApplicationRepository getApplicationRepository(final String storeName) {
-        ApplicationRepository repository = applicationRepositorys.get(storeName);
+    public synchronized ApplicationRepository getApplicationRepository(
+            final String storeName) {
+        ApplicationRepository repository = applicationRepositories
+                .get(storeName);
         if (repository == null) {
             repository = new ApplicationRepositoryImpl(getStore(storeName));
-            applicationRepositorys.put(storeName, repository);
+            applicationRepositories.put(storeName, repository);
         }
         return repository;
     }
 
     public synchronized RoleRepository getRoleRepository(String storeName) {
-        RoleRepository repository = roleRepositorys.get(storeName);
+        RoleRepository repository = roleRepositories.get(storeName);
         if (repository == null) {
             repository = new RoleRepositoryImpl(getStore(storeName));
-            roleRepositorys.put(storeName, repository);
+            roleRepositories.put(storeName, repository);
         }
         return repository;
     }
 
-    public synchronized PermissionRepository getPermissionRepository(final String storeName) {
-        PermissionRepository repository = permissionRepositorys.get(storeName);
+    public synchronized PermissionRepository getPermissionRepository(
+            final String storeName) {
+        PermissionRepository repository = permissionRepositories.get(storeName);
         if (repository == null) {
             repository = new PermissionRepositoryImpl(getStore(storeName));
-            permissionRepositorys.put(storeName, repository);
+            permissionRepositories.put(storeName, repository);
         }
         return repository;
     }
 
     public synchronized SecurityErrorRepository getSecurityErrorRepository(
             final String storeName) {
-        SecurityErrorRepository repository = securityErrorRepositorys.get(storeName);
+        SecurityErrorRepository repository = securityErrorRepositories
+                .get(storeName);
         if (repository == null) {
             repository = new SecurityErrorRepositoryImpl(getStore(storeName));
-            securityErrorRepositorys.put(storeName, repository);
+            securityErrorRepositories.put(storeName, repository);
         }
         return repository;
     }
 
     public synchronized UserRepository getUserRepository(final String storeName) {
-        UserRepository repository = userRepositorys.get(storeName);
+        UserRepository repository = userRepositories.get(storeName);
         if (repository == null) {
             repository = new UserRepositoryImpl(getStore(storeName));
-            userRepositorys.put(storeName, repository);
+            userRepositories.put(storeName, repository);
         }
         return repository;
 
