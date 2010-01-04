@@ -17,14 +17,14 @@ import com.sleepycat.persist.model.PrimaryKey;
  * 
  */
 @Entity
-public class Application extends Auditable implements Validatable,
+public class Domain extends Auditable implements Validatable,
         Identifiable<String> {
     @PrimaryKey
     private String id;
     private String description;
 
     // for JPA
-    Application() {
+    Domain() {
     }
 
     public void setDescription(String description) {
@@ -35,7 +35,7 @@ public class Application extends Auditable implements Validatable,
         return description;
     }
 
-    public Application(final String id, final String description) {
+    public Domain(final String id, final String description) {
         setID(id);
         setDescription(description);
     }
@@ -56,10 +56,10 @@ public class Application extends Auditable implements Validatable,
      */
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof Application)) {
+        if (!(object instanceof Domain)) {
             return false;
         }
-        Application rhs = (Application) object;
+        Domain rhs = (Domain) object;
         return new EqualsBuilder().append(this.id, rhs.id).isEquals();
     }
 

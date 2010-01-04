@@ -3,11 +3,11 @@ package com.plexobject.rbac.domain;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ApplicationTest {
+public class DomainTest {
 
     @Test
     public void testGetSetEmpty() {
-        Application app = new Application();
+        Domain app = new Domain();
         Assert.assertNull(app.getID());
         Assert.assertNull(app.getDescription());
     }

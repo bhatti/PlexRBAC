@@ -12,8 +12,9 @@ import org.junit.Test;
 import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RoleRepository;
 import com.plexobject.rbac.repository.SecurityErrorRepository;
+import com.plexobject.rbac.repository.SecurityRepository;
 import com.plexobject.rbac.repository.UserRepository;
-import com.plexobject.rbac.repository.bdb.DatabaseRegistry;
+import com.plexobject.rbac.repository.bdb.SecurityRepositoryImpl;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.User;
@@ -24,7 +25,7 @@ public class PermissionManagerTest {
     private static final String USER_NAME = "shahbhat";
     private static final String APP_NAME = "appname";
     private static final String TEST_DB_DIR = "test_db_dir_perms";
-    private DatabaseRegistry databaseRegistry;
+    private SecurityRepository securityRegistry;
     private UserRepository userRepository;
     private RoleRepository roleRepository;
     private PermissionRepository permissionRepository;
@@ -35,22 +36,24 @@ public class PermissionManagerTest {
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
         CurrentUserRequest.startRequest(USER_NAME, "127.0.0.1");
-        databaseRegistry = new DatabaseRegistry(TEST_DB_DIR);
+        securityRegistry = new SecurityRepositoryImpl(TEST_DB_DIR);
 
-        final SecurityErrorRepository securityErrorRepository = databaseRegistry
+        final SecurityErrorRepository securityErrorRepository = securityRegistry
                 .getSecurityErrorRepository(APP_NAME);
-        userRepository = databaseRegistry.getUserRepository(APP_NAME);
-        roleRepository = databaseRegistry.getRoleRepository(APP_NAME);
-        permissionRepository = databaseRegistry.getPermissionRepository(APP_NAME);
-        permissionManager = new PermissionManager(roleRepository, permissionRepository,
-                securityErrorRepository, new JavascriptEvaluator());
+        userRepository = securityRegistry.getUserRepository(APP_NAME);
+        roleRepository = securityRegistry.getRoleRepository(APP_NAME);
+        permissionRepository = securityRegistry
+                .getPermissionRepository(APP_NAME);
+        permissionManager = new PermissionManager(roleRepository,
+                permissionRepository, securityErrorRepository,
+                new JavascriptEvaluator());
         addPermissions();
 
     }
 
     @After
     public void tearDown() throws Exception {
-        databaseRegistry.close(APP_NAME);
+        ((SecurityRepositoryImpl) securityRegistry).close("appname");
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();
     }

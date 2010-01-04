@@ -13,18 +13,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.repository.ApplicationRepository;
+import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PermissionRepository;
-import com.plexobject.rbac.domain.Application;
+import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionRepositoryImplTest {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionRepositoryImplTest.class);
-    private DatabaseRegistry databaseRegistry;
+    private SecurityRepository securityRegistry;
 
-    private ApplicationRepository appRepository;
+    private DomainRepository appRepository;
 
     private PermissionRepository permissionRepository;
 
@@ -34,16 +35,17 @@ public class PermissionRepositoryImplTest {
 
         CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
 
-        databaseRegistry = new DatabaseRegistry("test_db_dir");
+        securityRegistry = new SecurityRepositoryImpl("test_db_dir");
 
-        appRepository = databaseRegistry.getApplicationRepository("appname");
+        appRepository = securityRegistry.getDomainRepository();
 
-        permissionRepository = databaseRegistry.getPermissionRepository("appname");
+        permissionRepository = securityRegistry
+                .getPermissionRepository("appname");
     }
 
     @After
     public void tearDown() throws Exception {
-        databaseRegistry.close("appname");
+        ((SecurityRepositoryImpl) securityRegistry).close("appname");
         FileUtils.deleteDirectory(new File("test_db_dir"));
         CurrentUserRequest.endRequest();
     }
@@ -62,7 +64,7 @@ public class PermissionRepositoryImplTest {
 
     @Test
     public void testFindAll() {
-        final Application app = new Application("app", "username");
+        final Domain app = new Domain("app", "username");
         appRepository.save(app);
         List<Permission> saved = new ArrayList<Permission>();
 
