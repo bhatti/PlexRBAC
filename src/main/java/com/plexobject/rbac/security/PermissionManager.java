@@ -6,9 +6,9 @@ import java.util.Map;
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
 
-import com.plexobject.rbac.dao.PermissionDAO;
-import com.plexobject.rbac.dao.RoleDAO;
-import com.plexobject.rbac.dao.SecurityErrorDAO;
+import com.plexobject.rbac.repository.PermissionRepository;
+import com.plexobject.rbac.repository.RoleRepository;
+import com.plexobject.rbac.repository.SecurityErrorRepository;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.SecurityError;
@@ -19,17 +19,17 @@ public class PermissionManager {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionManager.class);
     private final PredicateEvaluator evaluator;
-    private final RoleDAO roleDAO;
-    private final PermissionDAO permissionDAO;
-    private final SecurityErrorDAO securityErrorDAO;
+    private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
+    private final SecurityErrorRepository securityErrorRepository;
 
-    public PermissionManager(final RoleDAO roleDAO,
-            final PermissionDAO permissionDAO,
-            final SecurityErrorDAO securityErrorDAO,
+    public PermissionManager(final RoleRepository roleRepository,
+            final PermissionRepository permissionRepository,
+            final SecurityErrorRepository securityErrorRepository,
             final PredicateEvaluator evaluator) {
-        this.roleDAO = roleDAO;
-        this.permissionDAO = permissionDAO;
-        this.securityErrorDAO = securityErrorDAO;
+        this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
+        this.securityErrorRepository = securityErrorRepository;
         this.evaluator = evaluator;
     }
 
@@ -40,8 +40,8 @@ public class PermissionManager {
             throw new SecurityException("Username is not specified", username,
                     operation, userContext);
         }
-        Collection<Role> roles = roleDAO.getRolesForUser(username);
-        Collection<Permission> all = permissionDAO
+        Collection<Role> roles = roleRepository.getRolesForUser(username);
+        Collection<Permission> all = permissionRepository
                 .getPermissionsForRoles(roles);
         for (Permission permission : all) {
             if (permission.impliesOperation(operation, target)) {
@@ -61,7 +61,7 @@ public class PermissionManager {
                     + " is not permitted by permissions " + all);
         }
         try {
-            securityErrorDAO.save(new SecurityError(username, operation,
+            securityErrorRepository.save(new SecurityError(username, operation,
                     userContext));
         } catch (Exception e) {
             LOGGER.error("Failed to save securit error for username "

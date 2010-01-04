@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao;
+package com.plexobject.rbac.repository;
 
 public class PersistenceException extends RuntimeException {
     private static final long serialVersionUID = 1L;

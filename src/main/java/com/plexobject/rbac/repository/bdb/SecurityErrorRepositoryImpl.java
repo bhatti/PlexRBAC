@@ -1,13 +1,13 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import com.plexobject.rbac.dao.PagedList;
-import com.plexobject.rbac.dao.PersistenceException;
-import com.plexobject.rbac.dao.SecurityErrorDAO;
+import com.plexobject.rbac.repository.PagedList;
+import com.plexobject.rbac.repository.PersistenceException;
+import com.plexobject.rbac.repository.SecurityErrorRepository;
 import com.plexobject.rbac.domain.SecurityError;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
@@ -16,11 +16,11 @@ import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.SecondaryIndex;
 
-public class SecurityErrorDAOBDB extends BaseDAOBDB<SecurityError, Integer>
-        implements SecurityErrorDAO {
+public class SecurityErrorRepositoryImpl extends BaseRepositoryImpl<SecurityError, Integer>
+        implements SecurityErrorRepository {
     private SecondaryIndex<Date, Integer, SecurityError> createdAtIndex;
 
-    public SecurityErrorDAOBDB(final EntityStore store) {
+    public SecurityErrorRepositoryImpl(final EntityStore store) {
         super(store);
         try {
             createdAtIndex = store.getSecondaryIndex(primaryIndex, Date.class,

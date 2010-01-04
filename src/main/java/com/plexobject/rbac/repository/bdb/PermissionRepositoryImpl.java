@@ -1,13 +1,13 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.plexobject.rbac.dao.PermissionDAO;
-import com.plexobject.rbac.dao.PersistenceException;
-import com.plexobject.rbac.dao.RoleDAO;
+import com.plexobject.rbac.repository.PermissionRepository;
+import com.plexobject.rbac.repository.PersistenceException;
+import com.plexobject.rbac.repository.RoleRepository;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.metric.Metric;
@@ -17,14 +17,15 @@ import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.SecondaryIndex;
 
-public class PermissionDAOBDB extends BaseDAOBDB<Permission, Integer> implements
-        PermissionDAO {
-    private RoleDAO roleDAO;
+public class PermissionRepositoryImpl extends
+        BaseRepositoryImpl<Permission, Integer> implements
+        PermissionRepository {
+    private RoleRepository roleRepository;
     private SecondaryIndex<String, Integer, Permission> rolenameIndex;
 
-    public PermissionDAOBDB(final EntityStore store) {
+    public PermissionRepositoryImpl(final EntityStore store) {
         super(store);
-        this.roleDAO = new RoleDAOBDB(store);
+        this.roleRepository = new RoleRepositoryImpl(store);
         try {
             rolenameIndex = store.getSecondaryIndex(primaryIndex, String.class,
                     "roleIDs");
@@ -62,7 +63,7 @@ public class PermissionDAOBDB extends BaseDAOBDB<Permission, Integer> implements
                 permissions.add(next);
             }
             if (role.hasParentRoleID()) {
-                Role parent = roleDAO.findByID(role.getParentRoleID());
+                Role parent = roleRepository.findByID(role.getParentRoleID());
                 loadPermissionsForRole(parent, permissions);
             }
         } finally {

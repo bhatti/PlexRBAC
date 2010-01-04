@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao;
+package com.plexobject.rbac.repository;
 
 import java.util.Arrays;
 import java.util.Collection;

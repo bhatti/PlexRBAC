@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -8,9 +8,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.plexobject.rbac.dao.BaseDAO;
-import com.plexobject.rbac.dao.PagedList;
-import com.plexobject.rbac.dao.PersistenceException;
+import com.plexobject.rbac.repository.BaseRepository;
+import com.plexobject.rbac.repository.PagedList;
+import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.domain.Auditable;
 import com.plexobject.rbac.domain.Identifiable;
 import com.plexobject.rbac.domain.Validatable;
@@ -22,8 +22,8 @@ import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
 
-public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
-        BaseDAO<T, ID> {
+public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
+        BaseRepository<T, ID> {
     static final int MAX_LIMIT = 512;
     static final int DEFAULT_LIMIT = 20;
     final Logger LOGGER = Logger.getLogger(getClass());
@@ -34,7 +34,7 @@ public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
     protected PrimaryIndex<ID, T> primaryIndex;
 
     @SuppressWarnings("unchecked")
-    public BaseDAOBDB(final EntityStore store) {
+    public BaseRepositoryImpl(final EntityStore store) {
         this.store = store;
         this.entityBeanType = (Class<T>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[0];

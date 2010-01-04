@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,20 +13,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.dao.ApplicationDAO;
-import com.plexobject.rbac.dao.PermissionDAO;
+import com.plexobject.rbac.repository.ApplicationRepository;
+import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
-public class PermissionDAOBDBTest {
+public class PermissionRepositoryImplTest {
     private static final Logger LOGGER = Logger
-            .getLogger(PermissionDAOBDBTest.class);
+            .getLogger(PermissionRepositoryImplTest.class);
     private DatabaseRegistry databaseRegistry;
 
-    private ApplicationDAO appDAO;
+    private ApplicationRepository appRepository;
 
-    private PermissionDAO permissionDAO;
+    private PermissionRepository permissionRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -36,9 +36,9 @@ public class PermissionDAOBDBTest {
 
         databaseRegistry = new DatabaseRegistry("test_db_dir");
 
-        appDAO = databaseRegistry.getApplicationDAO("appname");
+        appRepository = databaseRegistry.getApplicationRepository("appname");
 
-        permissionDAO = databaseRegistry.getPermissionDAO("appname");
+        permissionRepository = databaseRegistry.getPermissionRepository("appname");
     }
 
     @After
@@ -63,7 +63,7 @@ public class PermissionDAOBDBTest {
     @Test
     public void testFindAll() {
         final Application app = new Application("app", "username");
-        appDAO.save(app);
+        appRepository.save(app);
         List<Permission> saved = new ArrayList<Permission>();
 
         for (int i = 0; i < 10; i++) {
@@ -80,12 +80,12 @@ public class PermissionDAOBDBTest {
             Permission permission = new Permission(operation, "database",
                     "amount <= 500 && dept == 'sales' && time between 8:00am..5:00pm");
             LOGGER.debug("Saving " + permission);
-            permissionDAO.save(permission);
+            permissionRepository.save(permission);
             saved.add(permission);
 
         }
 
-        Collection<Permission> all = permissionDAO.findAll(null, 10);
+        Collection<Permission> all = permissionRepository.findAll(null, 10);
         int count = 0;
         for (Permission permission : all) {
             Assert.assertEquals("expected " + saved.get(count) + ", but was "

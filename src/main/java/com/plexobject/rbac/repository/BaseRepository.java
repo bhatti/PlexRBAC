@@ -1,8 +1,8 @@
-package com.plexobject.rbac.dao;
+package com.plexobject.rbac.repository;
 
 import com.plexobject.rbac.domain.Identifiable;
 
-public interface BaseDAO<T extends Identifiable<ID>, ID> {
+public interface BaseRepository<T extends Identifiable<ID>, ID> {
     T findByID(ID id) throws PersistenceException;
 
     T save(T object) throws PersistenceException;

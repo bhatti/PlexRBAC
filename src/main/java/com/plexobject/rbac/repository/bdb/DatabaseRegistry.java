@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.io.File;
 import java.util.HashMap;
@@ -8,12 +8,12 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.plexobject.rbac.Configuration;
-import com.plexobject.rbac.dao.ApplicationDAO;
-import com.plexobject.rbac.dao.PermissionDAO;
-import com.plexobject.rbac.dao.PersistenceException;
-import com.plexobject.rbac.dao.RoleDAO;
-import com.plexobject.rbac.dao.SecurityErrorDAO;
-import com.plexobject.rbac.dao.UserDAO;
+import com.plexobject.rbac.repository.ApplicationRepository;
+import com.plexobject.rbac.repository.PermissionRepository;
+import com.plexobject.rbac.repository.PersistenceException;
+import com.plexobject.rbac.repository.RoleRepository;
+import com.plexobject.rbac.repository.SecurityErrorRepository;
+import com.plexobject.rbac.repository.UserRepository;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
 import com.sleepycat.je.DatabaseConfig;
@@ -34,11 +34,11 @@ public class DatabaseRegistry {
     private Environment dbEnvironment;
     private StoreConfig storeConfig;
     private Map<String, EntityStore> stores = new HashMap<String, EntityStore>();
-    private Map<String, ApplicationDAO> applicationDAOs = new HashMap<String, ApplicationDAO>();
-    private Map<String, PermissionDAO> permissionDAOs = new HashMap<String, PermissionDAO>();
-    private Map<String, SecurityErrorDAO> securityErrorDAOs = new HashMap<String, SecurityErrorDAO>();
-    private Map<String, UserDAO> userDAOs = new HashMap<String, UserDAO>();
-    private Map<String, RoleDAO> roleDAOs = new HashMap<String, RoleDAO>();
+    private Map<String, ApplicationRepository> applicationRepositorys = new HashMap<String, ApplicationRepository>();
+    private Map<String, PermissionRepository> permissionRepositorys = new HashMap<String, PermissionRepository>();
+    private Map<String, SecurityErrorRepository> securityErrorRepositorys = new HashMap<String, SecurityErrorRepository>();
+    private Map<String, UserRepository> userRepositorys = new HashMap<String, UserRepository>();
+    private Map<String, RoleRepository> roleRepositorys = new HashMap<String, RoleRepository>();
 
     public DatabaseRegistry() {
         this(DATABASE_DIR);
@@ -67,50 +67,50 @@ public class DatabaseRegistry {
         storeConfig.setDeferredWrite(true);
     }
 
-    public synchronized ApplicationDAO getApplicationDAO(final String storeName) {
-        ApplicationDAO dao = applicationDAOs.get(storeName);
-        if (dao == null) {
-            dao = new ApplicationDAOBDB(getStore(storeName));
-            applicationDAOs.put(storeName, dao);
+    public synchronized ApplicationRepository getApplicationRepository(final String storeName) {
+        ApplicationRepository repository = applicationRepositorys.get(storeName);
+        if (repository == null) {
+            repository = new ApplicationRepositoryImpl(getStore(storeName));
+            applicationRepositorys.put(storeName, repository);
         }
-        return dao;
+        return repository;
     }
 
-    public synchronized RoleDAO getRoleDAO(String storeName) {
-        RoleDAO dao = roleDAOs.get(storeName);
-        if (dao == null) {
-            dao = new RoleDAOBDB(getStore(storeName));
-            roleDAOs.put(storeName, dao);
+    public synchronized RoleRepository getRoleRepository(String storeName) {
+        RoleRepository repository = roleRepositorys.get(storeName);
+        if (repository == null) {
+            repository = new RoleRepositoryImpl(getStore(storeName));
+            roleRepositorys.put(storeName, repository);
         }
-        return dao;
+        return repository;
     }
 
-    public synchronized PermissionDAO getPermissionDAO(final String storeName) {
-        PermissionDAO dao = permissionDAOs.get(storeName);
-        if (dao == null) {
-            dao = new PermissionDAOBDB(getStore(storeName));
-            permissionDAOs.put(storeName, dao);
+    public synchronized PermissionRepository getPermissionRepository(final String storeName) {
+        PermissionRepository repository = permissionRepositorys.get(storeName);
+        if (repository == null) {
+            repository = new PermissionRepositoryImpl(getStore(storeName));
+            permissionRepositorys.put(storeName, repository);
         }
-        return dao;
+        return repository;
     }
 
-    public synchronized SecurityErrorDAO getSecurityErrorDAO(
+    public synchronized SecurityErrorRepository getSecurityErrorRepository(
             final String storeName) {
-        SecurityErrorDAO dao = securityErrorDAOs.get(storeName);
-        if (dao == null) {
-            dao = new SecurityErrorDAOBDB(getStore(storeName));
-            securityErrorDAOs.put(storeName, dao);
+        SecurityErrorRepository repository = securityErrorRepositorys.get(storeName);
+        if (repository == null) {
+            repository = new SecurityErrorRepositoryImpl(getStore(storeName));
+            securityErrorRepositorys.put(storeName, repository);
         }
-        return dao;
+        return repository;
     }
 
-    public synchronized UserDAO getUserDAO(final String storeName) {
-        UserDAO dao = userDAOs.get(storeName);
-        if (dao == null) {
-            dao = new UserDAOBDB(getStore(storeName));
-            userDAOs.put(storeName, dao);
+    public synchronized UserRepository getUserRepository(final String storeName) {
+        UserRepository repository = userRepositorys.get(storeName);
+        if (repository == null) {
+            repository = new UserRepositoryImpl(getStore(storeName));
+            userRepositorys.put(storeName, repository);
         }
-        return dao;
+        return repository;
 
     }
 

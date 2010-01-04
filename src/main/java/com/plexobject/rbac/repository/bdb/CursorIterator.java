@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.util.Iterator;
 

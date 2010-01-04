@@ -1,9 +1,9 @@
-package com.plexobject.rbac.dao;
+package com.plexobject.rbac.repository;
 
 import java.util.Collection;
 
 import com.plexobject.rbac.domain.Role;
 
-public interface RoleDAO extends BaseDAO<Role, String> {
+public interface RoleRepository extends BaseRepository<Role, String> {
     Collection<Role> getRolesForUser(String username);
 }

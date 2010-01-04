@@ -1,12 +1,12 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import com.plexobject.rbac.dao.PersistenceException;
-import com.plexobject.rbac.dao.RoleDAO;
+import com.plexobject.rbac.repository.PersistenceException;
+import com.plexobject.rbac.repository.RoleRepository;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
@@ -15,10 +15,10 @@ import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.SecondaryIndex;
 
-public class RoleDAOBDB extends BaseDAOBDB<Role, String> implements RoleDAO {
+public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String> implements RoleRepository {
     private SecondaryIndex<String, String, Role> usernameIndex;
 
-    public RoleDAOBDB(final EntityStore store) {
+    public RoleRepositoryImpl(final EntityStore store) {
         super(store);
         try {
             usernameIndex = store.getSecondaryIndex(primaryIndex, String.class,

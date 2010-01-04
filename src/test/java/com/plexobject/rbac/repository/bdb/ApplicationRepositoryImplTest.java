@@ -1,4 +1,4 @@
-package com.plexobject.rbac.dao.bdb;
+package com.plexobject.rbac.repository.bdb;
 
 import java.io.File;
 import java.util.Collection;
@@ -11,17 +11,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.dao.ApplicationDAO;
+import com.plexobject.rbac.repository.ApplicationRepository;
 import com.plexobject.rbac.domain.Application;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
-public class ApplicationDAOBDBTest {
+public class ApplicationRepositoryImplTest {
     private static final String TEST_DB_DIR = "test_db_dirx";
 
     private static final Logger LOGGER = Logger
-            .getLogger(ApplicationDAOBDBTest.class);
+            .getLogger(ApplicationRepositoryImplTest.class);
 
-    private ApplicationDAO dao;
+    private ApplicationRepository repository;
     private DatabaseRegistry databaseRegistry;
 
     @Before
@@ -30,7 +30,7 @@ public class ApplicationDAOBDBTest {
 
         CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
         databaseRegistry = new DatabaseRegistry(TEST_DB_DIR);
-        dao = databaseRegistry.getApplicationDAO("appname");
+        repository = databaseRegistry.getApplicationRepository("appname");
     }
 
     @After
@@ -43,15 +43,15 @@ public class ApplicationDAOBDBTest {
     @Test
     public void testFindAll() {
         try {
-            Collection<Application> all = dao.findAll(null, 100);
+            Collection<Application> all = repository.findAll(null, 100);
             Assert.assertEquals(0, all.size());
 
             final String username = "user " + System.currentTimeMillis();
             for (int i = 0; i < 10; i++) {
                 Application app = new Application("name" + i, username);
-                dao.save(app);
+                repository.save(app);
             }
-            all = dao.findAll(null, 10);
+            all = repository.findAll(null, 10);
             for (Application app : all) {
                 Assert.assertTrue(app.getID().startsWith("name"));
             }
@@ -66,10 +66,10 @@ public class ApplicationDAOBDBTest {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             Application app = new Application("name" + i, username);
-            dao.save(app);
+            repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
-            Application app = dao.findByID("name" + i);
+            Application app = repository.findByID("name" + i);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("app " + app);
             }
@@ -82,10 +82,10 @@ public class ApplicationDAOBDBTest {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             Application app = new Application("name" + i, username);
-            dao.save(app);
+            repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
-            Application app = dao.findByID("name" + i);
+            Application app = repository.findByID("name" + i);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("app " + app);
             }
@@ -98,10 +98,10 @@ public class ApplicationDAOBDBTest {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             Application app = new Application("name" + i, username);
-            dao.save(app);
+            repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
-            Assert.assertTrue(dao.remove("name" + i));
+            Assert.assertTrue(repository.remove("name" + i));
         }
     }
 }
