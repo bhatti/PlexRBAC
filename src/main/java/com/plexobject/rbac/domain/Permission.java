@@ -1,13 +1,17 @@
 package com.plexobject.rbac.domain;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
+import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 import com.sleepycat.persist.model.Relationship;
@@ -28,8 +32,10 @@ public class Permission extends Auditable implements Validatable,
     private String operation; // can be string or regular expression
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String target;
-
     private String expression;
+
+    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = Role.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
+    Set<String> roleIDs = new HashSet<String>();
 
     // for JPA
     Permission() {
@@ -66,12 +72,21 @@ public class Permission extends Auditable implements Validatable,
      * @param action
      * @return
      */
-    public boolean impliesOperation(final String op) {
+    public boolean impliesOperation(final String op, final String tgt) {
+        if (operation == op && target == tgt) {
+            return true;
+        }
         if (GenericValidator.isBlankOrNull(op)) {
             return false;
         }
-        return operation.equalsIgnoreCase(op)
-                || op.toLowerCase().matches(operation);
+        if (GenericValidator.isBlankOrNull(tgt)) {
+            return false;
+        }
+
+        return (operation.equalsIgnoreCase(op) || op.toLowerCase().matches(
+                operation))
+                && (target.equalsIgnoreCase(tgt) || tgt.toLowerCase().matches(
+                        target));
     }
 
     /**
@@ -110,10 +125,24 @@ public class Permission extends Auditable implements Validatable,
     }
 
     public void setExpression(final String expression) {
-        if (GenericValidator.isBlankOrNull(expression)) {
-            throw new IllegalArgumentException("expression is not specified");
-        }
         this.expression = expression;
+    }
+
+    public Set<String> getRoleIDs() {
+        return Collections.unmodifiableSet(roleIDs);
+    }
+
+    public void setRoleIDs(Set<String> roleIDs) {
+        this.roleIDs.clear();
+        this.roleIDs.addAll(roleIDs);
+    }
+
+    public void addRole(Role role) {
+        this.roleIDs.add(role.getID());
+    }
+
+    public void removeRole(Role role) {
+        this.roleIDs.remove(role.getID());
     }
 
     /**
@@ -146,7 +175,8 @@ public class Permission extends Auditable implements Validatable,
     public String toString() {
         return new ToStringBuilder(this).append("id", this.id).append(
                 "operation", this.operation).append("target", target).append(
-                "expression", this.expression).toString();
+                "expression", this.expression).append("roleIDs", this.roleIDs)
+                .toString();
     }
 
     @Override

@@ -1,35 +1,76 @@
 package com.plexobject.rbac.domain;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
+import com.sleepycat.persist.model.DeleteAction;
+import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 
+@Entity
 public class Role extends Auditable implements Validatable,
-        Identifiable<Integer> {
-    @PrimaryKey(sequence = "role_seq")
-    private Integer id;
-    private String rolename;
+        Identifiable<String> {
+    @PrimaryKey
+    private String id;
 
-    public Integer getID() {
-        return id;
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Role.class)
+    String parentRoleID;
+
+    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
+    Set<String> userIDs = new HashSet<String>();
+
+    Role() {
     }
 
-    public void setID(Integer id) {
+    public Role(String id) {
         this.id = id;
     }
 
-    public String getRolename() {
-        return rolename;
+    public String getID() {
+        return id;
     }
 
-    public void setRolename(String rolename) {
-        this.rolename = rolename;
+    public void setID(String id) {
+        this.id = id;
+    }
+
+    public Set<String> getUserIDs() {
+        return Collections.unmodifiableSet(userIDs);
+    }
+
+    public void setUserIDs(Set<String> userIDs) {
+        this.userIDs.clear();
+        this.userIDs.addAll(userIDs);
+    }
+
+    public void addUser(User user) {
+        this.userIDs.add(user.getID());
+    }
+
+    public void removeUser(User user) {
+        this.userIDs.remove(user.getID());
+    }
+
+    public String getParentRoleID() {
+        return parentRoleID;
+    }
+
+    public boolean hasParentRoleID() {
+        return !GenericValidator.isBlankOrNull(parentRoleID);
+    }
+
+    public void setParentRoleID(String parentRoleID) {
+        this.parentRoleID = parentRoleID;
     }
 
     /**
@@ -41,8 +82,7 @@ public class Role extends Auditable implements Validatable,
             return false;
         }
         Role rhs = (Role) object;
-        return new EqualsBuilder().append(this.rolename, rhs.rolename)
-                .isEquals();
+        return new EqualsBuilder().append(this.id, rhs.id).isEquals();
     }
 
     /**
@@ -50,7 +90,7 @@ public class Role extends Auditable implements Validatable,
      */
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(786529047, 1924536713).append(this.rolename)
+        return new HashCodeBuilder(786529047, 1924536713).append(this.id)
                 .toHashCode();
     }
 
@@ -59,15 +99,15 @@ public class Role extends Auditable implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("rolename", this.rolename)
-                .toString();
+        return new ToStringBuilder(this).append("rolename", this.id).append(
+                "userIDs", this.userIDs).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
-        if (GenericValidator.isBlankOrNull(rolename)) {
-            errorsByField.put("rolename", "rolename is not specified");
+        if (GenericValidator.isBlankOrNull(id)) {
+            errorsByField.put("id", "rolename is not specified");
         }
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);

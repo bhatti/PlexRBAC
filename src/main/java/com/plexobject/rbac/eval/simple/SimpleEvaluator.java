@@ -17,8 +17,8 @@ public class SimpleEvaluator implements PredicateEvaluator {
         for (Expression expr : exprs) {
             String value = args.get(expr.getName());
             if (!expr.evaluate(value)) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("Expression " + expr + " failed against "
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Expression " + expr + " failed against "
                             + value + " with name " + expr.getName()
                             + " in args " + args);
                 }

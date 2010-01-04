@@ -1,38 +1,11 @@
 package com.plexobject.rbac.dao.bdb;
 
-import com.plexobject.rbac.dao.PersistenceException;
 import com.plexobject.rbac.dao.UserDAO;
 import com.plexobject.rbac.domain.User;
-import com.plexobject.rbac.metric.Metric;
-import com.plexobject.rbac.metric.Timing;
-import com.sleepycat.je.DatabaseException;
 import com.sleepycat.persist.EntityStore;
-import com.sleepycat.persist.SecondaryIndex;
 
-public class UserDAOBDB extends BaseDAOBDB<User, Integer> implements UserDAO {
-    private SecondaryIndex<String, Integer, User> usernameIndex;
-
+public class UserDAOBDB extends BaseDAOBDB<User, String> implements UserDAO {
     public UserDAOBDB(final EntityStore store) {
         super(store);
-        try {
-            usernameIndex = store.getSecondaryIndex(primaryIndex, String.class,
-                    "username");
-        } catch (DatabaseException e) {
-            throw new PersistenceException(e);
-        }
-
-    }
-
-    @Override
-    public User findByName(String username) {
-        final Timing timer = Metric.newTiming(getClass().getName()
-                + ".findByName");
-        try {
-            return usernameIndex.get(username);
-        } catch (DatabaseException e) {
-            throw new PersistenceException(e);
-        } finally {
-            timer.stop();
-        }
     }
 }

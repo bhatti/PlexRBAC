@@ -20,36 +20,28 @@ import com.sleepycat.persist.model.PrimaryKey;
  */
 @Entity
 public class User extends Auditable implements Validatable,
-        Identifiable<Integer> {
-    @PrimaryKey(sequence = "user_seq")
-    private Integer id;
-    private String username;
+        Identifiable<String> {
+    @PrimaryKey
+    private String id;
 
     // for JPA
     User() {
     }
 
-    public Integer getID() {
+    public String getID() {
         return id;
     }
 
-    public void setID(Integer id) {
+    public void setID(String id) {
+        if (GenericValidator.isBlankOrNull(id)) {
+            throw new IllegalArgumentException("username not specified");
+        }
+
         this.id = id;
     }
 
-    public User(final String username) {
-        setUsername(username);
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new IllegalArgumentException("username not specified");
-        }
-        this.username = username;
+    public User(final String id) {
+        setID(id);
     }
 
     /**
@@ -61,8 +53,7 @@ public class User extends Auditable implements Validatable,
             return false;
         }
         User rhs = (User) object;
-        return new EqualsBuilder().append(this.username, rhs.username)
-                .isEquals();
+        return new EqualsBuilder().append(this.id, rhs.id).isEquals();
     }
 
     /**
@@ -70,7 +61,7 @@ public class User extends Auditable implements Validatable,
      */
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(786529047, 1924536713).append(this.username)
+        return new HashCodeBuilder(786529047, 1924536713).append(this.id)
                 .toHashCode();
     }
 
@@ -79,19 +70,19 @@ public class User extends Auditable implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("username", this.username)
-                .toString();
+        return new ToStringBuilder(this).append("username", this.id).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
-        if (GenericValidator.isBlankOrNull(username)) {
-            errorsByField.put("username", "username is not specified");
+        if (GenericValidator.isBlankOrNull(id)) {
+            errorsByField.put("id", "username is not specified");
         }
 
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }
     }
+
 }

@@ -11,6 +11,7 @@ import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.dao.ApplicationDAO;
 import com.plexobject.rbac.dao.PermissionDAO;
 import com.plexobject.rbac.dao.PersistenceException;
+import com.plexobject.rbac.dao.RoleDAO;
 import com.plexobject.rbac.dao.SecurityErrorDAO;
 import com.plexobject.rbac.dao.UserDAO;
 import com.plexobject.rbac.metric.Metric;
@@ -37,6 +38,7 @@ public class DatabaseRegistry {
     private Map<String, PermissionDAO> permissionDAOs = new HashMap<String, PermissionDAO>();
     private Map<String, SecurityErrorDAO> securityErrorDAOs = new HashMap<String, SecurityErrorDAO>();
     private Map<String, UserDAO> userDAOs = new HashMap<String, UserDAO>();
+    private Map<String, RoleDAO> roleDAOs = new HashMap<String, RoleDAO>();
 
     public DatabaseRegistry() {
         this(DATABASE_DIR);
@@ -70,6 +72,15 @@ public class DatabaseRegistry {
         if (dao == null) {
             dao = new ApplicationDAOBDB(getStore(storeName));
             applicationDAOs.put(storeName, dao);
+        }
+        return dao;
+    }
+
+    public synchronized RoleDAO getRoleDAO(String storeName) {
+        RoleDAO dao = roleDAOs.get(storeName);
+        if (dao == null) {
+            dao = new RoleDAOBDB(getStore(storeName));
+            roleDAOs.put(storeName, dao);
         }
         return dao;
     }
@@ -191,4 +202,5 @@ public class DatabaseRegistry {
         dbEnvironment.close();
         dbEnvironment = null;
     }
+
 }

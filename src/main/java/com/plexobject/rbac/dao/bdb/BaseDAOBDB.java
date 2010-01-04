@@ -130,7 +130,11 @@ public class BaseDAOBDB<T extends Identifiable<ID>, ID> implements
                 auditable
                         .setUpdatedIPAddress(CurrentUserRequest.getIPAddress());
             }
-            return primaryIndex.put(object); // returns old object
+            T old = primaryIndex.put(object);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("saving old " + old + ", new " + object);
+            }
+            return object;
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
         } finally {
