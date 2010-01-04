@@ -40,6 +40,7 @@ public class DatabaseRegistry {
     private Map<String, UserRepository> userRepositories = new HashMap<String, UserRepository>();
     private Map<String, RoleRepository> roleRepositories = new HashMap<String, RoleRepository>();
 
+    //
     public DatabaseRegistry() {
         this(DATABASE_DIR);
     }
@@ -206,5 +207,4 @@ public class DatabaseRegistry {
         dbEnvironment.close();
         dbEnvironment = null;
     }
-
 }

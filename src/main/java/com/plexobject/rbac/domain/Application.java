@@ -40,7 +40,7 @@ public class Application extends Auditable implements Validatable,
         setDescription(description);
     }
 
-    public void setID(String id) {
+    void setID(String id) {
         if (GenericValidator.isBlankOrNull(id)) {
             throw new IllegalArgumentException("id is not specified");
         }

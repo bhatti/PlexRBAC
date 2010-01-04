@@ -32,7 +32,7 @@ public class SecurityError extends Auditable implements Validatable,
         setUserContext(userContext);
     }
 
-    public void setID(Integer id) {
+    void setID(Integer id) {
         this.id = id;
     }
 
@@ -44,14 +44,14 @@ public class SecurityError extends Auditable implements Validatable,
         return userContext;
     }
 
-    public void setUserContext(final Map<String, String> userContext) {
+    void setUserContext(final Map<String, String> userContext) {
         if (userContext == null) {
             throw new IllegalArgumentException("user context not specified");
         }
         this.userContext = userContext;
     }
 
-    public void setUsername(String username) {
+    void setUsername(String username) {
         this.username = username;
     }
 
@@ -59,7 +59,7 @@ public class SecurityError extends Auditable implements Validatable,
         return username;
     }
 
-    public void setOperation(String operation) {
+    void setOperation(String operation) {
         this.operation = operation;
     }
 

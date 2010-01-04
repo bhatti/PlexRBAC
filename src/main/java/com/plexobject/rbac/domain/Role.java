@@ -40,7 +40,7 @@ public class Role extends Auditable implements Validatable,
         return id;
     }
 
-    public void setID(String id) {
+    void setID(String id) {
         this.id = id;
     }
 
@@ -49,16 +49,22 @@ public class Role extends Auditable implements Validatable,
     }
 
     public void setUserIDs(Set<String> userIDs) {
+        firePropertyChange("userIDs", this.userIDs, userIDs);
+
         this.userIDs.clear();
         this.userIDs.addAll(userIDs);
     }
 
     public void addUser(User user) {
+        Set<String> old = getUserIDs();
         this.userIDs.add(user.getID());
+        firePropertyChange("userIDs", old, this.userIDs);
     }
 
     public void removeUser(User user) {
+        Set<String> old = getUserIDs();
         this.userIDs.remove(user.getID());
+        firePropertyChange("userIDs", old, this.userIDs);
     }
 
     public String getParentRoleID() {
@@ -70,6 +76,8 @@ public class Role extends Auditable implements Validatable,
     }
 
     public void setParentRoleID(String parentRoleID) {
+        firePropertyChange("parentRoleID", this.parentRoleID, parentRoleID);
+
         this.parentRoleID = parentRoleID;
     }
 

@@ -48,7 +48,7 @@ public class Permission extends Auditable implements Validatable,
         setExpression(expression);
     }
 
-    public void setID(Integer id) {
+    void setID(Integer id) {
         this.id = id;
     }
 
@@ -106,6 +106,8 @@ public class Permission extends Auditable implements Validatable,
         if (operation.equals("*")) {
             operation = ".*";
         }
+        firePropertyChange("operation", this.operation, operation);
+
         this.operation = operation.toLowerCase();
     }
 
@@ -113,6 +115,8 @@ public class Permission extends Auditable implements Validatable,
         if (GenericValidator.isBlankOrNull(target)) {
             throw new IllegalArgumentException("target not specified");
         }
+        firePropertyChange("target", this.target, target);
+
         this.target = target;
     }
 
@@ -125,6 +129,8 @@ public class Permission extends Auditable implements Validatable,
     }
 
     public void setExpression(final String expression) {
+        firePropertyChange("expression", this.expression, expression);
+
         this.expression = expression;
     }
 
@@ -133,16 +139,22 @@ public class Permission extends Auditable implements Validatable,
     }
 
     public void setRoleIDs(Set<String> roleIDs) {
+        firePropertyChange("roleIDs", this.roleIDs, roleIDs);
+
         this.roleIDs.clear();
         this.roleIDs.addAll(roleIDs);
     }
 
     public void addRole(Role role) {
+        Set<String> old = getRoleIDs();
         this.roleIDs.add(role.getID());
+        firePropertyChange("roleIDs", old, this.roleIDs);
     }
 
     public void removeRole(Role role) {
+        Set<String> old = getRoleIDs();
         this.roleIDs.remove(role.getID());
+        firePropertyChange("roleIDs", old, this.roleIDs);
     }
 
     /**
