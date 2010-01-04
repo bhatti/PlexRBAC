@@ -57,15 +57,6 @@ public class PermissionManagerTest {
                 .check("read", toMap("amount", "100", "dept", "sales"));
     }
 
-    private void addPermission() {
-        for (int i = 0; i < 2; i++) {
-            String operation = "(read|write|update|delete)";
-            Permission permission = new Permission(operation, "database",
-                    "amount <= 500 && dept == 'sales'");
-            permissionDAO.save(permission);
-        }
-    }
-
     @Test(expected = SecurityException.class)
     public void testCheckBadOperation() {
         addPermission();
@@ -95,4 +86,14 @@ public class PermissionManagerTest {
         }
         return map;
     }
+
+    private void addPermission() {
+        Permission permission = new Permission("print", "database",
+                "company == 'plexobjects'");
+        permissionDAO.save(permission);
+        permission = new Permission("(read|write|update|delete)", "database",
+                "amount <= 500 && dept == 'sales'");
+        permissionDAO.save(permission);
+    }
+
 }
