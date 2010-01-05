@@ -24,6 +24,8 @@ public abstract class Auditable extends BaseDomain {
         if (createdAt == null) {
             throw new IllegalArgumentException("createdAt not specified");
         }
+        firePropertyChange("createdAt", this.createdAt, createdAt);
+
         this.createdAt = new Date(createdAt.getTime());
     }
 
@@ -35,6 +37,8 @@ public abstract class Auditable extends BaseDomain {
         if (createdBy == null) {
             throw new IllegalArgumentException("createdBy not specified");
         }
+        firePropertyChange("createdBy", this.createdBy, createdBy);
+
         this.createdBy = createdBy;
     }
 
@@ -46,6 +50,8 @@ public abstract class Auditable extends BaseDomain {
         if (createdIPAddress == null) {
             throw new IllegalArgumentException("createdIPAddress not specified");
         }
+        firePropertyChange("createdIPAddress", this.createdIPAddress, createdIPAddress);
+
         this.createdIPAddress = createdIPAddress;
     }
 
@@ -57,6 +63,8 @@ public abstract class Auditable extends BaseDomain {
         if (updatedAt == null) {
             throw new IllegalArgumentException("updatedAt not specified");
         }
+        firePropertyChange("updatedAt", this.updatedAt, updatedAt);
+
         this.updatedAt = new Date(updatedAt.getTime());
     }
 
@@ -68,6 +76,8 @@ public abstract class Auditable extends BaseDomain {
         if (updatedBy == null) {
             throw new IllegalArgumentException("updatedBy not specified");
         }
+        firePropertyChange("updatedBy", this.updatedBy, updatedBy);
+
         this.updatedBy = updatedBy;
     }
 
@@ -79,6 +89,8 @@ public abstract class Auditable extends BaseDomain {
         if (updatedIPAddress == null) {
             throw new IllegalArgumentException("updatedIPAddress not specified");
         }
+        firePropertyChange("updatedIPAddress", this.updatedIPAddress, updatedIPAddress);
+
         this.updatedIPAddress = updatedIPAddress;
     }
 }

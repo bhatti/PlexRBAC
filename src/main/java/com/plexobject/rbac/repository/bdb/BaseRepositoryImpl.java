@@ -146,7 +146,15 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         return entityBeanType;
     }
 
-    public void close(final String storeName) {
+    public void clear() throws PersistenceException {
+        try {
+            store.truncateClass(entityBeanType);
+        } catch (DatabaseException e) {
+            throw new PersistenceException(e);
+        }
+    }
+
+    public void close() {
         try {
             store.close();
         } catch (DatabaseException e) {

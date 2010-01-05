@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.plexobject.rbac.repository.DomainRepository;
+import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.SecurityRepository;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.utils.CurrentUserRequest;
@@ -59,7 +60,7 @@ public class DomainRepositoryImplTest {
     @Test
     public void testFindAll() {
         try {
-            Collection<Domain> all = repository.findAll(null, 100);
+            Collection<Domain> all = repository.findAll(null, -1);
             Assert.assertEquals(0, all.size());
 
             final String username = "user " + System.currentTimeMillis();
@@ -67,7 +68,7 @@ public class DomainRepositoryImplTest {
                 Domain app = new Domain("name" + i, username);
                 repository.save(app);
             }
-            all = repository.findAll(null, 10);
+            all = repository.findAll(null, 100);
             for (Domain app : all) {
                 Assert.assertTrue(app.getID().startsWith("name"));
             }
@@ -107,6 +108,12 @@ public class DomainRepositoryImplTest {
             }
             Assert.assertNotNull(app);
         }
+    }
+
+    @Test(expected = PersistenceException.class)
+    public void testClose() {
+        ((DomainRepositoryImpl) repository).close();
+        repository.findAll(null, 100); // should fail
     }
 
 }

@@ -323,6 +323,12 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     public synchronized void close(final String domain) {
+        applicationRepositories.remove(domain);
+        permissionRepositories.remove(domain);
+        securityErrorRepositories.remove(domain);
+        userRepositories.remove(domain);
+        roleRepositories.remove(domain);
+
         EntityStore store = stores.remove(domain);
         if (store != null) {
             try {

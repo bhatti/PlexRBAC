@@ -10,4 +10,7 @@ public interface BaseRepository<T extends Identifiable<ID>, ID> {
     boolean remove(ID id) throws PersistenceException;
 
     PagedList<T, ID> findAll(ID lastKey, int limit);
+
+    void clear() throws PersistenceException;
+
 }
