@@ -16,7 +16,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
 import com.plexobject.rbac.domain.Pair;
@@ -29,7 +28,7 @@ import com.plexobject.rbac.domain.Pair;
 public class CachedMap<K, V> implements Map<K, V>, CacheFlushable {
     private static final Logger LOGGER = Logger.getLogger(CachedMap.class);
     private final static int MAX_THREADS = 2; // for all cache items across VM
-    private final static int MAX_ITEMS = 1000; // max size
+    final static int MAX_ITEMS = 1000; // max size
     private final static int EXPIRES_IN_SECS = 0; // indefinite
 
     private final static ExecutorService executorService = Executors
@@ -92,7 +91,13 @@ public class CachedMap<K, V> implements Map<K, V>, CacheFlushable {
 
     @Override
     public boolean containsValue(Object value) {
-        return map.containsValue(value);
+        for (Map.Entry<K, V> e : entrySet()) {
+            if (value == e.getValue()
+                    || (value != null && value.equals(e.getValue()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -267,6 +272,10 @@ public class CachedMap<K, V> implements Map<K, V>, CacheFlushable {
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("map", this.map).toString();
+        final StringBuilder sb = new StringBuilder();
+        for (Map.Entry<K, V> e : entrySet()) {
+            sb.append(e.getKey() + "=" + e.getValue() + ";");
+        }
+        return sb.toString();
     }
 }
