@@ -1,7 +1,9 @@
 package com.plexobject.rbac.cache;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 
@@ -128,25 +130,75 @@ public class CachedMapTest {
         Assert.assertEquals("unexpected size " + cache.size() + " " + cache,
                 10, cache.size());
         cache.clear();
-        Assert.assertEquals("unexpected size " + cache.size() + " " + cache,
-                0, cache.size());
+        Assert.assertEquals("unexpected size " + cache.size() + " " + cache, 0,
+                cache.size());
 
     }
 
     @Test
     public void testKeySet() {
+        CachedMap<String, Integer> cache = new CachedMap<String, Integer>(0,
+                10, null);
+        cache.put("A", 1);
+        cache.put("B", 2);
+        cache.put("C", 3);
+        cache.put("C", 4);
+        Set<String> set = cache.keySet();
+        Assert.assertEquals(3, set.size());
+        Assert.assertTrue(set.contains("A"));
+        Assert.assertTrue(set.contains("B"));
+        Assert.assertTrue(set.contains("C"));
     }
 
     @Test
     public void testValues() {
+        CachedMap<String, Integer> cache = new CachedMap<String, Integer>(0,
+                10, null);
+        cache.put("A", 1);
+        cache.put("B", 2);
+        cache.put("C", 2);
+        Collection<Integer> set = cache.values();
+        Assert.assertEquals(3, set.size());
+        Assert.assertTrue(set.contains(1));
+        Assert.assertTrue(set.contains(2));
     }
 
     @Test
     public void testEntrySet() {
+        CachedMap<String, Integer> cache = new CachedMap<String, Integer>(0,
+                10, null);
+        cache.put("A", 1);
+        cache.put("B", 2);
+        cache.put("C", 2);
+        Set<Map.Entry<String, Integer>> set = cache.entrySet();
+        Assert.assertEquals(3, set.size());
     }
 
     @Test
-    public void testGet() {
+    public void testGetWithLoader() {
+        CachedMap<String, Integer> cache = new CachedMap<String, Integer>(1,
+                10, new CacheLoader<String, Integer>() {
+                    @Override
+                    public Integer get(String key) {
+                        return Integer.valueOf(key);
+                    }
+                });
+        for (int i = 0; i < 20; i++) {
+            Assert.assertEquals(new Integer(i), cache.get(String.valueOf(i)));
+        }
+    }
+
+    @Test
+    public void testGetWithExpiration() {
+        CachedMap<String, Integer> cache = new CachedMap<String, Integer>(1,
+                10, new CacheLoader<String, Integer>() {
+                    @Override
+                    public Integer get(String key) {
+                        return Integer.valueOf(key);
+                    }
+                });
+        Assert.assertEquals(new Integer(1), cache.get("1"));
+        Assert.assertEquals(1, cache.size());
     }
 
     @Test
@@ -159,8 +211,8 @@ public class CachedMapTest {
         Assert.assertEquals("unexpected size " + cache.size() + " " + cache,
                 10, cache.size());
         cache.flushCache();
-        Assert.assertEquals("unexpected size " + cache.size() + " " + cache,
-                0, cache.size());
+        Assert.assertEquals("unexpected size " + cache.size() + " " + cache, 0,
+                cache.size());
     }
 
     @Test

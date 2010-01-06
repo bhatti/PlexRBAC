@@ -19,6 +19,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 
 import com.plexobject.rbac.domain.Pair;
+import com.plexobject.rbac.utils.TimeUtils;
 
 /**
  * CacheMap - provides lightweight caching based on LRU size and timeout and
@@ -102,8 +103,8 @@ public class CachedMap<K, V> implements Map<K, V>, CacheFlushable {
 
     @Override
     public V put(K key, V value) {
-        Pair<Long, V> previous = map.put(key, new Pair<Long, V>(System
-                .currentTimeMillis(), value));
+        Pair<Long, V> previous = map.put(key, new Pair<Long, V>(TimeUtils
+                .getCurrentTimeMillis(), value));
         return previous != null ? previous.getSecond() : null;
     }
 
@@ -179,7 +180,7 @@ public class CachedMap<K, V> implements Map<K, V>, CacheFlushable {
             }
         }
         if (expiresInSecs > 0
-                && System.currentTimeMillis() - pair.getFirst() > expiresInSecs * 1000) {
+                && TimeUtils.getCurrentTimeMillis() - pair.getFirst() > expiresInSecs * 1000) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("expiring " + key);
             }
