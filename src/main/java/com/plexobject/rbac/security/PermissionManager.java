@@ -1,76 +1,87 @@
 package com.plexobject.rbac.security;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
 
-import com.plexobject.rbac.repository.PermissionRepository;
-import com.plexobject.rbac.repository.RoleRepository;
-import com.plexobject.rbac.repository.SecurityErrorRepository;
+import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.SecurityError;
 import com.plexobject.rbac.eval.PredicateEvaluator;
-import com.plexobject.rbac.utils.CurrentUserRequest;
+import com.plexobject.rbac.repository.SecurityRepository;
 
 public class PermissionManager {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionManager.class);
-    private final PredicateEvaluator evaluator;
-    private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
-    private final SecurityErrorRepository securityErrorRepository;
+    private static final boolean STORE_ERRORS_IN_DB = Configuration
+            .getInstance().getBoolean("store_errors_in_db", true);
+    private final SecurityRepository securityRepository;
 
-    public PermissionManager(final RoleRepository roleRepository,
-            final PermissionRepository permissionRepository,
-            final SecurityErrorRepository securityErrorRepository,
+    private final PredicateEvaluator evaluator;
+
+    public PermissionManager(final SecurityRepository securityRepository,
             final PredicateEvaluator evaluator) {
-        this.roleRepository = roleRepository;
-        this.permissionRepository = permissionRepository;
-        this.securityErrorRepository = securityErrorRepository;
+        if (securityRepository == null) {
+            throw new NullPointerException("null security repository");
+        }
+        if (evaluator == null) {
+            throw new NullPointerException("null evaluator");
+        }
+
+        this.securityRepository = securityRepository;
         this.evaluator = evaluator;
     }
 
-    public void check(final String operation, final String target,
-            final Map<String, String> userContext) throws SecurityException {
-        String username = CurrentUserRequest.getUsername();
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new SecurityException("Username is not specified", username,
-                    operation, userContext);
+    public void check(PermissionRequest request) throws SecurityException {
+        Collection<Role> roles = null;
+
+        // by default user gets anonymous role
+        if (GenericValidator.isBlankOrNull(request.getUsername())) {
+            roles = Arrays.asList(Role.ANONYMOUS);
+        } else {
+            roles = securityRepository.getRoleRepository(request.getDomain())
+                    .getRolesForUser(request.getUsername());
         }
-        Collection<Role> roles = roleRepository.getRolesForUser(username);
-        Collection<Permission> all = permissionRepository
+        Collection<Permission> all = securityRepository
+                .getPermissionRepository(request.getDomain())
                 .getPermissionsForRoles(roles);
         for (Permission permission : all) {
-            if (permission.impliesOperation(operation, target)) {
+            if (permission.impliesOperation(request.getOperation(), request
+                    .getTarget())) {
 
                 if (GenericValidator.isBlankOrNull(permission.getExpression())) {
                     return;
                 } else {
-                    if (evaluator.evaluate(permission.getExpression(),
-                            userContext)) {
+                    if (evaluator.evaluate(permission.getExpression(), request
+                            .getUserContext())) {
                         return;
                     }
                 }
             }
         }
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Operation " + operation
-                    + " is not permitted by permissions " + all);
-        }
+
         try {
-            securityErrorRepository.save(new SecurityError(username, operation,
-                    userContext));
+            if (STORE_ERRORS_IN_DB) {
+                securityRepository.getSecurityErrorRepository(
+                        request.getDomain()).save(
+                        new SecurityError(request.getUsername(), request
+                                .getOperation(), request.getTarget(), request
+                                .getUserContext()));
+            } else {
+                LOGGER.warn("Permission failed for " + request);
+            }
         } catch (Exception e) {
-            LOGGER.error("Failed to save securit error for username "
-                    + username + ", operation " + operation + ", context "
-                    + userContext, e);
+            LOGGER.error(
+                    "Failed to save securit error for username " + request, e);
         }
-        // throw new SecurityException(username, operation, userContext);
-        throw new SecurityException("permissions " + all, username, operation,
-                userContext);
+        // throw new SecurityException(request.getUsername(), request
+        // .getOperation(), request.getTarget(), request.getUserContext());
+        throw new SecurityException("permissions " + all,
+                request.getUsername(), request.getOperation(), request
+                        .getTarget(), request.getUserContext());
 
     }
 }

@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
@@ -56,6 +55,7 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     private static ThreadLocal<Transaction> CURRENT_TXN = new ThreadLocal<Transaction>();
 
     //
+
     public SecurityRepositoryImpl() {
         this(DATABASE_DIR);
     }
@@ -81,6 +81,7 @@ public class SecurityRepositoryImpl implements SecurityRepository {
         if (!dir.exists()) {
             dir.mkdirs();
         }
+        //
         try {
             dbEnvironment = new Environment(dir, envConfig);
         } catch (EnvironmentLockedException e) {
@@ -167,74 +168,89 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public void addPermissionsToRole(final String domain, final Role role,
-            final Set<Permission> permissions) {
+    public void addPermissionsToRole(final String domain,
+            final String rolename, final Collection<Integer> permissionIDs) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (role == null) {
-            throw new IllegalArgumentException("role is not specified");
+        if (rolename == null) {
+            throw new IllegalArgumentException("rolename is not specified");
         }
-        if (permissions == null || permissions.size() == 0) {
+        if (permissionIDs == null || permissionIDs.size() == 0) {
             throw new IllegalArgumentException("permissions not specified");
         }
+        verifyDomain(domain);
+        Role role = verifyRole(domain, rolename);
         PermissionRepository repository = getPermissionRepository(domain);
-        for (Permission permission : permissions) {
+        for (Integer permissionID : permissionIDs) {
+            Permission permission = verifyPermission(domain, permissionID);
             permission.addRole(role);
             repository.save(permission);
         }
     }
 
     @Override
-    public void addRolesToUser(String domain, User user, Set<Role> roles) {
+    public void addRolesToUser(final String domain, final String username,
+            final Collection<String> rolenames) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (user == null) {
+        if (username == null) {
             throw new IllegalArgumentException("user is not specified");
         }
-        if (roles == null || roles.size() == 0) {
+        if (rolenames == null || rolenames.size() == 0) {
             throw new IllegalArgumentException("roles not specified");
         }
+        verifyDomain(domain);
+        User user = verifyUser(domain, username);
+
         RoleRepository repository = getRoleRepository(domain);
-        for (Role role : roles) {
+        for (String rolename : rolenames) {
+            Role role = verifyRole(domain, rolename);
             role.addUser(user);
             repository.save(role);
         }
     }
 
     @Override
-    public void removePermissionsToRole(String domain, Role role,
-            Set<Permission> permissions) {
+    public void removePermissionsToRole(final String domain,
+            final String rolename, final Collection<Integer> permissionIDs) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (role == null) {
-            throw new IllegalArgumentException("role is not specified");
+        if (rolename == null) {
+            throw new IllegalArgumentException("rolename is not specified");
         }
-        if (permissions == null || permissions.size() == 0) {
+        if (permissionIDs == null || permissionIDs.size() == 0) {
             throw new IllegalArgumentException("permissions not specified");
         }
+        verifyDomain(domain);
+        Role role = verifyRole(domain, rolename);
         PermissionRepository repository = getPermissionRepository(domain);
-        for (Permission permission : permissions) {
+        for (Integer permissionID : permissionIDs) {
+            Permission permission = verifyPermission(domain, permissionID);
             permission.removeRole(role);
             repository.save(permission);
         }
     }
 
     @Override
-    public void removeRolesToUser(String domain, User user, Set<Role> roles) {
+    public void removeRolesToUser(final String domain, final String username,
+            final Collection<String> rolenames) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (user == null) {
+        if (username == null) {
             throw new IllegalArgumentException("user is not specified");
         }
-        if (roles == null || roles.size() == 0) {
+        if (rolenames == null || rolenames.size() == 0) {
             throw new IllegalArgumentException("roles not specified");
         }
+        verifyDomain(domain);
+        User user = verifyUser(domain, username);
         RoleRepository repository = getRoleRepository(domain);
-        for (Role role : roles) {
+        for (String rolename : rolenames) {
+            Role role = verifyRole(domain, rolename);
             role.removeUser(user);
             repository.save(role);
         }
@@ -390,5 +406,41 @@ public class SecurityRepositoryImpl implements SecurityRepository {
         } finally {
             CURRENT_TXN.set(null);
         }
+    }
+
+    private Domain verifyDomain(String domainName) {
+        Domain domain = getDomainRepository().findByID(domainName);
+        if (domain == null) {
+            throw new IllegalStateException("domain name " + domainName
+                    + " does not exist");
+        }
+        return domain;
+    }
+
+    private User verifyUser(String domain, String username) {
+        User user = getUserRepository(domain).findByID(username);
+        if (user == null) {
+            throw new IllegalStateException("user name " + username
+                    + " does not exist");
+        }
+        return user;
+    }
+
+    private Role verifyRole(String domain, String rolename) {
+        Role role = getRoleRepository(domain).findByID(rolename);
+        if (role == null) {
+            throw new IllegalStateException("user name " + rolename
+                    + " does not exist");
+        }
+        return role;
+    }
+
+    private Permission verifyPermission(String domain, Integer id) {
+        Permission permission = getPermissionRepository(domain).findByID(id);
+        if (permission == null) {
+            throw new IllegalStateException("permission with id " + id
+                    + " does not exist");
+        }
+        return permission;
     }
 }

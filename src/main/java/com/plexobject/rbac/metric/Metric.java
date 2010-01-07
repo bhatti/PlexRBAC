@@ -1,5 +1,7 @@
 package com.plexobject.rbac.metric;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,6 +31,12 @@ public class Metric {
         this.totalCalls = new AtomicLong();
         this.totalDuration = new AtomicLong();
     }
+
+
+    public static Collection<Metric> getMetrics() {
+        return Collections.unmodifiableCollection(METRICS.values());
+    }
+
 
     /**
      * This method finds or creates metrics

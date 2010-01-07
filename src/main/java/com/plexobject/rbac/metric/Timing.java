@@ -131,14 +131,14 @@ public class Timing {
         return elapsedTimingData;
     }
 
-    private static String getSystemStats() {
+    public static String getSystemStats() {
         final StringBuilder sb = new StringBuilder();
         Runtime runtime = Runtime.getRuntime();
         sb.append(", load: ").append(
                 String.format("%.2f", ManagementFactory
                         .getOperatingSystemMXBean().getSystemLoadAverage()));
-        sb.append(", memory(M): ").append(runtime.freeMemory() / 1024 / 1024)
-                .append("/").append(runtime.totalMemory() / 1024 / 1024);
+        sb.append(", memory: ").append(runtime.freeMemory() / 1024 / 1024)
+                .append("M/").append(runtime.totalMemory() / 1024 / 1024 + "M");
         sb.append(", threads: ").append(Thread.activeCount());
         return sb.toString();
     }

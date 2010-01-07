@@ -20,6 +20,7 @@ import com.sleepycat.persist.model.SecondaryKey;
 @Entity
 public class Role extends Auditable implements Validatable,
         Identifiable<String> {
+    public static final Role ANONYMOUS = new Role("anonymous");
     @PrimaryKey
     private String id;
 
@@ -33,7 +34,14 @@ public class Role extends Auditable implements Validatable,
     }
 
     public Role(String id) {
-        this.id = id;
+        setID(id);
+    }
+
+    public Role(String id, Role parent) {
+        setID(id);
+        if (parent != null) {
+            setParentRoleID(parent.getID());
+        }
     }
 
     public String getID() {

@@ -1,11 +1,8 @@
 package com.plexobject.rbac.repository;
 
-import java.util.Set;
+import java.util.Collection;
 
 import com.plexobject.rbac.domain.Domain;
-import com.plexobject.rbac.domain.Permission;
-import com.plexobject.rbac.domain.Role;
-import com.plexobject.rbac.domain.User;
 
 /**
  * This class serves dual purpose, first it serves as a factory for repositories
@@ -62,7 +59,7 @@ public interface SecurityRepository {
      * @param user
      * @param roles
      */
-    void addRolesToUser(String domain, User user, Set<Role> roles);
+    void addRolesToUser(String domain, String user, Collection<String> roles);
 
     /**
      * Remove given roles to the user and save them
@@ -71,7 +68,7 @@ public interface SecurityRepository {
      * @param user
      * @param roles
      */
-    void removeRolesToUser(String domain, User user, Set<Role> roles);
+    void removeRolesToUser(String domain, String user, Collection<String> roles);
 
     /**
      * Adds permissions to given role
@@ -80,8 +77,8 @@ public interface SecurityRepository {
      * @param role
      * @param permissionss
      */
-    void addPermissionsToRole(String domain, Role role,
-            Set<Permission> permissionss);
+    void addPermissionsToRole(String domain, String role,
+            Collection<Integer> permissionsIDs);
 
     /**
      * Removes permissions from given role
@@ -90,6 +87,6 @@ public interface SecurityRepository {
      * @param role
      * @param permissionss
      */
-    void removePermissionsToRole(String domain, Role role,
-            Set<Permission> permissionss);
+    void removePermissionsToRole(String domain, String role,
+            Collection<Integer> permissionsIDs);
 }

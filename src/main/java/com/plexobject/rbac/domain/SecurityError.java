@@ -19,6 +19,8 @@ public class SecurityError extends Auditable implements Validatable,
     private String username;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String operation;
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
+    private String target;
     private Map<String, String> userContext;
 
     // for JPA
@@ -26,9 +28,10 @@ public class SecurityError extends Auditable implements Validatable,
     }
 
     public SecurityError(final String username, final String operation,
-            final Map<String, String> userContext) {
+            final String target, final Map<String, String> userContext) {
         setUsername(username);
         setOperation(operation);
+        setTarget(target);
         setUserContext(userContext);
     }
 
@@ -65,6 +68,14 @@ public class SecurityError extends Auditable implements Validatable,
 
     public String getOperation() {
         return operation;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public String getTarget() {
+        return target;
     }
 
     /**

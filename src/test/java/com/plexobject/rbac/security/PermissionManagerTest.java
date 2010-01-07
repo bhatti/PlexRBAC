@@ -1,6 +1,7 @@
 package com.plexobject.rbac.security;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,16 +10,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.repository.PermissionRepository;
-import com.plexobject.rbac.repository.RoleRepository;
-import com.plexobject.rbac.repository.SecurityErrorRepository;
-import com.plexobject.rbac.repository.SecurityRepository;
-import com.plexobject.rbac.repository.UserRepository;
-import com.plexobject.rbac.repository.bdb.SecurityRepositoryImpl;
+import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.eval.js.JavascriptEvaluator;
+import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.bdb.SecurityRepositoryImpl;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionManagerTest {
@@ -26,9 +24,6 @@ public class PermissionManagerTest {
     private static final String APP_NAME = "appname";
     private static final String TEST_DB_DIR = "test_db_dir_perms";
     private SecurityRepository securityRegistry;
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private PermissionRepository permissionRepository;
     private PermissionManager permissionManager;
 
     @Before
@@ -38,14 +33,7 @@ public class PermissionManagerTest {
         CurrentUserRequest.startRequest(USER_NAME, "127.0.0.1");
         securityRegistry = new SecurityRepositoryImpl(TEST_DB_DIR);
 
-        final SecurityErrorRepository securityErrorRepository = securityRegistry
-                .getSecurityErrorRepository(APP_NAME);
-        userRepository = securityRegistry.getUserRepository(APP_NAME);
-        roleRepository = securityRegistry.getRoleRepository(APP_NAME);
-        permissionRepository = securityRegistry
-                .getPermissionRepository(APP_NAME);
-        permissionManager = new PermissionManager(roleRepository,
-                permissionRepository, securityErrorRepository,
+        permissionManager = new PermissionManager(securityRegistry,
                 new JavascriptEvaluator());
         addPermissions();
 
@@ -60,26 +48,26 @@ public class PermissionManagerTest {
 
     @Test
     public void testCheck() {
-        permissionManager.check("read", "database", toMap("amount", "100",
-                "dept", "sales"));
+        permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
+                "read", "database", toMap("amount", "100", "dept", "sales")));
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadOperation() {
-        permissionManager.check("xread", "database", toMap("amount", "100",
-                "dept", "sales"));
+        permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
+                "xread", "database", toMap("amount", "100", "dept", "sales")));
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadDept() {
-        permissionManager.check("read", "database", toMap("amount", "100",
-                "dept", "xsales"));
+        permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
+                "write", "database", toMap("amount", "100", "dept", "xsales")));
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadAmount() {
-        permissionManager.check("read", "database", toMap("amount", "1000",
-                "dept", "sales"));
+        permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
+                "read", "database", toMap("amount", "1000", "dept", "sales")));
     }
 
     private static Map<String, String> toMap(final String... keyValues) {
@@ -91,34 +79,52 @@ public class PermissionManagerTest {
     }
 
     private void addPermissions() {
+        securityRegistry.getDomainRepository().save(new Domain(APP_NAME, ""));
+
         //
         User shahbhat = new User(USER_NAME);
-        userRepository.save(shahbhat);
+        securityRegistry.getUserRepository(APP_NAME).save(shahbhat);
 
         User bhatsha = new User("bhatsha");
-        userRepository.save(bhatsha);
+        securityRegistry.getUserRepository(APP_NAME).save(bhatsha);
         //
+        Role anonymous = new Role("anonymous");
+        securityRegistry.getRoleRepository(APP_NAME).save(anonymous);
 
-        Role normal = new Role("normal");
-        normal.addUser(shahbhat);
-        roleRepository.save(normal);
+        Role normal = new Role("normal", anonymous);
+        securityRegistry.getRoleRepository(APP_NAME).save(normal);
 
-        //
-        Role admin = new Role("admin");
-        admin.addUser(bhatsha);
-        roleRepository.save(admin);
+        Role admin = new Role("admin", normal);
+        securityRegistry.getRoleRepository(APP_NAME).save(admin);
+
+        Permission read = new Permission("read", "database", null);
+        securityRegistry.getPermissionRepository(APP_NAME).save(read);
+
+        Permission wild = new Permission("*", "*", "");
+        securityRegistry.getPermissionRepository(APP_NAME).save(wild);
+
+        Permission crud = new Permission("(read|write|update|delete)",
+                "database", "amount <= 500 && dept == 'sales'");
+        securityRegistry.getPermissionRepository(APP_NAME).save(crud);
 
         Permission print = new Permission("print", "database",
                 "company == 'plexobjects'");
-        print.addRole(normal);
-        permissionRepository.save(print);
-        Permission crud = new Permission("(read|write|update|delete)",
-                "database", "amount <= 500 && dept == 'sales'");
-        crud.addRole(normal);
+        securityRegistry.getPermissionRepository(APP_NAME).save(print);
 
-        permissionRepository.save(crud);
-        Permission wild = new Permission("*", "*", "");
-        wild.addRole(admin);
-        permissionRepository.save(crud);
+        //
+        securityRegistry.addRolesToUser(APP_NAME, shahbhat.getID(), Arrays
+                .asList("normal"));
+
+        securityRegistry.addRolesToUser(APP_NAME, bhatsha.getID(), Arrays
+                .asList("admin"));
+
+        securityRegistry.addPermissionsToRole(APP_NAME, anonymous.getID(),
+                Arrays.asList(read.getID()));
+
+        securityRegistry.addPermissionsToRole(APP_NAME, normal.getID(), Arrays
+                .asList(print.getID(), crud.getID()));
+
+        securityRegistry.addPermissionsToRole(APP_NAME, admin.getID(), Arrays
+                .asList(wild.getID()));
     }
 }
