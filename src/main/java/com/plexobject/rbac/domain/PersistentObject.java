@@ -7,7 +7,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
 @Persistent
-public abstract class Auditable extends BaseDomain {
+public abstract class PersistentObject extends BaseDomain {
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private Date createdAt = new Date();
     private String createdBy;

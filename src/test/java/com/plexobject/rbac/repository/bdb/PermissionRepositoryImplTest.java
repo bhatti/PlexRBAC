@@ -15,15 +15,17 @@ import org.junit.Test;
 
 import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PermissionRepository;
-import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionRepositoryImplTest {
+    private static final String TEST_DB_DIR = "test_db_dir_perms";
+
     private static final Logger LOGGER = Logger
             .getLogger(PermissionRepositoryImplTest.class);
-    private SecurityRepository securityRegistry;
+    private RepositoryFactory repositoryFactory;
 
     private DomainRepository appRepository;
 
@@ -35,17 +37,17 @@ public class PermissionRepositoryImplTest {
 
         CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
 
-        securityRegistry = new SecurityRepositoryImpl("test_db_dir");
+        repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
-        appRepository = securityRegistry.getDomainRepository();
+        appRepository = repositoryFactory.getDomainRepository();
 
-        permissionRepository = securityRegistry
+        permissionRepository = repositoryFactory
                 .getPermissionRepository("appname");
     }
 
     @After
     public void tearDown() throws Exception {
-        ((SecurityRepositoryImpl) securityRegistry).close("appname");
+        ((RepositoryFactoryImpl) repositoryFactory).close("appname");
         FileUtils.deleteDirectory(new File("test_db_dir"));
         CurrentUserRequest.endRequest();
     }

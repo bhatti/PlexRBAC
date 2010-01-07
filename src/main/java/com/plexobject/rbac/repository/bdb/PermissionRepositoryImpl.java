@@ -18,17 +18,16 @@ import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.SecondaryIndex;
 
 public class PermissionRepositoryImpl extends
-        BaseRepositoryImpl<Permission, Integer> implements
-        PermissionRepository {
+        BaseRepositoryImpl<Permission, Integer> implements PermissionRepository {
     private RoleRepository roleRepository;
     private SecondaryIndex<String, Integer, Permission> rolenameIndex;
 
-    public PermissionRepositoryImpl(final EntityStore store) {
-        super(store);
-        this.roleRepository = new RoleRepositoryImpl(store);
+    public PermissionRepositoryImpl(final EntityStore entityStore) {
+        super(entityStore);
+        this.roleRepository = new RoleRepositoryImpl(entityStore);
         try {
-            rolenameIndex = store.getSecondaryIndex(primaryIndex, String.class,
-                    "roleIDs");
+            rolenameIndex = entityStore.getSecondaryIndex(primaryIndex,
+                    String.class, "roleIDs");
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
         }

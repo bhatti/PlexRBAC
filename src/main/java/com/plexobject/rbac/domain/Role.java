@@ -18,9 +18,12 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
 @Entity
-public class Role extends Auditable implements Validatable,
+public class Role extends PersistentObject implements Validatable,
         Identifiable<String> {
-    public static final Role ANONYMOUS = new Role("anonymous");
+    public static final Role ANONYMOUS = new Role("anonymous_role");
+    public static final Role DOMAIN_OWNER = new Role("domain_owner_role");
+    public static final Role SUPER_ADMIN = new Role("super_admin_role");
+
     @PrimaryKey
     private String id;
 
@@ -63,16 +66,25 @@ public class Role extends Auditable implements Validatable,
         this.userIDs.addAll(userIDs);
     }
 
-    public void addUser(User user) {
+    public void addUser(String username) {
         Set<String> old = getUserIDs();
-        this.userIDs.add(user.getID());
+        this.userIDs.add(username);
+        firePropertyChange("userIDs", old, this.userIDs);
+
+    }
+
+    public void removeUser(String username) {
+        Set<String> old = getUserIDs();
+        this.userIDs.remove(username);
         firePropertyChange("userIDs", old, this.userIDs);
     }
 
+    public void addUser(User user) {
+        addUser(user.getID());
+    }
+
     public void removeUser(User user) {
-        Set<String> old = getUserIDs();
-        this.userIDs.remove(user.getID());
-        firePropertyChange("userIDs", old, this.userIDs);
+        removeUser(user.getID());
     }
 
     public String getParentRoleID() {
@@ -129,4 +141,5 @@ public class Role extends Auditable implements Validatable,
             throw new ValidationException(errorsByField);
         }
     }
+
 }

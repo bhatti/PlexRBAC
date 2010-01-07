@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import com.plexobject.rbac.repository.BaseRepository;
 import com.plexobject.rbac.repository.PagedList;
 import com.plexobject.rbac.repository.PersistenceException;
-import com.plexobject.rbac.domain.Auditable;
+import com.plexobject.rbac.domain.PersistentObject;
 import com.plexobject.rbac.domain.Identifiable;
 import com.plexobject.rbac.domain.Validatable;
 import com.plexobject.rbac.metric.Metric;
@@ -117,8 +117,8 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
             if (object instanceof Validatable) {
                 ((Validatable) object).validate();
             }
-            if (object instanceof Auditable) {
-                Auditable auditable = (Auditable) object;
+            if (object instanceof PersistentObject) {
+                PersistentObject auditable = (PersistentObject) object;
                 if (auditable.getCreatedBy() == null) {
                     auditable.setCreatedAt(new Date());
                     auditable.setCreatedBy(CurrentUserRequest.getUsername());

@@ -1,15 +1,22 @@
 package com.plexobject.rbac.domain;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
+import com.plexobject.rbac.Configuration;
+import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 
 /**
  * The application defines a user application that will define a set of
@@ -17,11 +24,16 @@ import com.sleepycat.persist.model.PrimaryKey;
  * 
  */
 @Entity
-public class Domain extends Auditable implements Validatable,
+public class Domain extends PersistentObject implements Validatable,
         Identifiable<String> {
+    public static final String DEFAULT_DOMAIN_NAME = Configuration
+            .getInstance().getProperty("default.domain", "PlexRBAC");
+
     @PrimaryKey
     private String id;
     private String description;
+    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
+    Set<String> ownerUsernames = new HashSet<String>();
 
     // for JPA
     Domain() {
@@ -40,7 +52,7 @@ public class Domain extends Auditable implements Validatable,
         setDescription(description);
     }
 
-    void setID(String id) {
+    void setID(final String id) {
         if (GenericValidator.isBlankOrNull(id)) {
             throw new IllegalArgumentException("id is not specified");
         }
@@ -49,6 +61,51 @@ public class Domain extends Auditable implements Validatable,
 
     public String getID() {
         return id;
+    }
+
+    public Set<String> getOwnerUsernames() {
+        return Collections.unmodifiableSet(ownerUsernames);
+    }
+
+    public void setOwnerUsernames(final Set<String> ownerUsernames) {
+        firePropertyChange("ownerUsernames", this.ownerUsernames,
+                ownerUsernames);
+
+        this.ownerUsernames.clear();
+        this.ownerUsernames.addAll(ownerUsernames);
+    }
+
+    public void addOwner(final String username) {
+        if (GenericValidator.isBlankOrNull(username)) {
+            throw new IllegalArgumentException("username is not specified");
+        }
+        Set<String> old = getOwnerUsernames();
+        this.ownerUsernames.add(username);
+        firePropertyChange("ownerUsernames", old, this.ownerUsernames);
+
+    }
+
+    public void addOwner(final User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user is not specified");
+        }
+        addOwner(user.getID());
+    }
+
+    public void removeOwner(final User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user is not specified");
+        }
+        removeOwner(user.getID());
+    }
+
+    public void removeOwner(final String username) {
+        if (GenericValidator.isBlankOrNull(username)) {
+            throw new IllegalArgumentException("username is not specified");
+        }
+        Set<String> old = getOwnerUsernames();
+        this.ownerUsernames.remove(username);
+        firePropertyChange("ownerUsernames", old, this.ownerUsernames);
     }
 
     /**
@@ -77,7 +134,8 @@ public class Domain extends Auditable implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("name", this.id).toString();
+        return new ToStringBuilder(this).append("name", this.id).append(
+                "owners", this.ownerUsernames).toString();
     }
 
     @Override
@@ -86,7 +144,10 @@ public class Domain extends Auditable implements Validatable,
         if (GenericValidator.isBlankOrNull(id)) {
             errorsByField.put("name", "application name is not specified");
         }
-
+        if (ownerUsernames == null || ownerUsernames.size() == 0) {
+            errorsByField.put("ownerUsernames",
+                    "domain does not have any owners");
+        }
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);
         }

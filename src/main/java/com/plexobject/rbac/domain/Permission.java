@@ -23,7 +23,7 @@ import com.sleepycat.persist.model.SecondaryKey;
  * 
  */
 @Entity
-public class Permission extends Auditable implements Validatable,
+public class Permission extends PersistentObject implements Validatable,
         Identifiable<Integer> {
     @PrimaryKey(sequence = "permission_seq")
     private Integer id;

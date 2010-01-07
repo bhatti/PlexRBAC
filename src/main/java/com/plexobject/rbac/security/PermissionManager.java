@@ -11,27 +11,27 @@ import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.SecurityError;
 import com.plexobject.rbac.eval.PredicateEvaluator;
-import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.RepositoryFactory;
 
 public class PermissionManager {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionManager.class);
     private static final boolean STORE_ERRORS_IN_DB = Configuration
             .getInstance().getBoolean("store_errors_in_db", true);
-    private final SecurityRepository securityRepository;
+    private final RepositoryFactory repositoryFactory;
 
     private final PredicateEvaluator evaluator;
 
-    public PermissionManager(final SecurityRepository securityRepository,
+    public PermissionManager(final RepositoryFactory repositoryFactory,
             final PredicateEvaluator evaluator) {
-        if (securityRepository == null) {
-            throw new NullPointerException("null security repository");
+        if (repositoryFactory == null) {
+            throw new NullPointerException("null repositoryFactory");
         }
         if (evaluator == null) {
             throw new NullPointerException("null evaluator");
         }
 
-        this.securityRepository = securityRepository;
+        this.repositoryFactory = repositoryFactory;
         this.evaluator = evaluator;
     }
 
@@ -42,12 +42,11 @@ public class PermissionManager {
         if (GenericValidator.isBlankOrNull(request.getUsername())) {
             roles = Arrays.asList(Role.ANONYMOUS);
         } else {
-            roles = securityRepository.getRoleRepository(request.getDomain())
+            roles = repositoryFactory.getRoleRepository(request.getDomain())
                     .getRolesForUser(request.getUsername());
         }
-        Collection<Permission> all = securityRepository
-                .getPermissionRepository(request.getDomain())
-                .getPermissionsForRoles(roles);
+        Collection<Permission> all = repositoryFactory.getPermissionRepository(
+                request.getDomain()).getPermissionsForRoles(roles);
         for (Permission permission : all) {
             if (permission.impliesOperation(request.getOperation(), request
                     .getTarget())) {
@@ -65,7 +64,7 @@ public class PermissionManager {
 
         try {
             if (STORE_ERRORS_IN_DB) {
-                securityRepository.getSecurityErrorRepository(
+                repositoryFactory.getSecurityErrorRepository(
                         request.getDomain()).save(
                         new SecurityError(request.getUsername(), request
                                 .getOperation(), request.getTarget(), request

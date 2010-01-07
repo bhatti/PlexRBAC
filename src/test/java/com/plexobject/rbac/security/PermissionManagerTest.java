@@ -15,15 +15,15 @@ import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.eval.js.JavascriptEvaluator;
-import com.plexobject.rbac.repository.SecurityRepository;
-import com.plexobject.rbac.repository.bdb.SecurityRepositoryImpl;
+import com.plexobject.rbac.repository.RepositoryFactory;
+import com.plexobject.rbac.repository.bdb.RepositoryFactoryImpl;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionManagerTest {
     private static final String USER_NAME = "shahbhat";
     private static final String APP_NAME = "appname";
     private static final String TEST_DB_DIR = "test_db_dir_perms";
-    private SecurityRepository securityRegistry;
+    private RepositoryFactory repositoryFactory;
     private PermissionManager permissionManager;
 
     @Before
@@ -31,9 +31,9 @@ public class PermissionManagerTest {
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
         CurrentUserRequest.startRequest(USER_NAME, "127.0.0.1");
-        securityRegistry = new SecurityRepositoryImpl(TEST_DB_DIR);
+        repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
-        permissionManager = new PermissionManager(securityRegistry,
+        permissionManager = new PermissionManager(repositoryFactory,
                 new JavascriptEvaluator());
         addPermissions();
 
@@ -41,7 +41,7 @@ public class PermissionManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        ((SecurityRepositoryImpl) securityRegistry).close("appname");
+        ((RepositoryFactoryImpl) repositoryFactory).close("appname");
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();
     }
@@ -79,52 +79,53 @@ public class PermissionManagerTest {
     }
 
     private void addPermissions() {
-        securityRegistry.getDomainRepository().save(new Domain(APP_NAME, ""));
+        repositoryFactory.getDomainRepository().save(new Domain(APP_NAME, ""));
 
         //
         User shahbhat = new User(USER_NAME);
-        securityRegistry.getUserRepository(APP_NAME).save(shahbhat);
+        repositoryFactory.getUserRepository(APP_NAME).save(shahbhat);
 
         User bhatsha = new User("bhatsha");
-        securityRegistry.getUserRepository(APP_NAME).save(bhatsha);
+        repositoryFactory.getUserRepository(APP_NAME).save(bhatsha);
         //
         Role anonymous = new Role("anonymous");
-        securityRegistry.getRoleRepository(APP_NAME).save(anonymous);
+        repositoryFactory.getRoleRepository(APP_NAME).save(anonymous);
 
         Role normal = new Role("normal", anonymous);
-        securityRegistry.getRoleRepository(APP_NAME).save(normal);
+        repositoryFactory.getRoleRepository(APP_NAME).save(normal);
 
         Role admin = new Role("admin", normal);
-        securityRegistry.getRoleRepository(APP_NAME).save(admin);
+        repositoryFactory.getRoleRepository(APP_NAME).save(admin);
 
         Permission read = new Permission("read", "database", null);
-        securityRegistry.getPermissionRepository(APP_NAME).save(read);
+        repositoryFactory.getPermissionRepository(APP_NAME).save(read);
 
         Permission wild = new Permission("*", "*", "");
-        securityRegistry.getPermissionRepository(APP_NAME).save(wild);
+        repositoryFactory.getPermissionRepository(APP_NAME).save(wild);
 
         Permission crud = new Permission("(read|write|update|delete)",
                 "database", "amount <= 500 && dept == 'sales'");
-        securityRegistry.getPermissionRepository(APP_NAME).save(crud);
+        repositoryFactory.getPermissionRepository(APP_NAME).save(crud);
 
         Permission print = new Permission("print", "database",
                 "company == 'plexobjects'");
-        securityRegistry.getPermissionRepository(APP_NAME).save(print);
+        repositoryFactory.getPermissionRepository(APP_NAME).save(print);
 
         //
-        securityRegistry.addRolesToUser(APP_NAME, shahbhat.getID(), Arrays
-                .asList("normal"));
+        repositoryFactory.getSecurityRepository().addRolesToUser(APP_NAME,
+                shahbhat.getID(), Arrays.asList("normal"));
 
-        securityRegistry.addRolesToUser(APP_NAME, bhatsha.getID(), Arrays
-                .asList("admin"));
+        repositoryFactory.getSecurityRepository().addRolesToUser(APP_NAME,
+                bhatsha.getID(), Arrays.asList("admin"));
 
-        securityRegistry.addPermissionsToRole(APP_NAME, anonymous.getID(),
-                Arrays.asList(read.getID()));
+        repositoryFactory.getSecurityRepository().addPermissionsToRole(
+                APP_NAME, anonymous.getID(), Arrays.asList(read.getID()));
 
-        securityRegistry.addPermissionsToRole(APP_NAME, normal.getID(), Arrays
-                .asList(print.getID(), crud.getID()));
+        repositoryFactory.getSecurityRepository().addPermissionsToRole(
+                APP_NAME, normal.getID(),
+                Arrays.asList(print.getID(), crud.getID()));
 
-        securityRegistry.addPermissionsToRole(APP_NAME, admin.getID(), Arrays
-                .asList(wild.getID()));
+        repositoryFactory.getSecurityRepository().addPermissionsToRole(
+                APP_NAME, admin.getID(), Arrays.asList(wild.getID()));
     }
 }

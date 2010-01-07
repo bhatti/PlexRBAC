@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PersistenceException;
-import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
@@ -24,7 +24,7 @@ public class DomainRepositoryImplTest {
             .getLogger(DomainRepositoryImplTest.class);
 
     private DomainRepository repository;
-    private SecurityRepository securityRegistry;
+    private RepositoryFactory repositoryFactory;
 
     @Before
     public void setUp() throws Exception {
@@ -32,13 +32,13 @@ public class DomainRepositoryImplTest {
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
         CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
-        securityRegistry = new SecurityRepositoryImpl(TEST_DB_DIR);
-        repository = securityRegistry.getDomainRepository();
+        repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
+        repository = repositoryFactory.getDomainRepository();
     }
 
     @After
     public void tearDown() throws Exception {
-        ((SecurityRepositoryImpl) securityRegistry).closeDefault();
+        ((RepositoryFactoryImpl) repositoryFactory).closeDefault();
         new File(TEST_DB_DIR, "je.lck").delete();
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();

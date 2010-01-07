@@ -11,7 +11,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
 @Entity
-public class SecurityError extends Auditable implements Validatable,
+public class SecurityError extends PersistentObject implements Validatable,
         Identifiable<Integer> {
     @PrimaryKey(sequence = "application_seq")
     private Integer id;

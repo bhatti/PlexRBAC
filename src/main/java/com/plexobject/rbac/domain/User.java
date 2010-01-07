@@ -8,6 +8,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
+import com.plexobject.rbac.Configuration;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
@@ -19,8 +20,11 @@ import com.sleepycat.persist.model.PrimaryKey;
  * 
  */
 @Entity
-public class User extends Auditable implements Validatable,
+public class User extends PersistentObject implements Validatable,
         Identifiable<String> {
+    public static final String SUPER_ADMIN_USERNAME = Configuration
+            .getInstance().getProperty("super_admin_username",
+                    "super_admin_user");
     @PrimaryKey
     private String id;
 
