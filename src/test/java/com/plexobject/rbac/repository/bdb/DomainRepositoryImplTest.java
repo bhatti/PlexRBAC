@@ -18,6 +18,8 @@ import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class DomainRepositoryImplTest {
+    private static final String USERNAME = "shahbhat";
+
     private static final String TEST_DB_DIR = "test_db_dirx";
 
     private static final Logger LOGGER = Logger
@@ -31,7 +33,7 @@ public class DomainRepositoryImplTest {
         new File(TEST_DB_DIR, "je.lck").delete();
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
+        CurrentUserRequest.startRequest(USERNAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
         repository = repositoryFactory.getDomainRepository();
     }
@@ -48,6 +50,8 @@ public class DomainRepositoryImplTest {
     public void testRemove() {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
+            repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
+                    USERNAME);
             Domain app = new Domain("name" + i, username);
             repository.save(app);
         }
@@ -65,6 +69,8 @@ public class DomainRepositoryImplTest {
 
             final String username = "user " + System.currentTimeMillis();
             for (int i = 0; i < 10; i++) {
+                repositoryFactory.getUserRepository("name" + i)
+                        .getOrCreateUser(USERNAME);
                 Domain app = new Domain("name" + i, username);
                 repository.save(app);
             }
@@ -82,6 +88,8 @@ public class DomainRepositoryImplTest {
     public void testFindByName() {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
+            repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
+                    USERNAME);
             Domain app = new Domain("name" + i, username);
             repository.save(app);
         }
@@ -98,6 +106,8 @@ public class DomainRepositoryImplTest {
     public void testFindByID() {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
+            repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
+                    USERNAME);
             Domain app = new Domain("name" + i, username);
             repository.save(app);
         }

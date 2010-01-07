@@ -6,4 +6,6 @@ import com.plexobject.rbac.domain.Role;
 
 public interface RoleRepository extends BaseRepository<Role, String> {
     Collection<Role> getRolesForUser(String username);
+
+    Role getOrCreateRole(String rolename);
 }

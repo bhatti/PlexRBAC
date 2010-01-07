@@ -41,7 +41,7 @@ public class PermissionManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        ((RepositoryFactoryImpl) repositoryFactory).close("appname");
+        // ((RepositoryFactoryImpl) repositoryFactory).close("appname");
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();
     }
@@ -67,7 +67,7 @@ public class PermissionManagerTest {
     @Test(expected = SecurityException.class)
     public void testCheckBadAmount() {
         permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
-                "read", "database", toMap("amount", "1000", "dept", "sales")));
+                "write", "database", toMap("amount", "1000", "dept", "sales")));
     }
 
     private static Map<String, String> toMap(final String... keyValues) {
@@ -79,14 +79,16 @@ public class PermissionManagerTest {
     }
 
     private void addPermissions() {
-        repositoryFactory.getDomainRepository().save(new Domain(APP_NAME, ""));
 
         //
-        User shahbhat = new User(USER_NAME);
+        User shahbhat = new User(USER_NAME, "password");
         repositoryFactory.getUserRepository(APP_NAME).save(shahbhat);
 
-        User bhatsha = new User("bhatsha");
+        User bhatsha = new User("bhatsha", "password");
         repositoryFactory.getUserRepository(APP_NAME).save(bhatsha);
+
+        repositoryFactory.getDomainRepository().save(new Domain(APP_NAME, ""));
+
         //
         Role anonymous = new Role("anonymous");
         repositoryFactory.getRoleRepository(APP_NAME).save(anonymous);

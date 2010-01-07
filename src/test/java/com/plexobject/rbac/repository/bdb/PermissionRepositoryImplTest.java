@@ -21,7 +21,11 @@ import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionRepositoryImplTest {
-    private static final String TEST_DB_DIR = "test_db_dir_perms";
+    private static final String USERNAME = "shahbhat";
+
+    private static final String APPNAME = "appname";
+
+    private static final String TEST_DB_DIR = "test_db_dir_perm";
 
     private static final Logger LOGGER = Logger
             .getLogger(PermissionRepositoryImplTest.class);
@@ -33,22 +37,22 @@ public class PermissionRepositoryImplTest {
 
     @Before
     public void setUp() throws Exception {
-        FileUtils.deleteDirectory(new File("test_db_dir"));
+        FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest("shahbhat", "127.0.0.1");
+        CurrentUserRequest.startRequest(USERNAME, "127.0.0.1");
 
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
         appRepository = repositoryFactory.getDomainRepository();
 
         permissionRepository = repositoryFactory
-                .getPermissionRepository("appname");
+                .getPermissionRepository(APPNAME);
     }
 
     @After
     public void tearDown() throws Exception {
-        ((RepositoryFactoryImpl) repositoryFactory).close("appname");
-        FileUtils.deleteDirectory(new File("test_db_dir"));
+        ((RepositoryFactoryImpl) repositoryFactory).close(APPNAME);
+        FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentUserRequest.endRequest();
     }
 
@@ -66,7 +70,8 @@ public class PermissionRepositoryImplTest {
 
     @Test
     public void testFindAll() {
-        final Domain app = new Domain("app", "username");
+        repositoryFactory.getUserRepository(APPNAME).getOrCreateUser(USERNAME);
+        final Domain app = new Domain(APPNAME, "desc");
         appRepository.save(app);
         List<Permission> saved = new ArrayList<Permission>();
 

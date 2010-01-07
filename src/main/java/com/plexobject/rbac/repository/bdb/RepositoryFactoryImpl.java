@@ -148,7 +148,7 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
         try {
             databaseStore.close();
         } catch (DatabaseException e) {
-            LOGGER.error("Failed to close " + domain, e);
+            LOGGER.error("Failed to close " + domain + " due to " + e);
         }
     }
 

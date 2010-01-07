@@ -1,5 +1,7 @@
 package com.plexobject.rbac.repository.bdb;
 
+import java.util.UUID;
+
 import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.domain.User;
@@ -20,8 +22,11 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
         }
         User user = super.findByID(username);
         if (user == null) {
-            user = new User(username);
+            user = new User(username, generatePassword());
             save(user);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Created user " + user);
+            }
         }
         return user;
     }
@@ -36,5 +41,9 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
                     + " cannot be removed");
         }
         return super.remove(username);
+    }
+
+    private static String generatePassword() {
+        return UUID.randomUUID().toString().substring(0, 8);
     }
 }

@@ -90,7 +90,7 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             return primaryIndex.get(id);
         } catch (DatabaseException e) {
-            throw new PersistenceException(e);
+            throw new PersistenceException("Failed to find " + id, e);
         } finally {
             timer.stop();
         }
@@ -102,7 +102,7 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             return primaryIndex.delete(id);
         } catch (DatabaseException e) {
-            throw new PersistenceException(e);
+            throw new PersistenceException("Failed to remove " + id, e);
         } finally {
             timer.stop();
         }
@@ -136,7 +136,7 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
             }
             return object;
         } catch (DatabaseException e) {
-            throw new PersistenceException(e);
+            throw new PersistenceException("Failed to save " + object, e);
         } finally {
             timer.stop();
         }

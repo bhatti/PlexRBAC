@@ -1,6 +1,7 @@
 package com.plexobject.rbac.repository.bdb;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -144,10 +145,9 @@ public class DatabaseStore {
             Database db = dbEnvironment.openDatabase(null, domain, dbconfig);
             databases.put(domain, db);
             getStore(domain);
-        } catch (EnvironmentLockedException e) {
-            throw new PersistenceException(e);
         } catch (DatabaseException e) {
-            throw new PersistenceException(e);
+            throw new PersistenceException("Failed to create database "
+                    + domain, e);
         } finally {
             timer.stop();
         }
@@ -175,7 +175,12 @@ public class DatabaseStore {
             LOGGER.warn("already closed");
             return;
         }
+        for (String domain : new ArrayList<String>(stores.keySet())) {
+            close(domain);
+        }
+
         dbEnvironment.sync();
+
         dbEnvironment.close();
         dbEnvironment = null;
     }

@@ -68,7 +68,7 @@ public class SecurityRepositoryImpl implements SecurityRepository {
             // no need to check domain as
         } else {
             verifyDomain(domain);
-            User user = verifyUser(domain, username);
+            verifyUser(domain, username);
         }
 
         RoleRepository repository = repositoryFactory.getRoleRepository(domain);

@@ -7,7 +7,6 @@ import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Role;
-import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RepositoryFactory;
@@ -46,12 +45,13 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
                 throw new IllegalStateException("domain with name " + id
                         + " does not exist");
             }
-            boolean success = super.remove(id);
             Collection<String> owners = domain.getOwnerUsernames();
             for (String owner : owners) {
                 securityRepository.removeRolesToUser(domain.getID(), owner,
                         Arrays.asList(Role.DOMAIN_OWNER.getID()));
             }
+            boolean success = super.remove(id);
+
             if (success) {
                 databaseStore.removeDatabase(id);
             }
@@ -80,8 +80,12 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
                 throw new IllegalArgumentException(
                         "current username is not specified");
             }
-            repositoryFactory.getUserRepository(domain.getID())
-                    .getOrCreateUser(username);
+            if (Domain.DEFAULT_DOMAIN_NAME.equals(domain.getID())) {
+                repositoryFactory.getUserRepository(domain.getID())
+                        .getOrCreateUser(username);
+            }
+            repositoryFactory.getRoleRepository(domain.getID())
+                    .getOrCreateRole(Role.DOMAIN_OWNER.getID());
             // now assigning current user to the domain as owner
             domain.addOwner(username);
 
@@ -101,7 +105,7 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
             return saved;
         } catch (RuntimeException e) {
             databaseStore.abortTransaction();
-            throw e;
+            throw new PersistenceException("Failed to save " + domain, e);
         }
     }
 

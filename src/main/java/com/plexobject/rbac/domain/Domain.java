@@ -12,11 +12,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.Configuration;
-import com.sleepycat.persist.model.DeleteAction;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
-import com.sleepycat.persist.model.Relationship;
-import com.sleepycat.persist.model.SecondaryKey;
 
 /**
  * The application defines a user application that will define a set of
@@ -32,7 +29,8 @@ public class Domain extends PersistentObject implements Validatable,
     @PrimaryKey
     private String id;
     private String description;
-    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
+    // @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity =
+    // User.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
     Set<String> ownerUsernames = new HashSet<String>();
 
     // for JPA

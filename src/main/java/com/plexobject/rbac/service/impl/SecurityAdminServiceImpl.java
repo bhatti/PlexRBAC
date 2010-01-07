@@ -49,7 +49,7 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
-    @Path("/{domain}/{role}")
+    @Path("/permissions/{domain}/{role}")
     @Override
     public Response addPermissionsToRole(@PathParam("domain") String domain,
             @PathParam("role") String role,
@@ -93,7 +93,7 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
-    @Path("/{domain}/{role}")
+    @Path("/permissions/{domain}/{role}")
     @Override
     public Response removePermissionsToRole(@PathParam("domain") String domain,
             @PathParam("role") String role,
@@ -135,16 +135,90 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
         }
     }
 
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes( { MediaType.WILDCARD })
+    @Path("/roles/{domain}/{role}")
     @Override
-    public Response addRolesToUser(String domain, String user, String roles) {
-        // TODO Auto-generated method stub
-        return null;
+    public Response addRolesToUser(@PathParam("domain") String domain,
+            @PathParam("user") String user,
+            @FormParam("rolenames") String rolenamesJSON) {
+        if (GenericValidator.isBlankOrNull(domain)) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("domain not specified").build();
+        }
+        if (GenericValidator.isBlankOrNull(user)) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("user not specified").build();
+        }
+
+        if (GenericValidator.isBlankOrNull(rolenamesJSON)) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("rolenames not specified").build();
+        }
+
+        try {
+            final JSONArray jsonIDs = new JSONArray(rolenamesJSON);
+
+            Collection<String> ids = new ArrayList<String>();
+            for (int i = 0; i < jsonIDs.length(); i++) {
+                ids.add(jsonIDs.getString(i));
+            }
+            securityRepository.addRolesToUser(domain, user, ids);
+            mbean.incrementRequests();
+
+            return Response.status(RestClient.OK_CREATED).entity("added roles")
+                    .build();
+        } catch (Exception e) {
+            LOGGER.error("failed to add roles", e);
+            mbean.incrementError();
+
+            return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
+                    "text/plain").entity("failed to add roles\n").build();
+        }
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes( { MediaType.WILDCARD })
+    @Path("/roles/{domain}/{role}")
     @Override
-    public Response removeRolesToUser(String domain, String user, String roles) {
-        // TODO Auto-generated method stub
-        return null;
+    public Response removeRolesToUser(@PathParam("domain") String domain,
+            @PathParam("user") String user,
+            @FormParam("rolenames") String rolenamesJSON) {
+        if (GenericValidator.isBlankOrNull(domain)) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("domain not specified").build();
+        }
+        if (GenericValidator.isBlankOrNull(user)) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("user not specified").build();
+        }
+
+        if (GenericValidator.isBlankOrNull(rolenamesJSON)) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("rolenames not specified").build();
+        }
+
+        try {
+            final JSONArray jsonIDs = new JSONArray(rolenamesJSON);
+
+            Collection<String> ids = new ArrayList<String>();
+            for (int i = 0; i < jsonIDs.length(); i++) {
+                ids.add(jsonIDs.getString(i));
+            }
+            securityRepository.removeRolesToUser(domain, user, ids);
+            mbean.incrementRequests();
+
+            return Response.status(RestClient.OK_CREATED).entity("added roles")
+                    .build();
+        } catch (Exception e) {
+            LOGGER.error("failed to remove roles", e);
+            mbean.incrementError();
+
+            return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
+                    "text/plain").entity("failed to remove roles\n").build();
+        }
     }
 
     /**

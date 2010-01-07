@@ -27,6 +27,7 @@ public class User extends PersistentObject implements Validatable,
                     "super_admin_user");
     @PrimaryKey
     private String id;
+    private String password;
 
     // for JPA
     User() {
@@ -44,8 +45,17 @@ public class User extends PersistentObject implements Validatable,
         this.id = id;
     }
 
-    public User(final String id) {
+    public User(final String id, final String password) {
         setID(id);
+        setPassword(password);
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     /**
