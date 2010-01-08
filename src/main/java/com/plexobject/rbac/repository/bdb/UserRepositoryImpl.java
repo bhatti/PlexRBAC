@@ -1,12 +1,11 @@
 package com.plexobject.rbac.repository.bdb;
 
-import java.util.UUID;
-
 import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.UserRepository;
+import com.plexobject.rbac.utils.PasswordUtils;
 import com.sleepycat.persist.EntityStore;
 
 public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
@@ -22,7 +21,7 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
         }
         User user = super.findByID(username);
         if (user == null) {
-            user = new User(username, generatePassword());
+            user = new User(username, PasswordUtils.generatePassword());
             save(user);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Created user " + user);
@@ -43,7 +42,16 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
         return super.remove(username);
     }
 
-    private static String generatePassword() {
-        return UUID.randomUUID().toString().substring(0, 8);
+    @Override
+    public User authenticate(String username, String password)
+            throws SecurityException {
+        User user = findByID(username);
+        if (user == null) {
+            throw new SecurityException("Failed to find user");
+        }
+        if (PasswordUtils.getHash(password).equals(user.getPassword())) {
+            return user;
+        }
+        throw new SecurityException("Password mismatch");
     }
 }
