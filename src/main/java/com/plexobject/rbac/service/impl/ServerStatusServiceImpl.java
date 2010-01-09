@@ -30,6 +30,9 @@ import com.plexobject.rbac.utils.TimeUtils;
 
 // See http://www.developer.com/article.php/10915_3841046_3/Real-World-REST-Using-Jersey-AJAX-and-JSON.htm
 // See http://wikis.sun.com/display/Jersey/Overview+of+JAX-RS+1.0+Features
+// See http://www.coresecuritypatterns.com/patterns.htm
+// See http://cwiki.apache.org/confluence/display/SHIRO/Index
+
 @Path("/status")
 @Component("serverStatusService")
 @Scope("singleton")

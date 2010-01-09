@@ -14,7 +14,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -25,19 +24,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.ServiceFactory;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
-import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.security.PermissionManager;
 import com.plexobject.rbac.security.PermissionRequest;
-import com.plexobject.rbac.security.SecurityException;
-import com.plexobject.rbac.service.AuthenticationService;
 import com.plexobject.rbac.service.AuthorizationService;
 import com.sun.jersey.spi.inject.Inject;
 
-@Path("/authorization")
+@Path("/security/auth")
 @Component("authorizationService")
 @Scope("singleton")
 public class AuthorizationServiceImpl implements AuthorizationService,
@@ -47,8 +43,7 @@ public class AuthorizationServiceImpl implements AuthorizationService,
 
     @Autowired
     @Inject
-    PermissionManager permissionManager;
-
+    PermissionManager permissionManager = ServiceFactory.getPermissionManager();
     private final ServiceJMXBeanImpl mbean;
 
     public AuthorizationServiceImpl() {
@@ -97,23 +92,37 @@ public class AuthorizationServiceImpl implements AuthorizationService,
             permissionManager.check(request);
             mbean.incrementRequests();
 
-            return Response.status(RestClient.OK_CREATED).cookie(
-                    new NewCookie("username", user.getID())).entity(
-                    user.getID() + " logged in").build();
+            return Response.status(RestClient.OK_CREATED).entity(
+                    "permission granted").build();
         } catch (Exception e) {
-            LOGGER.error("failed to login", e);
+            LOGGER.error("permission failed", e);
             mbean.incrementError();
 
             return Response.status(RestClient.CLIENT_ERROR_UNAUTHORIZED).type(
-                    "text/plain").entity("login error\n").build();
+                    "text/plain").entity("permission failed\n").build();
         }
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (repositoryFactory == null) {
-            throw new IllegalStateException("repositoryFactory not set");
+        if (permissionManager == null) {
+            throw new IllegalStateException("permissionManager not set");
         }
+    }
+
+    /**
+     * @return the permissionManager
+     */
+    public PermissionManager getPermissionManager() {
+        return permissionManager;
+    }
+
+    /**
+     * @param permissionManager
+     *            the permissionManager to set
+     */
+    public void setPermissionManager(PermissionManager permissionManager) {
+        this.permissionManager = permissionManager;
     }
 
 }

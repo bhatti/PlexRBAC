@@ -2,6 +2,8 @@ package com.plexobject.rbac.domain;
 
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
@@ -16,6 +18,7 @@ public abstract class PersistentObject extends BaseDomain {
     private String updatedBy;
     private String updatedIPAddress;
 
+    @XmlTransient
     public Date getCreatedAt() {
         return createdAt != null ? new Date(createdAt.getTime()) : null;
     }
@@ -29,6 +32,7 @@ public abstract class PersistentObject extends BaseDomain {
         this.createdAt = new Date(createdAt.getTime());
     }
 
+    @XmlTransient
     public String getCreatedBy() {
         return createdBy;
     }
@@ -50,7 +54,8 @@ public abstract class PersistentObject extends BaseDomain {
         if (createdIPAddress == null) {
             throw new IllegalArgumentException("createdIPAddress not specified");
         }
-        firePropertyChange("createdIPAddress", this.createdIPAddress, createdIPAddress);
+        firePropertyChange("createdIPAddress", this.createdIPAddress,
+                createdIPAddress);
 
         this.createdIPAddress = createdIPAddress;
     }
@@ -89,7 +94,8 @@ public abstract class PersistentObject extends BaseDomain {
         if (updatedIPAddress == null) {
             throw new IllegalArgumentException("updatedIPAddress not specified");
         }
-        firePropertyChange("updatedIPAddress", this.updatedIPAddress, updatedIPAddress);
+        firePropertyChange("updatedIPAddress", this.updatedIPAddress,
+                updatedIPAddress);
 
         this.updatedIPAddress = updatedIPAddress;
     }

@@ -18,6 +18,7 @@ import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Permission;
+import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class PermissionRepositoryImplTest {
@@ -39,7 +40,7 @@ public class PermissionRepositoryImplTest {
     public void setUp() throws Exception {
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest(USERNAME, "127.0.0.1");
+        CurrentUserRequest.startRequest(APPNAME, USERNAME, "127.0.0.1");
 
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
@@ -70,7 +71,8 @@ public class PermissionRepositoryImplTest {
 
     @Test
     public void testFindAll() {
-        repositoryFactory.getUserRepository(APPNAME).getOrCreateUser(USERNAME);
+        repositoryFactory.getUserRepository(APPNAME).getOrCreateUser(
+                new User(USERNAME, "pass"));
         final Domain app = new Domain(APPNAME, "desc");
         appRepository.save(app);
         List<Permission> saved = new ArrayList<Permission>();

@@ -7,6 +7,7 @@ import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Role;
+import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RepositoryFactory;
@@ -82,7 +83,7 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
             }
             if (Domain.DEFAULT_DOMAIN_NAME.equals(domain.getID())) {
                 repositoryFactory.getUserRepository(domain.getID())
-                        .getOrCreateUser(username);
+                        .getOrCreateUser(User.SUPER_ADMIN);
             }
             repositoryFactory.getRoleRepository(domain.getID())
                     .getOrCreateRole(Role.DOMAIN_OWNER.getID());
@@ -119,5 +120,17 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
             save(domain);
         }
         return domain;
+    }
+
+    @Override
+    public boolean isUserOwner(String domainName, String username) {
+        if (GenericValidator.isBlankOrNull(domainName)) {
+            throw new IllegalArgumentException("domain name is not specified");
+        }
+        if (GenericValidator.isBlankOrNull(username)) {
+            throw new IllegalArgumentException("username is not specified");
+        }
+        Domain domain = super.findByID(domainName);
+        return domain != null && domain.getOwnerUsernames().contains(username);
     }
 }

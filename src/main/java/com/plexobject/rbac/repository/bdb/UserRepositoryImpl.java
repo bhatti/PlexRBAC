@@ -15,13 +15,11 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
     }
 
     @Override
-    public User getOrCreateUser(String username) {
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new IllegalArgumentException("username is not specified");
-        }
-        User user = super.findByID(username);
+    public User getOrCreateUser(User user) {
         if (user == null) {
-            user = new User(username, PasswordUtils.generatePassword());
+            throw new IllegalArgumentException("user is not specified");
+        }
+        if (super.findByID(user.getID()) == null) {
             save(user);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Created user " + user);
@@ -35,9 +33,8 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, String>
         if (GenericValidator.isBlankOrNull(username)) {
             throw new IllegalArgumentException("username is not specified");
         }
-        if (User.SUPER_ADMIN_USERNAME.equals(username)) {
-            throw new IllegalStateException(User.SUPER_ADMIN_USERNAME
-                    + " cannot be removed");
+        if (User.SUPER_ADMIN.getID().equals(username)) {
+            throw new IllegalStateException(username + " cannot be removed");
         }
         return super.remove(username);
     }

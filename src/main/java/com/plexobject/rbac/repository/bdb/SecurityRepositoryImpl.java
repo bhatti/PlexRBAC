@@ -136,6 +136,22 @@ public class SecurityRepositoryImpl implements SecurityRepository {
         }
     }
 
+    @Override
+    public boolean isUserInRole(final String domain, final String username,
+            final String rolename) {
+        if (GenericValidator.isBlankOrNull(domain)) {
+            throw new IllegalArgumentException("domain is not specified");
+        }
+        if (GenericValidator.isBlankOrNull(username)) {
+            throw new IllegalArgumentException("username is not specified");
+        }
+        if (GenericValidator.isBlankOrNull(rolename)) {
+            throw new IllegalArgumentException("rolename is not specified");
+        }
+        Role role = verifyRole(domain, rolename);
+        return role.getUserIDs().contains(username);
+    }
+
     private Domain verifyDomain(String domainName) {
         Domain domain = repositoryFactory.getDomainRepository().findByID(
                 domainName);
@@ -175,4 +191,5 @@ public class SecurityRepositoryImpl implements SecurityRepository {
         }
         return permission;
     }
+
 }

@@ -30,7 +30,7 @@ public class PermissionManagerTest {
     public void setUp() throws Exception {
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest(USER_NAME, "127.0.0.1");
+        CurrentUserRequest.startRequest(APP_NAME, USER_NAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
         permissionManager = new PermissionManager(repositoryFactory,

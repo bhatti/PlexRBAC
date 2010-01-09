@@ -4,5 +4,19 @@ import com.plexobject.rbac.domain.Domain;
 
 public interface DomainRepository extends BaseRepository<Domain, String> {
 
+    /**
+     * 
+     * @param domain
+     * @return
+     */
     Domain getOrCreateDomain(String domain);
+
+    /**
+     * 
+     * @param domain
+     * @param username
+     * @return
+     */
+    boolean isUserOwner(String domain, String username);
+
 }

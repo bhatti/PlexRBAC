@@ -47,4 +47,13 @@ public interface SecurityRepository {
      */
     void removePermissionsToRole(String domain, String role,
             Collection<Integer> permissionsIDs);
+
+    /**
+     * Checks if user has given role
+     * 
+     * @param username
+     * @param rolename
+     * @return
+     */
+    boolean isUserInRole(String domain, String username, String rolename);
 }

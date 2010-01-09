@@ -3,6 +3,8 @@ package com.plexobject.rbac.domain;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -20,11 +22,13 @@ import com.sleepycat.persist.model.PrimaryKey;
  * 
  */
 @Entity
+@XmlRootElement
 public class User extends PersistentObject implements Validatable,
         Identifiable<String> {
-    public static final String SUPER_ADMIN_USERNAME = Configuration
-            .getInstance().getProperty("super_admin_username",
-                    "super_admin_user");
+    public static final User SUPER_ADMIN = new User(Configuration.getInstance()
+            .getProperty("super_admin_username", "super_admin_user"),
+            Configuration.getInstance().getProperty("super_admin_password",
+                    "PlexObjects"));
     @PrimaryKey
     private String id;
     private String password;

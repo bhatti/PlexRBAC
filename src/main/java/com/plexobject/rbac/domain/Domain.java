@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -21,6 +23,7 @@ import com.sleepycat.persist.model.PrimaryKey;
  * 
  */
 @Entity
+@XmlRootElement
 public class Domain extends PersistentObject implements Validatable,
         Identifiable<String> {
     public static final String DEFAULT_DOMAIN_NAME = Configuration

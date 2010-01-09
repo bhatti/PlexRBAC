@@ -5,7 +5,7 @@ import javax.ws.rs.core.Response;
 public interface RolesService {
     Response get(String domain, String rolename);
 
-    Response index(String domain);
+    Response index(String domain, String lastKey, int limit);
 
     Response post(String domain, String roleJson);
 

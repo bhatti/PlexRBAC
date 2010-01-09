@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.plexobject.rbac.ServiceFactory;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
@@ -28,7 +29,7 @@ import com.plexobject.rbac.repository.SecurityRepository;
 import com.plexobject.rbac.service.SecurityAdminService;
 import com.sun.jersey.spi.inject.Inject;
 
-@Path("/storage")
+@Path("/security/admin")
 @Component("storageService")
 @Scope("singleton")
 public class SecurityAdminServiceImpl implements SecurityAdminService,
@@ -37,7 +38,8 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
             .getLogger(SecurityAdminServiceImpl.class);
     @Autowired
     @Inject
-    SecurityRepository securityRepository;
+    SecurityRepository securityRepository = ServiceFactory.getDefaultFactory()
+            .getSecurityRepository();
 
     private final ServiceJMXBeanImpl mbean;
 

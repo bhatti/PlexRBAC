@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -18,6 +21,7 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
 @Entity
+@XmlRootElement
 public class Role extends PersistentObject implements Validatable,
         Identifiable<String> {
     public static final Role ANONYMOUS = new Role("anonymous_role");
@@ -55,6 +59,7 @@ public class Role extends PersistentObject implements Validatable,
         this.id = id;
     }
 
+    @XmlTransient
     public Set<String> getUserIDs() {
         return Collections.unmodifiableSet(userIDs);
     }

@@ -9,6 +9,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
@@ -17,15 +18,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.plexobject.rbac.ServiceFactory;
 import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.service.AuthenticationService;
+import com.plexobject.rbac.web.utils.WebUtils;
 import com.sun.jersey.spi.inject.Inject;
 
-@Path("/authentication")
+@Path("/login")
 @Component("authenticationService")
 @Scope("singleton")
 public class AuthenticationServiceImpl implements AuthenticationService,
@@ -35,7 +38,8 @@ public class AuthenticationServiceImpl implements AuthenticationService,
             .getLogger(AuthenticationServiceImpl.class);
     @Autowired
     @Inject
-    RepositoryFactory repositoryFactory;
+    RepositoryFactory repositoryFactory = ServiceFactory
+            .getDefaultFactory();
 
     private final ServiceJMXBeanImpl mbean;
 
@@ -69,11 +73,18 @@ public class AuthenticationServiceImpl implements AuthenticationService,
         try {
             User user = repositoryFactory.getUserRepository(domain)
                     .authenticate(username, password);
-            mbean.incrementRequests();
+            if (user == null) {
+                throw new RuntimeException("auth failed");
+            }
 
-            return Response.status(RestClient.OK_CREATED).cookie(
-                    new NewCookie("username", user.getID())).entity(
-                    user.getID() + " logged in").build();
+            mbean.incrementRequests();
+            final NewCookie[] cookies = WebUtils
+                    .createSession(domain, username);
+            ResponseBuilder rb = Response.status(RestClient.OK_CREATED);
+            for (NewCookie cookie : cookies) {
+                rb.cookie(cookie);
+            }
+            return rb.entity("success").build();
         } catch (Exception e) {
             LOGGER.error("failed to login", e);
             mbean.incrementError();
@@ -89,4 +100,20 @@ public class AuthenticationServiceImpl implements AuthenticationService,
             throw new IllegalStateException("repositoryFactory not set");
         }
     }
+
+    /**
+     * @return the repositoryFactory
+     */
+    public RepositoryFactory getRepositoryFactory() {
+        return repositoryFactory;
+    }
+
+    /**
+     * @param repositoryFactory
+     *            the repositoryFactory to set
+     */
+    public void setRepositoryFactory(RepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
+    }
+
 }

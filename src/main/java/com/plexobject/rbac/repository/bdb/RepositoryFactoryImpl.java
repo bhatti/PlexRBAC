@@ -63,7 +63,7 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     @Override
     public User getSuperAdmin() {
         return getUserRepository(Domain.DEFAULT_DOMAIN_NAME).getOrCreateUser(
-                User.SUPER_ADMIN_USERNAME);
+                User.SUPER_ADMIN);
     }
 
     @Override

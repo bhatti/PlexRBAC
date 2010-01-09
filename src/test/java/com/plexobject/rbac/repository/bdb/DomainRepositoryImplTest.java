@@ -15,9 +15,12 @@ import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.domain.Domain;
+import com.plexobject.rbac.domain.User;
 import com.plexobject.rbac.utils.CurrentUserRequest;
 
 public class DomainRepositoryImplTest {
+    private static final String DOMAIN = "domain";
+
     private static final String USERNAME = "shahbhat";
 
     private static final String TEST_DB_DIR = "test_db_dirx";
@@ -33,7 +36,7 @@ public class DomainRepositoryImplTest {
         new File(TEST_DB_DIR, "je.lck").delete();
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest(USERNAME, "127.0.0.1");
+        CurrentUserRequest.startRequest(DOMAIN, USERNAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
         repository = repositoryFactory.getDomainRepository();
     }
@@ -51,7 +54,7 @@ public class DomainRepositoryImplTest {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
-                    USERNAME);
+                    new User(USERNAME, "pass"));
             Domain app = new Domain("name" + i, username);
             repository.save(app);
         }
@@ -70,7 +73,7 @@ public class DomainRepositoryImplTest {
             final String username = "user " + System.currentTimeMillis();
             for (int i = 0; i < 10; i++) {
                 repositoryFactory.getUserRepository("name" + i)
-                        .getOrCreateUser(USERNAME);
+                        .getOrCreateUser(new User(USERNAME, "pass"));
                 Domain app = new Domain("name" + i, username);
                 repository.save(app);
             }
@@ -89,7 +92,7 @@ public class DomainRepositoryImplTest {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
-                    USERNAME);
+                    new User(USERNAME, "pass"));
             Domain app = new Domain("name" + i, username);
             repository.save(app);
         }
@@ -107,7 +110,7 @@ public class DomainRepositoryImplTest {
         final String username = "user " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
-                    USERNAME);
+                    new User(USERNAME, "pass"));
             Domain app = new Domain("name" + i, username);
             repository.save(app);
         }

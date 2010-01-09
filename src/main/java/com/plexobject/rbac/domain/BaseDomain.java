@@ -4,6 +4,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 import com.sleepycat.persist.model.NotPersistent;
 import com.sleepycat.persist.model.Persistent;
 
@@ -13,6 +15,7 @@ public abstract class BaseDomain {
     protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean dirty;
 
+    @XmlTransient
     protected boolean isDirty() {
         return dirty;
     }
