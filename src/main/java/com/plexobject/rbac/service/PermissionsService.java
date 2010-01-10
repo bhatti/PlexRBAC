@@ -5,13 +5,43 @@ import javax.ws.rs.core.Response;
 import com.plexobject.rbac.domain.Permission;
 
 public interface PermissionsService {
-    Response get(String domain, String id);
+    /**
+     * 
+     * @param domain
+     * @param id
+     * @return
+     */
+    Response get(String domain, Integer id);
 
-    Response index(String domain, String lastKey, int limit);
+    /**
+     * 
+     * @param domain
+     * @param lastKey
+     * @param limit
+     * @return
+     */
+    Response index(String domain, Integer lastKey, int limit);
 
+    /**
+     * 
+     * @param domain
+     * @param permission
+     * @return
+     */
     Response post(String domain, Permission permission);
 
-    Response delete(String domain, String id);
+    /**
+     * 
+     * @param domain
+     * @param id
+     * @return
+     */
+    Response delete(String domain, Integer id);
 
+    /**
+     * 
+     * @param domain
+     * @return
+     */
     Response delete(String domain);
 }

@@ -29,7 +29,7 @@ import com.sleepycat.persist.evolve.IncompatibleClassException;
 public class DatabaseStore {
     private static final Logger LOGGER = Logger.getLogger(DatabaseStore.class);
     private static final String DATABASE_DIR = Configuration.getInstance()
-            .getProperty("database.dir", "plexrbac");
+            .getProperty("database.dir", "PlexRbacDB");
 
     private Environment dbEnvironment;
     private StoreConfig storeConfig;

@@ -24,9 +24,9 @@ import com.sleepycat.persist.model.SecondaryKey;
 @XmlRootElement
 public class Role extends PersistentObject implements Validatable,
         Identifiable<String> {
-    public static final Role ANONYMOUS = new Role("anonymous_role");
-    public static final Role DOMAIN_OWNER = new Role("domain_owner_role");
-    public static final Role SUPER_ADMIN = new Role("super_admin_role");
+    public static final Role ANONYMOUS = new Role("anonymous");
+    public static final Role DOMAIN_OWNER = new Role("domain_owner");
+    public static final Role SUPER_ADMIN = new Role("super_admin");
 
     @PrimaryKey
     private String id;
@@ -34,62 +34,62 @@ public class Role extends PersistentObject implements Validatable,
     @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Role.class)
     String parentRoleID;
 
-    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = User.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
-    Set<String> userIDs = new HashSet<String>();
+    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = Subject.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
+    Set<String> subjectIDs = new HashSet<String>();
 
     Role() {
     }
 
     public Role(String id) {
-        setID(id);
+        setId(id);
     }
 
     public Role(String id, Role parent) {
-        setID(id);
+        setId(id);
         if (parent != null) {
-            setParentRoleID(parent.getID());
+            setParentRoleID(parent.getId());
         }
     }
 
-    public String getID() {
+    public String getId() {
         return id;
     }
 
-    void setID(String id) {
+    void setId(String id) {
         this.id = id;
     }
 
     @XmlTransient
-    public Set<String> getUserIDs() {
-        return Collections.unmodifiableSet(userIDs);
+    public Set<String> getSubjectIDs() {
+        return Collections.unmodifiableSet(subjectIDs);
     }
 
-    public void setUserIDs(Set<String> userIDs) {
-        firePropertyChange("userIDs", this.userIDs, userIDs);
+    public void setSubjectIDs(Set<String> subjectIDs) {
+        firePropertyChange("subjectIDs", this.subjectIDs, subjectIDs);
 
-        this.userIDs.clear();
-        this.userIDs.addAll(userIDs);
+        this.subjectIDs.clear();
+        this.subjectIDs.addAll(subjectIDs);
     }
 
-    public void addUser(String username) {
-        Set<String> old = getUserIDs();
-        this.userIDs.add(username);
-        firePropertyChange("userIDs", old, this.userIDs);
+    public void addSubject(String subjectname) {
+        Set<String> old = getSubjectIDs();
+        this.subjectIDs.add(subjectname);
+        firePropertyChange("subjectIDs", old, this.subjectIDs);
 
     }
 
-    public void removeUser(String username) {
-        Set<String> old = getUserIDs();
-        this.userIDs.remove(username);
-        firePropertyChange("userIDs", old, this.userIDs);
+    public void removeSubject(String subjectname) {
+        Set<String> old = getSubjectIDs();
+        this.subjectIDs.remove(subjectname);
+        firePropertyChange("subjectIDs", old, this.subjectIDs);
     }
 
-    public void addUser(User user) {
-        addUser(user.getID());
+    public void addSubject(Subject subject) {
+        addSubject(subject.getId());
     }
 
-    public void removeUser(User user) {
-        removeUser(user.getID());
+    public void removeSubject(Subject subject) {
+        removeSubject(subject.getId());
     }
 
     public String getParentRoleID() {
@@ -133,7 +133,7 @@ public class Role extends PersistentObject implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("rolename", this.id).append(
-                "userIDs", this.userIDs).toString();
+                "subjectIDs", this.subjectIDs).toString();
     }
 
     @Override

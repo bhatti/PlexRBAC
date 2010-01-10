@@ -6,7 +6,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -21,22 +21,21 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.plexobject.rbac.ServiceFactory;
-import com.plexobject.rbac.domain.Permission;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.domain.ValidationException;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
 import com.plexobject.rbac.repository.RepositoryFactory;
-import com.plexobject.rbac.service.PermissionsService;
+import com.plexobject.rbac.service.SubjectsService;
 import com.sun.jersey.spi.inject.Inject;
 
-@Path("/security/permissions")
-@Component("permissionsService")
+@Path("/security/subjects")
+@Component("subjectsService")
 @Scope("singleton")
-public class PermissionsServiceImpl implements PermissionsService,
-        InitializingBean {
+public class SubjectsServiceImpl implements SubjectsService, InitializingBean {
     private static final Logger LOGGER = Logger
-            .getLogger(AuthorizationServiceImpl.class);
+            .getLogger(SubjectsServiceImpl.class);
 
     @Autowired
     @Inject
@@ -44,73 +43,66 @@ public class PermissionsServiceImpl implements PermissionsService,
 
     private final ServiceJMXBeanImpl mbean;
 
-    public PermissionsServiceImpl() {
+    public SubjectsServiceImpl() {
         mbean = JMXRegistrar.getInstance().register(getClass());
-    }
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes( { MediaType.APPLICATION_JSON })
-    @Path("/{domain}")
-    @Override
-    public Response post(@PathParam("domain") String domain,
-            Permission permission) {
-        if (domain == null) {
-            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("domain not specified").build();
-        }
-        if (permission == null) {
-            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("permission not specified").build();
-        }
-        try {
-            permission.validate();
-            repositoryFactory.getPermissionRepository(domain).save(permission);
-
-            return Response.status(RestClient.OK_CREATED).entity(permission)
-                    .build();
-        } catch (ValidationException e) {
-            LOGGER.error("failed to validate permission " + permission, e);
-
-            mbean.incrementError();
-
-            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity(e.toString()).build();
-        } catch (Exception e) {
-            LOGGER.error("failed to save permission " + permission, e);
-            mbean.incrementError();
-            return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
-                    "text/plain").entity(
-                    "failed to save permission " + permission + "\n").build();
-
-        }
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
-    @Path("/{domain}/{id}")
+    @Path("/{domain}/{subjectname}")
     @Override
     public Response delete(@PathParam("domain") String domain,
-            @PathParam("id") Integer id) {
+            @PathParam("subjectname") String subjectname) {
         if (domain == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (id == null) {
+        if (subjectname == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("id not specified").build();
+                    "text/plain").entity("subjectname not specified").build();
         }
         try {
-            repositoryFactory.getPermissionRepository(domain).remove(id);
+            repositoryFactory.getSubjectRepository(domain).remove(subjectname);
 
-            return Response.status(RestClient.OK).entity(id).build();
+            return Response.status(RestClient.OK).entity(subjectname).build();
+        } catch (ValidationException e) {
+            mbean.incrementError();
+
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity(e.toString()).build();
         } catch (Exception e) {
-            LOGGER.error("failed to delete permission " + id, e);
+            LOGGER.error("failed to delete subjectname " + subjectname, e);
             mbean.incrementError();
             return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
                     "text/plain").entity(
-                    "failed to delete permission " + id + "\n").build();
+                    "failed to delete subjectname " + subjectname + "\n")
+                    .build();
+
+        }
+
+    }
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes( { MediaType.WILDCARD })
+    @Path("/{domain}")
+    @Override
+    public Response delete(@PathParam("domain") String domain) {
+        if (domain == null) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("domain not specified").build();
+        }
+
+        try {
+            repositoryFactory.getSubjectRepository(domain).clear();
+
+            return Response.status(RestClient.OK).entity("all deleted").build();
+        } catch (Exception e) {
+            LOGGER.error("failed to delete subjects", e);
+            mbean.incrementError();
+            return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
+                    "text/plain").entity("failed to delete subjects\n").build();
 
         }
     }
@@ -118,29 +110,29 @@ public class PermissionsServiceImpl implements PermissionsService,
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
-    @Path("/{domain}/{id}")
+    @Path("/{domain}/{subjectname}")
     @Override
     public Response get(@PathParam("domain") String domain,
-            @PathParam("id") Integer id) {
+            @PathParam("subjectname") String subjectname) {
         if (domain == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (id == null) {
+        if (subjectname == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("id not specified").build();
+                    "text/plain").entity("subjectname not specified").build();
         }
         try {
-            Permission permission = repositoryFactory.getPermissionRepository(
-                    domain).findByID(id);
+            Subject subject = repositoryFactory.getSubjectRepository(domain)
+                    .findByID(subjectname);
 
-            return Response.status(RestClient.OK).entity(permission).build();
+            return Response.status(RestClient.OK).entity(subject).build();
         } catch (Exception e) {
-            LOGGER.error("failed to get permission " + id, e);
+            LOGGER.error("failed to get subject " + subjectname, e);
             mbean.incrementError();
             return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
                     "text/plain").entity(
-                    "failed to get permission " + id + "\n").build();
+                    "failed to get subject " + subjectname + "\n").build();
 
         }
     }
@@ -151,50 +143,59 @@ public class PermissionsServiceImpl implements PermissionsService,
     @Path("/{domain}")
     @Override
     public Response index(@PathParam("domain") String domain,
-            @DefaultValue("-1") @QueryParam("last") Integer lastKey,
+            @QueryParam("last") String lastKey,
             @DefaultValue("20") @QueryParam("limit") int limit) {
         if (domain == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (lastKey <= 0) {
-            lastKey = null;
-        }
         try {
-            Collection<Permission> permissions = repositoryFactory
-                    .getPermissionRepository(domain).findAll(lastKey, limit);
+            Collection<Subject> subjects = repositoryFactory
+                    .getSubjectRepository(domain).findAll(lastKey, limit);
 
-            return Response.status(RestClient.OK).entity(permissions).build();
+            return Response.status(RestClient.OK).entity(subjects).build();
         } catch (Exception e) {
-            LOGGER.error("failed to get permissions", e);
+            LOGGER.error("failed to get subjects", e);
             mbean.incrementError();
             return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
-                    "text/plain").entity("failed to get permissions\n").build();
+                    "text/plain").entity("failed to get subjects\n").build();
 
         }
     }
 
-    @DELETE
+    @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes( { MediaType.WILDCARD })
+    @Consumes( { MediaType.APPLICATION_JSON })
     @Path("/{domain}")
     @Override
-    public Response delete(String domain) {
+    public Response put(@PathParam("domain") String domain, Subject subject) {
         if (domain == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-
+        if (subject == null) {
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity("subject not specified").build();
+        }
         try {
-            repositoryFactory.getPermissionRepository(domain).clear();
+            subject.validate();
+            repositoryFactory.getSubjectRepository(domain).save(subject);
 
-            return Response.status(RestClient.OK).entity("all deleted").build();
+            return Response.status(RestClient.OK_CREATED).entity(subject)
+                    .build();
+        } catch (ValidationException e) {
+            LOGGER.error("failed to validate subject " + subject, e);
+
+            mbean.incrementError();
+
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity(e.toString()).build();
         } catch (Exception e) {
-            LOGGER.error("failed to delete permissions", e);
+            LOGGER.error("failed to save subject " + subject, e);
             mbean.incrementError();
             return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
-                    "text/plain").entity("failed to delete permissions\n")
-                    .build();
+                    "text/plain").entity(
+                    "failed to save subject " + subject + "\n").build();
 
         }
     }
@@ -213,4 +214,5 @@ public class PermissionsServiceImpl implements PermissionsService,
             throw new IllegalStateException("repositoryFactory is not set");
         }
     }
+
 }

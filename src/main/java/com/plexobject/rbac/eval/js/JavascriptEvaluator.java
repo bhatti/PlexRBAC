@@ -9,8 +9,11 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 
+import org.springframework.stereotype.Component;
+
 import com.plexobject.rbac.eval.PredicateEvaluator;
 
+@Component("evaluator")
 public class JavascriptEvaluator implements PredicateEvaluator {
     private ScriptEngineManager manager = new ScriptEngineManager();
 

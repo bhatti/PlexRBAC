@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.plexobject.rbac.domain.Role;
 
 public interface RoleRepository extends BaseRepository<Role, String> {
-    Collection<Role> getRolesForUser(String username);
+    Collection<Role> getRolesForSubject(String subjectname);
 
     Role getOrCreateRole(String rolename);
 }

@@ -4,36 +4,36 @@ import java.util.Map;
 
 public class SecurityException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-    private final String username;
+    private final String subjectname;
     private final String operation;
     private final String target;
 
-    private final Map<String, String> userContext;
+    private final Map<String, String> subjectContext;
 
-    public SecurityException(String message, final String username,
+    public SecurityException(String message, final String subjectname,
             final String operation, final String target,
-            final Map<String, String> userContext) {
+            final Map<String, String> subjectContext) {
         super(message);
-        this.username = username;
+        this.subjectname = subjectname;
         this.operation = operation;
         this.target = target;
-        this.userContext = userContext;
+        this.subjectContext = subjectContext;
     }
 
-    public SecurityException(final String username, final String operation,
-            final String target, final Map<String, String> userContext) {
-        this.username = username;
+    public SecurityException(final String subjectname, final String operation,
+            final String target, final Map<String, String> subjectContext) {
+        this.subjectname = subjectname;
         this.operation = operation;
         this.target = target;
-        this.userContext = userContext;
+        this.subjectContext = subjectContext;
     }
 
-    public String getUsername() {
-        return username;
+    public String getSubjectname() {
+        return subjectname;
     }
 
-    public Map<String, String> getUserContext() {
-        return userContext;
+    public Map<String, String> getSubjectContext() {
+        return subjectContext;
     }
 
     public String getOperation() {
@@ -46,7 +46,7 @@ public class SecurityException extends RuntimeException {
 
     @Override
     public String toString() {
-        return super.toString() + ", username " + username + ", operation "
-                + operation + ", target " + target + ", context " + userContext;
+        return super.toString() + ", subjectname " + subjectname + ", operation "
+                + operation + ", target " + target + ", context " + subjectContext;
     }
 }

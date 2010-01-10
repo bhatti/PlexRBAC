@@ -52,11 +52,11 @@ public class Permission extends PersistentObject implements Validatable,
         setExpression(expression);
     }
 
-    void setID(Integer id) {
+    void setId(Integer id) {
         this.id = id;
     }
 
-    public Integer getID() {
+    public Integer getId() {
         return id;
     }
 
@@ -152,13 +152,13 @@ public class Permission extends PersistentObject implements Validatable,
 
     public void addRole(Role role) {
         Set<String> old = getRoleIDs();
-        this.roleIDs.add(role.getID());
+        this.roleIDs.add(role.getId());
         firePropertyChange("roleIDs", old, this.roleIDs);
     }
 
     public void removeRole(Role role) {
         Set<String> old = getRoleIDs();
-        this.roleIDs.remove(role.getID());
+        this.roleIDs.remove(role.getId());
         firePropertyChange("roleIDs", old, this.roleIDs);
     }
 

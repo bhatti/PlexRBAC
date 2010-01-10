@@ -6,11 +6,45 @@
               http://www.springframework.org/schema/context
               http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-              <context:annotation-config />
-              <!--
-              <context:component-scan base-package="com.plexobject.rbac."/>
-              --->
 
-	<import resource="classpath:/plexrbac-activemq.xml" />
+
+              <bean id="evaluator"
+                  class="com.plexobject.rbac.eval.js.JavascriptEvaluator"/>
+              <bean id="permissionManager"
+                  class="com.plexobject.rbac.security.PermissionManager">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+                  <property name="evaluator" ref="evaluator" />
+              </bean>
+              <bean id="repositoryFactory"
+                  class="com.plexobject.rbac.repository.bdb.RepositoryFactoryImpl">
+              </bean>
+              <bean class="com.plexobject.rbac.service.impl.JAXBContextResolver"/>
+              <bean id="authenticationService" class="com.plexobject.rbac.service.impl.AuthenticationServiceImpl" autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
+              <bean id="authorizationService"
+                  class="com.plexobject.rbac.service.impl.AuthorizationServiceImpl" autowire="byType">
+                  <property name="permissionManager" ref="permissionManager" />
+              </bean>
+              <bean id="domainsService" class="com.plexobject.rbac.service.impl.DomainsServiceImpl" autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
+              <bean id="permissionsService"
+                  class="com.plexobject.rbac.service.impl.PermissionsServiceImpl" autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
+              <bean id="rolesService" class="com.plexobject.rbac.service.impl.RolesServiceImpl"
+                  autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
+              <bean id="securityAdminService"
+                  class="com.plexobject.rbac.service.impl.SecurityAdminServiceImpl" autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
+              <bean
+                  class="com.plexobject.rbac.service.impl.ServerStatusServiceImpl" autowire="byType"/>
+              <bean id="subjectsService" class="com.plexobject.rbac.service.impl.SubjectsServiceImpl" autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
 </beans>
 

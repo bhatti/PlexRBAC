@@ -7,12 +7,12 @@ import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Role;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.repository.SecurityRepository;
-import com.plexobject.rbac.utils.CurrentUserRequest;
+import com.plexobject.rbac.utils.CurrentRequest;
 import com.sleepycat.persist.EntityStore;
 
 public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
@@ -46,10 +46,10 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
                 throw new IllegalStateException("domain with name " + id
                         + " does not exist");
             }
-            Collection<String> owners = domain.getOwnerUsernames();
+            Collection<String> owners = domain.getOwnerSubjectnames();
             for (String owner : owners) {
-                securityRepository.removeRolesToUser(domain.getID(), owner,
-                        Arrays.asList(Role.DOMAIN_OWNER.getID()));
+                securityRepository.removeRolesToSubject(domain.getId(), owner,
+                        Arrays.asList(Role.DOMAIN_OWNER.getId()));
             }
             boolean success = super.remove(id);
 
@@ -69,44 +69,52 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
         if (domain == null) {
             throw new IllegalArgumentException("domain is not specified");
         }
+        String subjectname = CurrentRequest.getSubjectname();
+        String originalSubjectname = subjectname;
         try {
             databaseStore.beginTransaction();
             // each domain must have an owner, which will automatically be
             // assigned role of DOMAIN_OWNER
             // however for default domain, we control the owner.
-            String username = Domain.DEFAULT_DOMAIN_NAME.equals(domain.getID()) ? repositoryFactory
-                    .getSuperAdmin().getID()
-                    : CurrentUserRequest.getUsername();
-            if (GenericValidator.isBlankOrNull(username)) {
+
+            if (Domain.DEFAULT_DOMAIN_NAME.equals(domain.getId())) {
+                CurrentRequest.setSubjectname(Subject.SUPER_ADMIN.getId());
+                subjectname = repositoryFactory.getSuperAdmin().getId();
+                repositoryFactory.getSubjectRepository(domain.getId())
+                        .getOrCreateSubject(Subject.SUPER_ADMIN);
+            }
+
+            if (GenericValidator.isBlankOrNull(subjectname)) {
                 throw new IllegalArgumentException(
-                        "current username is not specified");
+                        "current subjectname is not specified");
             }
-            if (Domain.DEFAULT_DOMAIN_NAME.equals(domain.getID())) {
-                repositoryFactory.getUserRepository(domain.getID())
-                        .getOrCreateUser(User.SUPER_ADMIN);
-            }
-            repositoryFactory.getRoleRepository(domain.getID())
-                    .getOrCreateRole(Role.DOMAIN_OWNER.getID());
-            // now assigning current user to the domain as owner
-            domain.addOwner(username);
+
+            repositoryFactory.getRoleRepository(domain.getId())
+                    .getOrCreateRole(Role.DOMAIN_OWNER.getId());
+            // now assigning current subject to the domain as owner
+            domain.addOwner(subjectname);
 
             Domain saved = super.save(domain);
 
-            // assigning DOMAIN_ROLE to the user
-            securityRepository.addRolesToUser(domain.getID(), username, Arrays
-                    .asList(Role.DOMAIN_OWNER.getID()));
+            // assigning DOMAIN_ROLE to the subject
+            LOGGER.info("Adding domain owner to " + subjectname + " in domain "
+                    + store.getStoreName());
+            securityRepository.addRolesToSubject(domain.getId(), subjectname, Arrays
+                    .asList(Role.DOMAIN_OWNER.getId()));
 
             // Each domain will be stored as a different database, it
-            // encapsulates user/roles/permissions for each domain in a
+            // encapsulates subject/roles/permissions for each domain in a
             // different database physically.
-            if (!databaseStore.getAllDatabases().contains(domain.getID())) {
-                databaseStore.createDatabase(domain.getID());
+            if (!databaseStore.getAllDatabases().contains(domain.getId())) {
+                databaseStore.createDatabase(domain.getId());
             }
             databaseStore.commitTransaction();
             return saved;
         } catch (RuntimeException e) {
             databaseStore.abortTransaction();
             throw new PersistenceException("Failed to save " + domain, e);
+        } finally {
+            CurrentRequest.setSubjectname(originalSubjectname);
         }
     }
 
@@ -117,20 +125,20 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
         }
         Domain domain = super.findByID(name);
         if (domain == null) {
-            save(domain);
+            save(new Domain(name, name));
         }
         return domain;
     }
 
     @Override
-    public boolean isUserOwner(String domainName, String username) {
+    public boolean isSubjectOwner(String domainName, String subjectname) {
         if (GenericValidator.isBlankOrNull(domainName)) {
             throw new IllegalArgumentException("domain name is not specified");
         }
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new IllegalArgumentException("username is not specified");
+        if (GenericValidator.isBlankOrNull(subjectname)) {
+            throw new IllegalArgumentException("subjectname is not specified");
         }
         Domain domain = super.findByID(domainName);
-        return domain != null && domain.getOwnerUsernames().contains(username);
+        return domain != null && domain.getOwnerSubjectnames().contains(subjectname);
     }
 }

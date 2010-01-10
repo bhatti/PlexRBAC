@@ -17,10 +17,11 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.plexobject.rbac.ServiceFactory;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Tuple;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.service.impl.AuthenticationServiceImpl;
-import com.plexobject.rbac.utils.CurrentUserRequest;
+import com.plexobject.rbac.utils.CurrentRequest;
 import com.plexobject.rbac.utils.PasswordUtils;
 import com.plexobject.rbac.web.utils.WebUtils;
 import com.sun.jersey.spi.inject.Inject;
@@ -33,22 +34,24 @@ public class AuthenticationFilter implements Filter {
 
     private class AuthRequestWrapper extends HttpServletRequestWrapper {
         private final String domain;
-        private final String username;
+        private final String subjectname;
 
-        public AuthRequestWrapper(final String domain, final String username,
-                final HttpServletRequest request) {
+        public AuthRequestWrapper(final String domain,
+                final String subjectname, final HttpServletRequest request) {
             super(request);
             this.domain = domain;
-            this.username = username;
+            this.subjectname = subjectname;
         }
 
+        @Override
         public boolean isUserInRole(String role) {
-            return repositoryFactory.getSecurityRepository().isUserInRole(
-                    domain, username, role);
+            return repositoryFactory.getSecurityRepository().isSubjectInRole(
+                    domain, subjectname, role);
         }
 
+        @Override
         public String getRemoteUser() {
-            return username;
+            return subjectname;
         }
     }
 
@@ -72,47 +75,55 @@ public class AuthenticationFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         boolean success = false;
         String domain = WebUtils.getDomain(req);
-        String username = WebUtils.getUser(req);
+        String subjectname = null;
 
         String authzHeader = req.getHeader(AUTHORIZATION_HEADER);
-        if (GenericValidator.isBlankOrNull(authzHeader)) {
-            if (WebUtils.verifySession(req.getCookies())) {
+        if (GenericValidator.isBlankOrNull(authzHeader)
+                || !authzHeader.startsWith("Basic ")) {
+            Tuple domainAndSubjectname = WebUtils.verifySession(req);
+            if (domainAndSubjectname != null) {
+                subjectname = domainAndSubjectname.second();
                 success = true;
             }
         } else {
-            String decoded = new String(PasswordUtils.base64ToByte(authzHeader));
-            String[] prinCred = decoded.split(":");
+            String encodedSubjectnameCredentials = authzHeader.split(" ")[1];
+            String subjectnameCredentials = new String(PasswordUtils
+                    .base64ToByte(encodedSubjectnameCredentials));
 
-            String password = null;
+            String[] prinCred = subjectnameCredentials.split(":");
+            String credentials = null;
             if (prinCred.length == 3) {
                 domain = prinCred[0];
-                username = prinCred[1];
-                password = prinCred[2];
+                subjectname = prinCred[1];
+                credentials = prinCred[2];
             } else {
-                username = prinCred[0];
-                password = prinCred[1];
+                subjectname = prinCred[0];
+                credentials = prinCred[1];
             }
-            User user = repositoryFactory.getUserRepository(domain)
-                    .authenticate(username, password);
-            if (user != null) {
+            Subject subject = repositoryFactory.getSubjectRepository(domain)
+                    .authenticate(subjectname, credentials);
+            if (subject != null) {
                 success = true;
             }
         }
-
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Filtering " + authzHeader + ", domain " + domain
+                    + ", subject " + subjectname + ", success " + success);
+        }
         if (success
-                && !repositoryFactory.getDomainRepository().isUserOwner(domain,
-                        username)) {
-            LOGGER.warn("User " + username
+                && !repositoryFactory.getDomainRepository().isSubjectOwner(
+                        domain, subjectname)) {
+            LOGGER.warn("Subject " + subjectname
                     + " is illegaly trying to access domain " + domain);
             success = false;
         }
         if (success) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Logged " + domain + ":" + username);
+                LOGGER.debug("Logged " + domain + ":" + subjectname);
             }
-            CurrentUserRequest.startRequest(domain, username, req
+            CurrentRequest.startRequest(domain, subjectname, req
                     .getRemoteHost());
-            chain.doFilter(new AuthRequestWrapper(domain, username, req),
+            chain.doFilter(new AuthRequestWrapper(domain, subjectname, req),
                     response);
         } else {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

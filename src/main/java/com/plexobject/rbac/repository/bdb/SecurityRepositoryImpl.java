@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.repository.RoleRepository;
@@ -52,33 +52,33 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public void addRolesToUser(final String domain, final String username,
+    public void addRolesToSubject(final String domain, final String subjectname,
             final Collection<String> rolenames) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (username == null) {
-            throw new IllegalArgumentException("user is not specified");
+        if (subjectname == null) {
+            throw new IllegalArgumentException("subject is not specified");
         }
         if (rolenames == null || rolenames.size() == 0) {
             throw new IllegalArgumentException("roles not specified");
         }
         if (rolenames.size() == 1
-                && rolenames.contains(Role.DOMAIN_OWNER.getID())) {
+                && rolenames.contains(Role.DOMAIN_OWNER.getId())) {
             // no need to check domain as
         } else {
             verifyDomain(domain);
-            verifyUser(domain, username);
+            verifySubject(domain, subjectname);
         }
 
         RoleRepository repository = repositoryFactory.getRoleRepository(domain);
         for (String rolename : rolenames) {
             Role role = verifyRole(domain, rolename);
-            role.addUser(username);
+            role.addSubject(subjectname);
             repository.save(role);
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Added roles " + rolenames + " to " + username
+            LOGGER.debug("Added roles " + rolenames + " to " + subjectname
                     + " in domain " + domain);
         }
     }
@@ -111,45 +111,45 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public void removeRolesToUser(final String domain, final String username,
+    public void removeRolesToSubject(final String domain, final String subjectname,
             final Collection<String> rolenames) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (username == null) {
-            throw new IllegalArgumentException("user is not specified");
+        if (subjectname == null) {
+            throw new IllegalArgumentException("subject is not specified");
         }
         if (rolenames == null || rolenames.size() == 0) {
             throw new IllegalArgumentException("roles not specified");
         }
         verifyDomain(domain);
-        User user = verifyUser(domain, username);
+        Subject subject = verifySubject(domain, subjectname);
         RoleRepository repository = repositoryFactory.getRoleRepository(domain);
         for (String rolename : rolenames) {
             Role role = verifyRole(domain, rolename);
-            role.removeUser(user);
+            role.removeSubject(subject);
             repository.save(role);
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Removed roles " + rolenames + " from " + username
+            LOGGER.debug("Removed roles " + rolenames + " from " + subjectname
                     + " in domain " + domain);
         }
     }
 
     @Override
-    public boolean isUserInRole(final String domain, final String username,
+    public boolean isSubjectInRole(final String domain, final String subjectname,
             final String rolename) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new IllegalArgumentException("username is not specified");
+        if (GenericValidator.isBlankOrNull(subjectname)) {
+            throw new IllegalArgumentException("subjectname is not specified");
         }
         if (GenericValidator.isBlankOrNull(rolename)) {
             throw new IllegalArgumentException("rolename is not specified");
         }
         Role role = verifyRole(domain, rolename);
-        return role.getUserIDs().contains(username);
+        return role.getSubjectIDs().contains(subjectname);
     }
 
     private Domain verifyDomain(String domainName) {
@@ -162,14 +162,14 @@ public class SecurityRepositoryImpl implements SecurityRepository {
         return domain;
     }
 
-    private User verifyUser(String domain, String username) {
-        User user = repositoryFactory.getUserRepository(domain).findByID(
-                username);
-        if (user == null) {
-            throw new IllegalStateException("user name " + username
+    private Subject verifySubject(String domain, String subjectname) {
+        Subject subject = repositoryFactory.getSubjectRepository(domain).findByID(
+                subjectname);
+        if (subject == null) {
+            throw new IllegalStateException("subject name " + subjectname
                     + " does not exist");
         }
-        return user;
+        return subject;
     }
 
     private Role verifyRole(String domain, String rolename) {

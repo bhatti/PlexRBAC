@@ -1,10 +1,10 @@
 package com.plexobject.rbac.repository;
 
 import com.plexobject.rbac.domain.Domain;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Subject;
 
 /**
- * This class interface as a factory for repositories to add users, roles,
+ * This class interface as a factory for repositories to add subjects, roles,
  * permissions and domains.
  * 
  */
@@ -25,7 +25,7 @@ public interface RepositoryFactory {
      * 
      * @return high level domain for this application
      */
-    User getSuperAdmin();
+    Subject getSuperAdmin();
 
     /**
      * 
@@ -57,7 +57,7 @@ public interface RepositoryFactory {
     /**
      * 
      * @param domain
-     * @return repository of users for given domain
+     * @return repository of subjects for given domain
      */
-    UserRepository getUserRepository(String domain);
+    SubjectRepository getSubjectRepository(String domain);
 }

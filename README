@@ -9,3 +9,13 @@ You will need to install Java 1.6 and Maven 2.0+ before start using the PlexRBAC
 Type "mvn" to build the project. Maven will download a bunch of files that may take a few minutes and will cache those locally and will then proceed to compile, test and build war file.
 
 
+
+== References ==
+http://csrc.nist.gov/groups/SNS/rbac/documents/design_implementation/Intro_role_based_access.htm
+// http://hissa.nist.gov/rbac/poole/ir5820/ir5820s31.htm
+// http://www.developer.com/article.php/10915_3841046_3/Real-World-REST-Using-Jersey-AJAX-and-JSON.htm
+// http://wikis.sun.com/display/Jersey/Overview+of+JAX-RS+1.0+Features
+// http://www.coresecuritypatterns.com/patterns.htm
+// http://cwiki.apache.org/confluence/display/SHIRO/Index
+// perl -pi -e 's/yy/xx/g' // `find src/ -name "*.java"`
+

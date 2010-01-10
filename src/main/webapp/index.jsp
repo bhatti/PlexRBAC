@@ -28,18 +28,6 @@
 			$(".top-cls").click( function() {
 				top()
 			});
-		       if (false) { 
-			$("#keywords").autocomplete("/api/search/autocomplete/efile_providers",
-			{
-				delay:10,
-				minChars:2,
-				matchSubset:1,
-				matchContains:1,
-				cacheLength:10,
-				autoFill:false
-                                });
-                       }
-		});
 	
 	
 	//$("#search_form").submit( function() { search() }); $(".kw").change(function() {search()}); 
@@ -190,8 +178,8 @@
 <body>
 <form id="search_form" onsubmit="return false;">
 <fieldset><label for="keywords"> Keywords: </label> <input
-    type="text" id="keywords" class="kw" name="keywords" /> 
-<input type="button" id="search" name="search" class="search-cls"
+	type="text" id="keywords" class="kw" name="keywords" /> <input
+	type="button" id="search" name="search" class="search-cls"
 	value="Search" /> <input type="button" id="explain" name="explain"
 	class="explain-cls" value="Explain" /> <input type="button" id="top"
 	name="top" class="top-cls" value="Top Terms" />

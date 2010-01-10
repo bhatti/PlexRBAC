@@ -25,12 +25,12 @@ import com.plexobject.rbac.ServiceFactory;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
-import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.service.SecurityAdminService;
 import com.sun.jersey.spi.inject.Inject;
 
 @Path("/security/admin")
-@Component("storageService")
+@Component("securityAdminService")
 @Scope("singleton")
 public class SecurityAdminServiceImpl implements SecurityAdminService,
         InitializingBean {
@@ -38,8 +38,7 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
             .getLogger(SecurityAdminServiceImpl.class);
     @Autowired
     @Inject
-    SecurityRepository securityRepository = ServiceFactory.getDefaultFactory()
-            .getSecurityRepository();
+    RepositoryFactory repositoryFactory = ServiceFactory.getDefaultFactory();
 
     private final ServiceJMXBeanImpl mbean;
 
@@ -78,7 +77,9 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
             for (int i = 0; i < jsonIDs.length(); i++) {
                 ids.add(Integer.valueOf(jsonIDs.getString(i)));
             }
-            securityRepository.addPermissionsToRole(domain, role, ids);
+
+            repositoryFactory.getSecurityRepository().addPermissionsToRole(
+                    domain, role, ids);
             mbean.incrementRequests();
 
             return Response.status(RestClient.OK_CREATED).entity(
@@ -122,7 +123,8 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
             for (int i = 0; i < jsonIDs.length(); i++) {
                 ids.add(Integer.valueOf(jsonIDs.getString(i)));
             }
-            securityRepository.removePermissionsToRole(domain, role, ids);
+            repositoryFactory.getSecurityRepository().removePermissionsToRole(
+                    domain, role, ids);
             mbean.incrementRequests();
 
             return Response.status(RestClient.OK_CREATED).entity(
@@ -142,16 +144,16 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
     @Consumes( { MediaType.WILDCARD })
     @Path("/roles/{domain}/{role}")
     @Override
-    public Response addRolesToUser(@PathParam("domain") String domain,
-            @PathParam("user") String user,
+    public Response addRolesToSubject(@PathParam("domain") String domain,
+            @PathParam("subject") String subject,
             @FormParam("rolenames") String rolenamesJSON) {
         if (GenericValidator.isBlankOrNull(domain)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (GenericValidator.isBlankOrNull(user)) {
+        if (GenericValidator.isBlankOrNull(subject)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("user not specified").build();
+                    "text/plain").entity("subject not specified").build();
         }
 
         if (GenericValidator.isBlankOrNull(rolenamesJSON)) {
@@ -166,7 +168,8 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
             for (int i = 0; i < jsonIDs.length(); i++) {
                 ids.add(jsonIDs.getString(i));
             }
-            securityRepository.addRolesToUser(domain, user, ids);
+            repositoryFactory.getSecurityRepository().addRolesToSubject(domain,
+                    subject, ids);
             mbean.incrementRequests();
 
             return Response.status(RestClient.OK_CREATED).entity("added roles")
@@ -185,16 +188,16 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
     @Consumes( { MediaType.WILDCARD })
     @Path("/roles/{domain}/{role}")
     @Override
-    public Response removeRolesToUser(@PathParam("domain") String domain,
-            @PathParam("user") String user,
+    public Response removeRolesToSubject(@PathParam("domain") String domain,
+            @PathParam("subject") String subject,
             @FormParam("rolenames") String rolenamesJSON) {
         if (GenericValidator.isBlankOrNull(domain)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (GenericValidator.isBlankOrNull(user)) {
+        if (GenericValidator.isBlankOrNull(subject)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("user not specified").build();
+                    "text/plain").entity("subject not specified").build();
         }
 
         if (GenericValidator.isBlankOrNull(rolenamesJSON)) {
@@ -209,7 +212,8 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
             for (int i = 0; i < jsonIDs.length(); i++) {
                 ids.add(jsonIDs.getString(i));
             }
-            securityRepository.removeRolesToUser(domain, user, ids);
+            repositoryFactory.getSecurityRepository().removeRolesToSubject(
+                    domain, subject, ids);
             mbean.incrementRequests();
 
             return Response.status(RestClient.OK_CREATED).entity("added roles")
@@ -223,26 +227,19 @@ public class SecurityAdminServiceImpl implements SecurityAdminService,
         }
     }
 
-    /**
-     * @return the documentRepository
-     */
-    public SecurityRepository getSecurityRepository() {
-        return securityRepository;
-    }
-
-    /**
-     * @param documentRepository
-     *            the documentRepository to set
-     */
-    public void setSecurityRepository(SecurityRepository securityRepository) {
-        this.securityRepository = securityRepository;
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (securityRepository == null) {
-            throw new IllegalStateException("documentRepository not set");
+        if (repositoryFactory == null) {
+            throw new IllegalStateException("repositoryFactory not set");
         }
+    }
+
+    public RepositoryFactory getRepositoryFactory() {
+        return repositoryFactory;
+    }
+
+    public void setRepositoryFactory(RepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
     }
 
 }

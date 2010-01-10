@@ -5,22 +5,22 @@ import javax.ws.rs.core.Response;
 public interface SecurityAdminService {
 
     /**
-     * Add given roles to the user and save them
+     * Add given roles to the subject and save them
      * 
      * @param domain
-     * @param user
+     * @param subject
      * @param roles
      */
-    Response addRolesToUser(String domain, String user, String rolenamesJSON);
+    Response addRolesToSubject(String domain, String subject, String rolenamesJSON);
 
     /**
-     * Remove given roles to the user and save them
+     * Remove given roles to the subject and save them
      * 
      * @param domain
-     * @param user
+     * @param subject
      * @param roles
      */
-    Response removeRolesToUser(String domain, String user, String rolenamesJSON);
+    Response removeRolesToSubject(String domain, String subject, String rolenamesJSON);
 
     /**
      * Adds permissions to given role

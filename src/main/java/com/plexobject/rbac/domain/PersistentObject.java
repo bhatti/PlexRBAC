@@ -51,13 +51,12 @@ public abstract class PersistentObject extends BaseDomain {
     }
 
     public void setCreatedIPAddress(String createdIPAddress) {
-        if (createdIPAddress == null) {
-            throw new IllegalArgumentException("createdIPAddress not specified");
-        }
-        firePropertyChange("createdIPAddress", this.createdIPAddress,
-                createdIPAddress);
+        if (createdIPAddress != this.createdIPAddress) {
+            firePropertyChange("createdIPAddress", this.createdIPAddress,
+                    createdIPAddress);
 
-        this.createdIPAddress = createdIPAddress;
+            this.createdIPAddress = createdIPAddress;
+        }
     }
 
     public Date getUpdatedAt() {
@@ -91,12 +90,11 @@ public abstract class PersistentObject extends BaseDomain {
     }
 
     public void setUpdatedIPAddress(String updatedIPAddress) {
-        if (updatedIPAddress == null) {
-            throw new IllegalArgumentException("updatedIPAddress not specified");
-        }
-        firePropertyChange("updatedIPAddress", this.updatedIPAddress,
-                updatedIPAddress);
+        if (updatedIPAddress != this.updatedIPAddress) {
+            firePropertyChange("updatedIPAddress", this.updatedIPAddress,
+                    updatedIPAddress);
 
-        this.updatedIPAddress = updatedIPAddress;
+            this.updatedIPAddress = updatedIPAddress;
+        }
     }
 }

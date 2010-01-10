@@ -16,50 +16,50 @@ public class SecurityError extends PersistentObject implements Validatable,
     @PrimaryKey(sequence = "application_seq")
     private Integer id;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
-    private String username;
+    private String subjectname;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String operation;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String target;
-    private Map<String, String> userContext;
+    private Map<String, String> subjectContext;
 
     // for JPA
     SecurityError() {
     }
 
-    public SecurityError(final String username, final String operation,
-            final String target, final Map<String, String> userContext) {
-        setUsername(username);
+    public SecurityError(final String subjectname, final String operation,
+            final String target, final Map<String, String> subjectContext) {
+        setSubjectname(subjectname);
         setOperation(operation);
         setTarget(target);
-        setUserContext(userContext);
+        setSubjectContext(subjectContext);
     }
 
-    void setID(Integer id) {
+    void setId(Integer id) {
         this.id = id;
     }
 
-    public Integer getID() {
+    public Integer getId() {
         return id;
     }
 
-    public Map<String, String> getUserContext() {
-        return userContext;
+    public Map<String, String> getSubjectContext() {
+        return subjectContext;
     }
 
-    void setUserContext(final Map<String, String> userContext) {
-        if (userContext == null) {
-            throw new IllegalArgumentException("user context not specified");
+    void setSubjectContext(final Map<String, String> subjectContext) {
+        if (subjectContext == null) {
+            throw new IllegalArgumentException("subject context not specified");
         }
-        this.userContext = userContext;
+        this.subjectContext = subjectContext;
     }
 
-    void setUsername(String username) {
-        this.username = username;
+    void setSubjectname(String subjectname) {
+        this.subjectname = subjectname;
     }
 
-    public String getUsername() {
-        return username;
+    public String getSubjectname() {
+        return subjectname;
     }
 
     void setOperation(String operation) {
@@ -83,8 +83,8 @@ public class SecurityError extends PersistentObject implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("id", id).append("username",
-                username).append("context", userContext).toString();
+        return new ToStringBuilder(this).append("id", id).append("subjectname",
+                subjectname).append("context", subjectContext).toString();
     }
 
     @Override

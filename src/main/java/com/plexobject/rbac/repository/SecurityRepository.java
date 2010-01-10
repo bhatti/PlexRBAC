@@ -2,8 +2,9 @@ package com.plexobject.rbac.repository;
 
 import java.util.Collection;
 
+
 /**
- * This class allows management of domains and mapping of users, roles and
+ * This class allows management of domains and mapping of subjects, roles and
  * permissions.
  * 
  * 
@@ -11,22 +12,22 @@ import java.util.Collection;
 public interface SecurityRepository {
 
     /**
-     * Add given roles to the user and save them
+     * Add given roles to the subject and save them
      * 
      * @param domain
-     * @param user
+     * @param subject
      * @param roles
      */
-    void addRolesToUser(String domain, String user, Collection<String> roles);
+    void addRolesToSubject(String domain, String subject, Collection<String> roles);
 
     /**
-     * Remove given roles to the user and save them
+     * Remove given roles to the subject and save them
      * 
      * @param domain
-     * @param user
+     * @param subject
      * @param roles
      */
-    void removeRolesToUser(String domain, String user, Collection<String> roles);
+    void removeRolesToSubject(String domain, String subject, Collection<String> roles);
 
     /**
      * Adds permissions to given role
@@ -49,11 +50,11 @@ public interface SecurityRepository {
             Collection<Integer> permissionsIDs);
 
     /**
-     * Checks if user has given role
+     * Checks if subject has given role
      * 
-     * @param username
+     * @param subjectname
      * @param rolename
      * @return
      */
-    boolean isUserInRole(String domain, String username, String rolename);
+    boolean isSubjectInRole(String domain, String subjectname, String rolename);
 }

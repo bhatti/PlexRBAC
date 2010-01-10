@@ -8,19 +8,19 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 
 public class PermissionRequest {
     private final String domain;
-    private final String username;
+    private final String subjectname;
     private final String operation;
     private final String target;
-    private final Map<String, String> userContext;
+    private final Map<String, String> subjectContext;
 
-    public PermissionRequest(final String domain, final String username,
+    public PermissionRequest(final String domain, final String subjectname,
             final String operation, final String target,
-            final Map<String, String> userContext) {
+            final Map<String, String> subjectContext) {
         this.domain = domain;
-        this.username = username;
+        this.subjectname = subjectname;
         this.operation = operation;
         this.target = target;
-        this.userContext = userContext;
+        this.subjectContext = subjectContext;
     }
 
     public String getDomain() {
@@ -28,10 +28,10 @@ public class PermissionRequest {
     }
 
     /**
-     * @return the username
+     * @return the subjectname
      */
-    public String getUsername() {
-        return username;
+    public String getSubjectname() {
+        return subjectname;
     }
 
     /**
@@ -49,10 +49,10 @@ public class PermissionRequest {
     }
 
     /**
-     * @return the userContext
+     * @return the subjectContext
      */
-    public Map<String, String> getUserContext() {
-        return userContext;
+    public Map<String, String> getSubjectContext() {
+        return subjectContext;
     }
 
     /**
@@ -65,9 +65,9 @@ public class PermissionRequest {
         }
         PermissionRequest rhs = (PermissionRequest) object;
         return new EqualsBuilder().append(this.domain, domain).append(
-                this.username, rhs.username).append(this.operation,
+                this.subjectname, rhs.subjectname).append(this.operation,
                 rhs.operation).append(this.target, rhs.target).append(
-                this.userContext, rhs.userContext).isEquals();
+                this.subjectContext, rhs.subjectContext).isEquals();
     }
 
     /**
@@ -76,7 +76,7 @@ public class PermissionRequest {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(786529047, 1924536713).append(domain)
-                .append(username).append(operation).append(target).toHashCode();
+                .append(subjectname).append(operation).append(target).toHashCode();
     }
 
     /**
@@ -84,8 +84,8 @@ public class PermissionRequest {
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append(domain).append(username)
-                .append(operation).append(target).append(userContext)
+        return new ToStringBuilder(this).append(domain).append(subjectname)
+                .append(operation).append(target).append(subjectContext)
                 .toString();
     }
 

@@ -15,8 +15,8 @@ import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.domain.Domain;
-import com.plexobject.rbac.domain.User;
-import com.plexobject.rbac.utils.CurrentUserRequest;
+import com.plexobject.rbac.domain.Subject;
+import com.plexobject.rbac.utils.CurrentRequest;
 
 public class DomainRepositoryImplTest {
     private static final String DOMAIN = "domain";
@@ -36,26 +36,28 @@ public class DomainRepositoryImplTest {
         new File(TEST_DB_DIR, "je.lck").delete();
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest(DOMAIN, USERNAME, "127.0.0.1");
+        CurrentRequest.startRequest(DOMAIN, USERNAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
         repository = repositoryFactory.getDomainRepository();
     }
 
     @After
     public void tearDown() throws Exception {
-        ((RepositoryFactoryImpl) repositoryFactory).closeDefault();
+        if (repositoryFactory != null) {
+            ((RepositoryFactoryImpl) repositoryFactory).closeDefault();
+        }
         new File(TEST_DB_DIR, "je.lck").delete();
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
-        CurrentUserRequest.endRequest();
+        CurrentRequest.endRequest();
     }
 
     @Test
     public void testRemove() {
-        final String username = "user " + System.currentTimeMillis();
+        final String subjectname = "subject " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
-            repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
-                    new User(USERNAME, "pass"));
-            Domain app = new Domain("name" + i, username);
+            repositoryFactory.getSubjectRepository("name" + i).getOrCreateSubject(
+                    new Subject(USERNAME, "pass"));
+            Domain app = new Domain("name" + i, subjectname);
             repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
@@ -68,20 +70,21 @@ public class DomainRepositoryImplTest {
     public void testFindAll() {
         try {
             Collection<Domain> all = repository.findAll(null, -1);
-            Assert.assertEquals(0, all.size());
+            Assert.assertEquals(1, all.size()); // default domain
 
-            final String username = "user " + System.currentTimeMillis();
+            final String subjectname = "subject " + System.currentTimeMillis();
             for (int i = 0; i < 10; i++) {
-                repositoryFactory.getUserRepository("name" + i)
-                        .getOrCreateUser(new User(USERNAME, "pass"));
-                Domain app = new Domain("name" + i, username);
+                repositoryFactory.getSubjectRepository("name" + i)
+                        .getOrCreateSubject(new Subject(USERNAME, "pass"));
+                Domain app = new Domain("name" + i, subjectname);
                 repository.save(app);
             }
             all = repository.findAll(null, 100);
             for (Domain app : all) {
-                Assert.assertTrue(app.getID().startsWith("name"));
+                Assert.assertTrue(app.getId().startsWith("name")
+                        || app.getId().startsWith(Domain.DEFAULT_DOMAIN_NAME));
             }
-            Assert.assertEquals(10, all.size());
+            Assert.assertEquals(11, all.size()); // 10 + default
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,11 +92,11 @@ public class DomainRepositoryImplTest {
 
     @Test
     public void testFindByName() {
-        final String username = "user " + System.currentTimeMillis();
+        final String subjectname = "subject " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
-            repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
-                    new User(USERNAME, "pass"));
-            Domain app = new Domain("name" + i, username);
+            repositoryFactory.getSubjectRepository("name" + i).getOrCreateSubject(
+                    new Subject(USERNAME, "pass"));
+            Domain app = new Domain("name" + i, subjectname);
             repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
@@ -107,11 +110,11 @@ public class DomainRepositoryImplTest {
 
     @Test
     public void testFindByID() {
-        final String username = "user " + System.currentTimeMillis();
+        final String subjectname = "subject " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
-            repositoryFactory.getUserRepository("name" + i).getOrCreateUser(
-                    new User(USERNAME, "pass"));
-            Domain app = new Domain("name" + i, username);
+            repositoryFactory.getSubjectRepository("name" + i).getOrCreateSubject(
+                    new Subject(USERNAME, "pass"));
+            Domain app = new Domain("name" + i, subjectname);
             repository.save(app);
         }
         for (int i = 0; i < 10; i++) {

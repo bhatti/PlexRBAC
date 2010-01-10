@@ -1,15 +1,14 @@
 package com.plexobject.rbac.service.impl;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
@@ -19,7 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.plexobject.rbac.ServiceFactory;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
@@ -38,8 +37,7 @@ public class AuthenticationServiceImpl implements AuthenticationService,
             .getLogger(AuthenticationServiceImpl.class);
     @Autowired
     @Inject
-    RepositoryFactory repositoryFactory = ServiceFactory
-            .getDefaultFactory();
+    RepositoryFactory repositoryFactory = ServiceFactory.getDefaultFactory();
 
     private final ServiceJMXBeanImpl mbean;
 
@@ -48,43 +46,42 @@ public class AuthenticationServiceImpl implements AuthenticationService,
 
     }
 
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
     @Path("/{domain}")
     @Override
     public Response authenticate(@PathParam("domain") String domain,
-            @QueryParam("username") String username,
-            @QueryParam("password") String password) {
+            @FormParam("subjectname") String subjectname,
+            @FormParam("credentials") String credentials) {
         if (GenericValidator.isBlankOrNull(domain)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (GenericValidator.isBlankOrNull(username)) {
+        if (GenericValidator.isBlankOrNull(subjectname)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("username not specified").build();
+                    "text/plain").entity("subjectname not specified").build();
         }
 
-        if (GenericValidator.isBlankOrNull(password)) {
+        if (GenericValidator.isBlankOrNull(credentials)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("password not specified").build();
+                    "text/plain").entity("credentials not specified").build();
         }
 
         try {
-            User user = repositoryFactory.getUserRepository(domain)
-                    .authenticate(username, password);
-            if (user == null) {
-                throw new RuntimeException("auth failed");
-            }
 
-            mbean.incrementRequests();
-            final NewCookie[] cookies = WebUtils
-                    .createSession(domain, username);
-            ResponseBuilder rb = Response.status(RestClient.OK_CREATED);
-            for (NewCookie cookie : cookies) {
-                rb.cookie(cookie);
+            Subject subject = repositoryFactory.getSubjectRepository(domain)
+                    .authenticate(subjectname, credentials);
+            if (subject != null) {
+                mbean.incrementRequests();
+                final NewCookie cookie = WebUtils.createSessionCookie(domain,
+                        subjectname);
+                return Response.status(RestClient.OK_CREATED).cookie(cookie)
+                        .entity(cookie.getValue()).build();
+            } else {
+                return Response.status(RestClient.CLIENT_ERROR_UNAUTHORIZED)
+                        .type("text/plain").entity("login error\n").build();
             }
-            return rb.entity("success").build();
         } catch (Exception e) {
             LOGGER.error("failed to login", e);
             mbean.incrementError();

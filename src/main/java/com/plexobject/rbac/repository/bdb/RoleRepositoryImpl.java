@@ -19,13 +19,13 @@ import com.sleepycat.persist.SecondaryIndex;
 
 public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
         implements RoleRepository {
-    private SecondaryIndex<String, String, Role> usernameIndex;
+    private SecondaryIndex<String, String, Role> subjectnameIndex;
 
     public RoleRepositoryImpl(final EntityStore store) {
         super(store);
         try {
-            usernameIndex = store.getSecondaryIndex(primaryIndex, String.class,
-                    "userIDs");
+            subjectnameIndex = store.getSecondaryIndex(primaryIndex, String.class,
+                    "subjectIDs");
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
         }
@@ -48,13 +48,13 @@ public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
     }
 
     @Override
-    public Collection<Role> getRolesForUser(String username) {
+    public Collection<Role> getRolesForSubject(String subjectname) {
         final Timing timer = Metric.newTiming(getClass().getName()
-                + ".getRolesForUser");
+                + ".getRolesForSubject");
         List<Role> roles = new ArrayList<Role>();
         EntityCursor<Role> cursor = null;
         try {
-            cursor = usernameIndex.subIndex(username).entities();
+            cursor = subjectnameIndex.subIndex(subjectname).entities();
             Iterator<Role> it = cursor.iterator();
             while (it.hasNext()) {
                 Role next = it.next();

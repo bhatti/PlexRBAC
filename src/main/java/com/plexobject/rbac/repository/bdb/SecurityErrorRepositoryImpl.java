@@ -57,11 +57,11 @@ public class SecurityErrorRepositoryImpl extends BaseRepositoryImpl<SecurityErro
             for (int i = 0; it.hasNext() && i < limit;) {
                 SecurityError next = it.next();
                 if (firstKey != null
-                        && firstKey.intValue() < next.getID().intValue()) {
+                        && firstKey.intValue() < next.getId().intValue()) {
                     continue;
                 }
                 all.add(next);
-                lastKey = next.getID();
+                lastKey = next.getId();
                 i++;
             }
             return new PagedList<SecurityError, Integer>(all, firstKey,

@@ -18,7 +18,7 @@ import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
 /**
- * The application defines a user application that will define a set of
+ * The application defines a subject application that will define a set of
  * permissions and then validates them at runtime
  * 
  */
@@ -27,14 +27,14 @@ import com.sleepycat.persist.model.PrimaryKey;
 public class Domain extends PersistentObject implements Validatable,
         Identifiable<String> {
     public static final String DEFAULT_DOMAIN_NAME = Configuration
-            .getInstance().getProperty("default.domain", "PlexRBAC");
+            .getInstance().getProperty("default.domain", "default");
 
     @PrimaryKey
     private String id;
     private String description;
     // @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity =
-    // User.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
-    Set<String> ownerUsernames = new HashSet<String>();
+    // Subject.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
+    Set<String> ownerSubjectnames = new HashSet<String>();
 
     // for JPA
     Domain() {
@@ -49,64 +49,64 @@ public class Domain extends PersistentObject implements Validatable,
     }
 
     public Domain(final String id, final String description) {
-        setID(id);
+        setId(id);
         setDescription(description);
     }
 
-    void setID(final String id) {
+    void setId(final String id) {
         if (GenericValidator.isBlankOrNull(id)) {
             throw new IllegalArgumentException("id is not specified");
         }
         this.id = id;
     }
 
-    public String getID() {
+    public String getId() {
         return id;
     }
 
-    public Set<String> getOwnerUsernames() {
-        return Collections.unmodifiableSet(ownerUsernames);
+    public Set<String> getOwnerSubjectnames() {
+        return Collections.unmodifiableSet(ownerSubjectnames);
     }
 
-    public void setOwnerUsernames(final Set<String> ownerUsernames) {
-        firePropertyChange("ownerUsernames", this.ownerUsernames,
-                ownerUsernames);
+    public void setOwnerSubjectnames(final Set<String> ownerSubjectnames) {
+        firePropertyChange("ownerSubjectnames", this.ownerSubjectnames,
+                ownerSubjectnames);
 
-        this.ownerUsernames.clear();
-        this.ownerUsernames.addAll(ownerUsernames);
+        this.ownerSubjectnames.clear();
+        this.ownerSubjectnames.addAll(ownerSubjectnames);
     }
 
-    public void addOwner(final String username) {
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new IllegalArgumentException("username is not specified");
+    public void addOwner(final String subjectname) {
+        if (GenericValidator.isBlankOrNull(subjectname)) {
+            throw new IllegalArgumentException("subjectname is not specified");
         }
-        Set<String> old = getOwnerUsernames();
-        this.ownerUsernames.add(username);
-        firePropertyChange("ownerUsernames", old, this.ownerUsernames);
+        Set<String> old = getOwnerSubjectnames();
+        this.ownerSubjectnames.add(subjectname);
+        firePropertyChange("ownerSubjectnames", old, this.ownerSubjectnames);
 
     }
 
-    public void addOwner(final User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("user is not specified");
+    public void addOwner(final Subject subject) {
+        if (subject == null) {
+            throw new IllegalArgumentException("subject is not specified");
         }
-        addOwner(user.getID());
+        addOwner(subject.getId());
     }
 
-    public void removeOwner(final User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("user is not specified");
+    public void removeOwner(final Subject subject) {
+        if (subject == null) {
+            throw new IllegalArgumentException("subject is not specified");
         }
-        removeOwner(user.getID());
+        removeOwner(subject.getId());
     }
 
-    public void removeOwner(final String username) {
-        if (GenericValidator.isBlankOrNull(username)) {
-            throw new IllegalArgumentException("username is not specified");
+    public void removeOwner(final String subjectname) {
+        if (GenericValidator.isBlankOrNull(subjectname)) {
+            throw new IllegalArgumentException("subjectname is not specified");
         }
-        Set<String> old = getOwnerUsernames();
-        this.ownerUsernames.remove(username);
-        firePropertyChange("ownerUsernames", old, this.ownerUsernames);
+        Set<String> old = getOwnerSubjectnames();
+        this.ownerSubjectnames.remove(subjectname);
+        firePropertyChange("ownerSubjectnames", old, this.ownerSubjectnames);
     }
 
     /**
@@ -136,18 +136,14 @@ public class Domain extends PersistentObject implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("name", this.id).append(
-                "owners", this.ownerUsernames).toString();
+                "owners", this.ownerSubjectnames).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
         if (GenericValidator.isBlankOrNull(id)) {
-            errorsByField.put("name", "application name is not specified");
-        }
-        if (ownerUsernames == null || ownerUsernames.size() == 0) {
-            errorsByField.put("ownerUsernames",
-                    "domain does not have any owners");
+            errorsByField.put("name", "domain id is not specified");
         }
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);

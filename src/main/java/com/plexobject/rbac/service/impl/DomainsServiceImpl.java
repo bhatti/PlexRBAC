@@ -23,12 +23,13 @@ import org.springframework.stereotype.Component;
 
 import com.plexobject.rbac.ServiceFactory;
 import com.plexobject.rbac.domain.Domain;
+import com.plexobject.rbac.domain.ValidationException;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
-import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.NotFoundException;
 import com.plexobject.rbac.repository.PersistenceException;
+import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.service.DomainsService;
 import com.sun.jersey.spi.inject.Inject;
 
@@ -41,8 +42,7 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
 
     @Autowired
     @Inject
-    DomainRepository domainRepository = ServiceFactory.getDefaultFactory()
-            .getDomainRepository();
+    RepositoryFactory repositoryFactory = ServiceFactory.getDefaultFactory();
 
     private final ServiceJMXBeanImpl mbean;
 
@@ -60,9 +60,8 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-
         try {
-            if (domainRepository.remove(domainName)) {
+            if (repositoryFactory.getDomainRepository().remove(domainName)) {
                 return Response.status(RestClient.OK).type(
                         MediaType.APPLICATION_JSON_TYPE).entity(domainName)
                         .build();
@@ -88,7 +87,7 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
     @Override
     public Response delete() {
         try {
-            domainRepository.clear();
+            repositoryFactory.getDomainRepository().clear();
             return Response.status(RestClient.OK).build();
         } catch (PersistenceException e) {
             LOGGER.error("failed to get domains", e);
@@ -117,10 +116,10 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
         }
 
         try {
-            Domain domain = domainRepository.findByID(domainName);
+            Domain domain = repositoryFactory.getDomainRepository().findByID(
+                    domainName);
 
-            return Response.status(RestClient.OK_CREATED).entity(domain)
-                    .build();
+            return Response.status(RestClient.OK).entity(domain).build();
         } catch (NotFoundException e) {
             mbean.incrementError();
             return Response.status(RestClient.CLIENT_ERROR_NOT_FOUND).type(
@@ -144,11 +143,12 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
     public Response index(@QueryParam("last") String lastKey,
             @DefaultValue("20") @QueryParam("limit") int limit) {
         try {
-            Collection<Domain> domains = domainRepository.findAll(lastKey,
-                    limit);
-
-            return Response.status(RestClient.OK_CREATED).entity(domains)
-                    .build();
+            Collection<Domain> domains = repositoryFactory
+                    .getDomainRepository().findAll(lastKey, limit);
+            LOGGER.info("got domains " + domains);
+            return Response.status(RestClient.OK).type(
+                    MediaType.APPLICATION_JSON_TYPE).entity(
+                    domains.toArray(new Domain[domains.size()])).build();
         } catch (Exception e) {
             LOGGER.error("failed to get domain", e);
             mbean.incrementError();
@@ -159,7 +159,7 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes( { MediaType.WILDCARD })
+    @Consumes( { MediaType.APPLICATION_JSON })
     @Path("/{domain}")
     @Override
     public Response put(Domain domain) {
@@ -169,10 +169,18 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
         }
 
         try {
-            domainRepository.save(domain);
+            domain.validate();
+            repositoryFactory.getDomainRepository().save(domain);
 
             return Response.status(RestClient.OK_CREATED).entity(domain)
                     .build();
+        } catch (ValidationException e) {
+            LOGGER.error("failed to validate domain " + domain, e);
+
+            mbean.incrementError();
+
+            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
+                    "text/plain").entity(e.toString()).build();
         } catch (Exception e) {
             LOGGER.error("failed to save domain " + domain, e);
             mbean.incrementError();
@@ -185,9 +193,17 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (domainRepository != null) {
-            throw new IllegalStateException("domainRepository is not set");
+        if (repositoryFactory == null) {
+            throw new IllegalStateException("repositoryFactory is not set");
         }
+    }
+
+    public RepositoryFactory getRepositoryFactory() {
+        return repositoryFactory;
+    }
+
+    public void setRepositoryFactory(RepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
     }
 
 }

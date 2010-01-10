@@ -1,18 +1,25 @@
 package com.plexobject.rbac.utils;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.ShortBufferException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import sun.misc.BASE64Decoder;
@@ -21,10 +28,21 @@ import sun.misc.BASE64Encoder;
 import com.plexobject.rbac.Configuration;
 
 public class PasswordUtils {
-    private static final byte[] ENCRYPTION_KEY = Configuration.getInstance()
-            .getProperty("encryption_key", "plexrbac").getBytes();
+    private static final byte[] KEY_BYTES = new byte[] { 0x73, 0x2f, 0x2d,
+            0x33, (byte) 0xc8, 0x01, 0x73, 0x2b, 0x72, 0x06, 0x75, 0x6c,
+            (byte) 0xbd, 0x44, (byte) 0xf9, (byte) 0xc1, (byte) 0xc1, 0x03,
+            (byte) 0xdd, (byte) 0xd9, 0x7c, 0x7c, (byte) 0xbe, (byte) 0x8e };
+    private static final String ENCRYPTION_PASSWORD = Configuration
+            .getInstance().getProperty("encryption_credentials", "credentials");
+    private static final byte[] IV_BYTES = new byte[] { (byte) 0xb0, 0x7b,
+            (byte) 0xf5, 0x22, (byte) 0xc8, (byte) 0xd6, 0x08, (byte) 0xb8 };
 
-    public static String generatePassword() {
+    static {
+        Security
+                .addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    }
+
+    public static String generateCredentials() {
         // Uses a secure Random not a simple Random
         try {
             SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
@@ -32,9 +50,9 @@ public class PasswordUtils {
             byte[] bytes = new byte[12];
             random.nextBytes(bytes);
             // Digest computation
-            String password = byteToBase64(bytes);
+            String credentials = byteToBase64(bytes);
 
-            return getHash(password);
+            return getHash(credentials);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -43,36 +61,49 @@ public class PasswordUtils {
     public static String encrypt(String text) throws NoSuchAlgorithmException,
             NoSuchProviderException, NoSuchPaddingException,
             InvalidKeyException, ShortBufferException,
-            IllegalBlockSizeException, BadPaddingException {
+            IllegalBlockSizeException, BadPaddingException,
+            InvalidAlgorithmParameterException {
         byte[] input = text.getBytes();
 
-        SecretKeySpec key = new SecretKeySpec(ENCRYPTION_KEY, "AES");
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding", "BC");
-
+        SecretKeySpec key = new SecretKeySpec(KEY_BYTES, "DESede");
+        Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS7Padding", "BC");
         // encryption pass
-
-        byte[] cipherText = new byte[input.length];
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        int ctLength = cipher.update(input, 0, input.length, cipherText, 0);
-        ctLength += cipher.doFinal(cipherText, ctLength);
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(IV_BYTES));
+        byte[] cipherText = cipher.doFinal(input);
         return new String(cipherText);
     }
 
     public static String decrypt(String text) throws NoSuchAlgorithmException,
             NoSuchProviderException, NoSuchPaddingException,
             InvalidKeyException, ShortBufferException,
-            IllegalBlockSizeException, BadPaddingException {
+            IllegalBlockSizeException, BadPaddingException,
+            InvalidAlgorithmParameterException, InvalidKeySpecException {
         final byte[] cipherText = text.getBytes();
         // decryption pass
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding", "BC");
-        SecretKeySpec key = new SecretKeySpec(ENCRYPTION_KEY, "AES");
+        // Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS7Padding", "BC");
+        // SecretKeySpec key = new SecretKeySpec(ENCRYPTION_KEY, "DESede");
+        // cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(IV_BYTES));
+        //
+        // byte[] plainText = new byte[cipherText.length];
+        // int ptLength = cipher.update(cipherText, 0, cipherText.length,
+        // plainText, 0);
+        // ptLength += cipher.doFinal(plainText, ptLength);
 
-        byte[] plainText = new byte[cipherText.length];
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        int ptLength = cipher.update(cipherText, 0, cipherText.length,
-                plainText, 0);
-        ptLength += cipher.doFinal(plainText, ptLength);
-        return new String(plainText);
+        // decrypt the data using PBE
+        byte[] salt = new byte[] { 0x7d, 0x60, 0x43, 0x5f, 0x02, (byte) 0xe9,
+                (byte) 0xe0, (byte) 0xae };
+        int iterationCount = 2048;
+        PBEKeySpec pbeSpec = new PBEKeySpec(ENCRYPTION_PASSWORD.toCharArray());
+        SecretKeyFactory keyFact = SecretKeyFactory.getInstance(
+                "PBEWithSHAAnd3KeyTripleDES", "BC");
+
+        Cipher cipher = Cipher.getInstance("PBEWithSHAAnd3KeyTripleDES", "BC");
+        Key sKey = keyFact.generateSecret(pbeSpec);
+
+        cipher.init(Cipher.DECRYPT_MODE, sKey, new PBEParameterSpec(salt,
+                iterationCount));
+
+        return new String(cipher.doFinal(cipherText));
     }
 
     /**
@@ -101,14 +132,12 @@ public class PasswordUtils {
         return endecoder.encode(data);
     }
 
-    public static String getHash(String password) {
+    public static String getHash(String credentials) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
             digest.reset();
-            byte[] input = digest.digest(password.getBytes("UTF-8"));
+            byte[] input = digest.digest(credentials.getBytes());
             return byteToBase64(input);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

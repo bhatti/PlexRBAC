@@ -11,11 +11,12 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.Configuration;
+import com.plexobject.rbac.utils.PasswordUtils;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
 /**
- * This class defines a simple user class Note: This project does not deal with
+ * This class defines a simple subject class Note: This project does not deal with
  * authentication and recommends openid solutions for it (such as RPX)
  * 
  * @author bhatti_shahzad
@@ -23,43 +24,43 @@ import com.sleepycat.persist.model.PrimaryKey;
  */
 @Entity
 @XmlRootElement
-public class User extends PersistentObject implements Validatable,
+public class Subject extends PersistentObject implements Validatable,
         Identifiable<String> {
-    public static final User SUPER_ADMIN = new User(Configuration.getInstance()
-            .getProperty("super_admin_username", "super_admin_user"),
-            Configuration.getInstance().getProperty("super_admin_password",
-                    "PlexObjects"));
+    public static final Subject SUPER_ADMIN = new Subject(Configuration.getInstance()
+            .getProperty("super_admin_subjectname", "super_admin"), PasswordUtils
+            .getHash(Configuration.getInstance().getProperty(
+                    "super_admin_credentials", "changeme")));
     @PrimaryKey
     private String id;
-    private String password;
+    private String credentials;
 
     // for JPA
-    User() {
+    Subject() {
     }
 
-    public String getID() {
+    public String getId() {
         return id;
     }
 
-    public void setID(String id) {
+    public void setId(String id) {
         if (GenericValidator.isBlankOrNull(id)) {
-            throw new IllegalArgumentException("username not specified");
+            throw new IllegalArgumentException("subjectname not specified");
         }
 
         this.id = id;
     }
 
-    public User(final String id, final String password) {
-        setID(id);
-        setPassword(password);
+    public Subject(final String id, final String credentials) {
+        setId(id);
+        setCredentials(credentials);
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setCredentials(String credentials) {
+        this.credentials = credentials;
     }
 
-    public String getPassword() {
-        return password;
+    public String getCredentials() {
+        return credentials;
     }
 
     /**
@@ -67,10 +68,10 @@ public class User extends PersistentObject implements Validatable,
      */
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof User)) {
+        if (!(object instanceof Subject)) {
             return false;
         }
-        User rhs = (User) object;
+        Subject rhs = (Subject) object;
         return new EqualsBuilder().append(this.id, rhs.id).isEquals();
     }
 
@@ -88,14 +89,14 @@ public class User extends PersistentObject implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("username", this.id).toString();
+        return new ToStringBuilder(this).append("subjectname", this.id).toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
         if (GenericValidator.isBlankOrNull(id)) {
-            errorsByField.put("id", "username is not specified");
+            errorsByField.put("id", "subjectname is not specified");
         }
 
         if (errorsByField.size() > 0) {

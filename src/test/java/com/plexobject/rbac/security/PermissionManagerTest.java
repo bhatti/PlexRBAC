@@ -13,11 +13,11 @@ import org.junit.Test;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.eval.js.JavascriptEvaluator;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.repository.bdb.RepositoryFactoryImpl;
-import com.plexobject.rbac.utils.CurrentUserRequest;
+import com.plexobject.rbac.utils.CurrentRequest;
 
 public class PermissionManagerTest {
     private static final String USER_NAME = "shahbhat";
@@ -30,7 +30,7 @@ public class PermissionManagerTest {
     public void setUp() throws Exception {
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
 
-        CurrentUserRequest.startRequest(APP_NAME, USER_NAME, "127.0.0.1");
+        CurrentRequest.startRequest(APP_NAME, USER_NAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
         permissionManager = new PermissionManager(repositoryFactory,
@@ -43,7 +43,7 @@ public class PermissionManagerTest {
     public void tearDown() throws Exception {
         // ((RepositoryFactoryImpl) repositoryFactory).close("appname");
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
-        CurrentUserRequest.endRequest();
+        CurrentRequest.endRequest();
     }
 
     @Test
@@ -81,11 +81,11 @@ public class PermissionManagerTest {
     private void addPermissions() {
 
         //
-        User shahbhat = new User(USER_NAME, "password");
-        repositoryFactory.getUserRepository(APP_NAME).save(shahbhat);
+        Subject shahbhat = new Subject(USER_NAME, "credentials");
+        repositoryFactory.getSubjectRepository(APP_NAME).save(shahbhat);
 
-        User bhatsha = new User("bhatsha", "password");
-        repositoryFactory.getUserRepository(APP_NAME).save(bhatsha);
+        Subject bhatsha = new Subject("bhatsha", "credentials");
+        repositoryFactory.getSubjectRepository(APP_NAME).save(bhatsha);
 
         repositoryFactory.getDomainRepository().save(new Domain(APP_NAME, ""));
 
@@ -114,20 +114,20 @@ public class PermissionManagerTest {
         repositoryFactory.getPermissionRepository(APP_NAME).save(print);
 
         //
-        repositoryFactory.getSecurityRepository().addRolesToUser(APP_NAME,
-                shahbhat.getID(), Arrays.asList("normal"));
+        repositoryFactory.getSecurityRepository().addRolesToSubject(APP_NAME,
+                shahbhat.getId(), Arrays.asList("normal"));
 
-        repositoryFactory.getSecurityRepository().addRolesToUser(APP_NAME,
-                bhatsha.getID(), Arrays.asList("admin"));
-
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(
-                APP_NAME, anonymous.getID(), Arrays.asList(read.getID()));
+        repositoryFactory.getSecurityRepository().addRolesToSubject(APP_NAME,
+                bhatsha.getId(), Arrays.asList("admin"));
 
         repositoryFactory.getSecurityRepository().addPermissionsToRole(
-                APP_NAME, normal.getID(),
-                Arrays.asList(print.getID(), crud.getID()));
+                APP_NAME, anonymous.getId(), Arrays.asList(read.getId()));
 
         repositoryFactory.getSecurityRepository().addPermissionsToRole(
-                APP_NAME, admin.getID(), Arrays.asList(wild.getID()));
+                APP_NAME, normal.getId(),
+                Arrays.asList(print.getId(), crud.getId()));
+
+        repositoryFactory.getSecurityRepository().addPermissionsToRole(
+                APP_NAME, admin.getId(), Arrays.asList(wild.getId()));
     }
 }

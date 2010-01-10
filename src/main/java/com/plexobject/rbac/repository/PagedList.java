@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class PagedList<T, ID> implements List<T> {
     private static final long serialVersionUID = 1L;
     private final List<T> list;
@@ -14,6 +17,14 @@ public class PagedList<T, ID> implements List<T> {
     private final ID lastKey;
     private final int limit;
     private final boolean more;
+
+    PagedList() {
+        this.list = null;
+        this.firstKey = null;
+        this.lastKey = null;
+        this.limit = 0;
+        this.more = false;
+    }
 
     public PagedList(final List<T> list) {
         this(list, null, null, list.size(), false);

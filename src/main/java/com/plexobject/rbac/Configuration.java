@@ -34,7 +34,7 @@ public class Configuration {
         } catch (IOException e) {
             LOGGER.error("Failed to load " + RESOURCE_NAME, e);
         }
-        // user can override any property via command-line system-arguments
+        // subject can override any property via command-line system-arguments
 
         properties.putAll(System.getProperties());
 

@@ -55,7 +55,7 @@ public class PermissionRepositoryImpl extends
         EntityCursor<Permission> cursor = null;
 
         try {
-            cursor = rolenameIndex.subIndex(role.getID()).entities();
+            cursor = rolenameIndex.subIndex(role.getId()).entities();
             Iterator<Permission> it = cursor.iterator();
             while (it.hasNext()) {
                 Permission next = it.next();

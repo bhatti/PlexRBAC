@@ -5,18 +5,20 @@ import java.util.Map;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import com.plexobject.rbac.domain.Domain;
-import com.plexobject.rbac.domain.User;
+import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.repository.DomainRepository;
 import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.repository.RoleRepository;
 import com.plexobject.rbac.repository.SecurityErrorRepository;
 import com.plexobject.rbac.repository.SecurityRepository;
-import com.plexobject.rbac.repository.UserRepository;
+import com.plexobject.rbac.repository.SubjectRepository;
 import com.sleepycat.je.DatabaseException;
 
+@Component("repositoryFactory")
 public class RepositoryFactoryImpl implements RepositoryFactory {
     private static final Logger LOGGER = Logger
             .getLogger(RepositoryFactoryImpl.class);
@@ -25,13 +27,14 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     private Map<String, DomainRepository> applicationRepositories = new HashMap<String, DomainRepository>();
     private Map<String, PermissionRepository> permissionRepositories = new HashMap<String, PermissionRepository>();
     private Map<String, SecurityErrorRepository> securityErrorRepositories = new HashMap<String, SecurityErrorRepository>();
-    private Map<String, UserRepository> userRepositories = new HashMap<String, UserRepository>();
+    private Map<String, SubjectRepository> subjectRepositories = new HashMap<String, SubjectRepository>();
     private Map<String, RoleRepository> roleRepositories = new HashMap<String, RoleRepository>();
     private Map<String, SecurityRepository> securityRepositories = new HashMap<String, SecurityRepository>();
 
     //
     public RepositoryFactoryImpl(final DatabaseStore databaseStore) {
         this.databaseStore = databaseStore;
+        getDefaultDomain(); // create default domain if needed
     }
 
     public RepositoryFactoryImpl(final String dbName) {
@@ -61,9 +64,9 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     }
 
     @Override
-    public User getSuperAdmin() {
-        return getUserRepository(Domain.DEFAULT_DOMAIN_NAME).getOrCreateUser(
-                User.SUPER_ADMIN);
+    public Subject getSuperAdmin() {
+        return getSubjectRepository(Domain.DEFAULT_DOMAIN_NAME)
+                .getOrCreateSubject(Subject.SUPER_ADMIN);
     }
 
     @Override
@@ -111,14 +114,16 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     }
 
     @Override
-    public synchronized UserRepository getUserRepository(final String domain) {
+    public synchronized SubjectRepository getSubjectRepository(
+            final String domain) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
-        UserRepository repository = userRepositories.get(domain);
+        SubjectRepository repository = subjectRepositories.get(domain);
         if (repository == null) {
-            repository = new UserRepositoryImpl(databaseStore.getStore(domain));
-            userRepositories.put(domain, repository);
+            repository = new SubjectRepositoryImpl(databaseStore
+                    .getStore(domain));
+            subjectRepositories.put(domain, repository);
         }
         return repository;
 
@@ -143,7 +148,7 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
         applicationRepositories.remove(domain);
         permissionRepositories.remove(domain);
         securityErrorRepositories.remove(domain);
-        userRepositories.remove(domain);
+        subjectRepositories.remove(domain);
         roleRepositories.remove(domain);
         try {
             databaseStore.close();

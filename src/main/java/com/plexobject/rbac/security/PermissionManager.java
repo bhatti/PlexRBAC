@@ -5,6 +5,9 @@ import java.util.Collection;
 
 import org.apache.commons.validator.GenericValidator;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.plexobject.rbac.Configuration;
 import com.plexobject.rbac.domain.Permission;
@@ -12,15 +15,25 @@ import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.SecurityError;
 import com.plexobject.rbac.eval.PredicateEvaluator;
 import com.plexobject.rbac.repository.RepositoryFactory;
+import com.sun.jersey.spi.inject.Inject;
 
-public class PermissionManager {
+@Component("permissionManager")
+public class PermissionManager implements InitializingBean {
     private static final Logger LOGGER = Logger
             .getLogger(PermissionManager.class);
     private static final boolean STORE_ERRORS_IN_DB = Configuration
             .getInstance().getBoolean("store_errors_in_db", true);
-    private final RepositoryFactory repositoryFactory;
+    
+    @Autowired
+    @Inject
+    private RepositoryFactory repositoryFactory;
 
-    private final PredicateEvaluator evaluator;
+    @Autowired
+    @Inject
+    private PredicateEvaluator evaluator;
+
+    PermissionManager() {
+    }
 
     public PermissionManager(final RepositoryFactory repositoryFactory,
             final PredicateEvaluator evaluator) {
@@ -38,12 +51,12 @@ public class PermissionManager {
     public void check(PermissionRequest request) throws SecurityException {
         Collection<Role> roles = null;
 
-        // by default user gets anonymous role
-        if (GenericValidator.isBlankOrNull(request.getUsername())) {
+        // by default subject gets anonymous role
+        if (GenericValidator.isBlankOrNull(request.getSubjectname())) {
             roles = Arrays.asList(Role.ANONYMOUS);
         } else {
             roles = repositoryFactory.getRoleRepository(request.getDomain())
-                    .getRolesForUser(request.getUsername());
+                    .getRolesForSubject(request.getSubjectname());
         }
         Collection<Permission> all = repositoryFactory.getPermissionRepository(
                 request.getDomain()).getPermissionsForRoles(roles);
@@ -55,7 +68,7 @@ public class PermissionManager {
                     return;
                 } else {
                     if (evaluator.evaluate(permission.getExpression(), request
-                            .getUserContext())) {
+                            .getSubjectContext())) {
                         return;
                     }
                 }
@@ -66,21 +79,47 @@ public class PermissionManager {
             if (STORE_ERRORS_IN_DB) {
                 repositoryFactory.getSecurityErrorRepository(
                         request.getDomain()).save(
-                        new SecurityError(request.getUsername(), request
+                        new SecurityError(request.getSubjectname(), request
                                 .getOperation(), request.getTarget(), request
-                                .getUserContext()));
+                                .getSubjectContext()));
             } else {
                 LOGGER.warn("Permission failed for " + request);
             }
         } catch (Exception e) {
-            LOGGER.error(
-                    "Failed to save securit error for username " + request, e);
+            LOGGER.error("Failed to save securit error for subjectname "
+                    + request, e);
         }
-        // throw new SecurityException(request.getUsername(), request
-        // .getOperation(), request.getTarget(), request.getUserContext());
-        throw new SecurityException("permissions " + all,
-                request.getUsername(), request.getOperation(), request
-                        .getTarget(), request.getUserContext());
+        // throw new SecurityException(request.getSubjectname(), request
+        // .getOperation(), request.getTarget(), request.getSubjectContext());
+        throw new SecurityException("permissions " + all, request
+                .getSubjectname(), request.getOperation(), request.getTarget(),
+                request.getSubjectContext());
 
+    }
+
+    public RepositoryFactory getRepositoryFactory() {
+        return repositoryFactory;
+    }
+
+    public void setRepositoryFactory(RepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
+    }
+
+    public PredicateEvaluator getEvaluator() {
+        return evaluator;
+    }
+
+    public void setEvaluator(PredicateEvaluator evaluator) {
+        this.evaluator = evaluator;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (repositoryFactory == null) {
+            throw new IllegalStateException("repositoryFactory not set");
+        }
+        if (evaluator == null) {
+            throw new IllegalStateException("evaluator not set");
+        }
     }
 }

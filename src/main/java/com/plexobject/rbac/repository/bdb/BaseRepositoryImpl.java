@@ -16,7 +16,7 @@ import com.plexobject.rbac.domain.Identifiable;
 import com.plexobject.rbac.domain.Validatable;
 import com.plexobject.rbac.metric.Metric;
 import com.plexobject.rbac.metric.Timing;
-import com.plexobject.rbac.utils.CurrentUserRequest;
+import com.plexobject.rbac.utils.CurrentRequest;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
@@ -29,7 +29,7 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
     final Logger LOGGER = Logger.getLogger(getClass());
     private final Class<T> entityBeanType;
     private final Class<ID> pkType;
-    private final EntityStore store;
+    protected final EntityStore store;
 
     protected PrimaryIndex<ID, T> primaryIndex;
 
@@ -65,12 +65,13 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
             for (int i = 0; it.hasNext() && i < limit; i++) {
                 T next = it.next();
                 all.add(next);
-                lastKey = next.getID();
+                lastKey = next.getId();
             }
             return new PagedList<T, ID>(all, firstKey, lastKey, limit, all
                     .size() == limit);
         } catch (DatabaseException e) {
-            throw new PersistenceException(e);
+            throw new PersistenceException("Failed to find all in "
+                    + store.getStoreName(), e);
         } finally {
             timer.stop();
             if (cursor != null) {
@@ -90,7 +91,8 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             return primaryIndex.get(id);
         } catch (DatabaseException e) {
-            throw new PersistenceException("Failed to find " + id, e);
+            throw new PersistenceException("Failed to find " + id + " in "
+                    + store.getStoreName(), e);
         } finally {
             timer.stop();
         }
@@ -102,7 +104,8 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             return primaryIndex.delete(id);
         } catch (DatabaseException e) {
-            throw new PersistenceException("Failed to remove " + id, e);
+            throw new PersistenceException("Failed to remove " + id + " in "
+                    + store.getStoreName(), e);
         } finally {
             timer.stop();
         }
@@ -121,14 +124,14 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
                 PersistentObject auditable = (PersistentObject) object;
                 if (auditable.getCreatedBy() == null) {
                     auditable.setCreatedAt(new Date());
-                    auditable.setCreatedBy(CurrentUserRequest.getUsername());
-                    auditable.setCreatedIPAddress(CurrentUserRequest
+                    auditable.setCreatedBy(CurrentRequest.getSubjectname());
+                    auditable.setCreatedIPAddress(CurrentRequest
                             .getIPAddress());
                 }
                 auditable.setUpdatedAt(new Date());
-                auditable.setUpdatedBy(CurrentUserRequest.getUsername());
+                auditable.setUpdatedBy(CurrentRequest.getSubjectname());
                 auditable
-                        .setUpdatedIPAddress(CurrentUserRequest.getIPAddress());
+                        .setUpdatedIPAddress(CurrentRequest.getIPAddress());
             }
             T old = primaryIndex.put(object);
             if (LOGGER.isDebugEnabled()) {
@@ -136,7 +139,8 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
             }
             return object;
         } catch (DatabaseException e) {
-            throw new PersistenceException("Failed to save " + object, e);
+            throw new PersistenceException("Failed to save " + object + " in "
+                    + store.getStoreName(), e);
         } finally {
             timer.stop();
         }
@@ -150,7 +154,8 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             store.truncateClass(entityBeanType);
         } catch (DatabaseException e) {
-            throw new PersistenceException(e);
+            throw new PersistenceException("Failed to remove all objects in "
+                    + store.getStoreName(), e);
         }
     }
 

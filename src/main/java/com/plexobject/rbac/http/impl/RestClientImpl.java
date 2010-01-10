@@ -45,8 +45,8 @@ public class RestClientImpl implements RestClient {
         this(url, null, null);
     }
 
-    public RestClientImpl(final String url, final String username,
-            final String password) {
+    public RestClientImpl(final String url, final String subjectname,
+            final String credentials) {
         if (GenericValidator.isBlankOrNull(url)) {
             throw new IllegalArgumentException("url not specified");
         }
@@ -59,11 +59,11 @@ public class RestClientImpl implements RestClient {
         httpClient.getParams().setParameter("http.connection.timeout",
                 new Integer(CONNECTION_TIMEOUT_MILLIS));
 
-        if (!GenericValidator.isBlankOrNull(username)
-                && !GenericValidator.isBlankOrNull(password)) {
+        if (!GenericValidator.isBlankOrNull(subjectname)
+                && !GenericValidator.isBlankOrNull(credentials)) {
             httpClient.getParams().setAuthenticationPreemptive(true);
-            final Credentials creds = new UsernamePasswordCredentials(username,
-                    password);
+            final Credentials creds = new UsernamePasswordCredentials(
+                    subjectname, credentials);
             httpClient.getState().setCredentials(AuthScope.ANY, creds);
         }
     }

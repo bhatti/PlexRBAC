@@ -11,7 +11,7 @@ public class DomainTest {
     @Test
     public void testGetSetEmpty() {
         Domain app = new Domain();
-        Assert.assertNull(app.getID());
+        Assert.assertNull(app.getId());
         Assert.assertNull(app.getDescription());
         Assert.assertNotNull(app.getCreatedAt());
         Assert.assertNotNull(app.getUpdatedAt());
@@ -26,7 +26,7 @@ public class DomainTest {
         app.setCreatedBy("");
         app.setUpdatedBy("");
         app.setUpdatedIPAddress("");
-        Assert.assertNull(app.getID());
+        Assert.assertNull(app.getId());
         Assert.assertNull(app.getDescription());
         Assert.assertNotNull(app.getCreatedAt());
         Assert.assertNotNull(app.getUpdatedAt());
