@@ -28,6 +28,55 @@ The service will listen on port 8080 and you can test it with curl.
 == Authentication ==
 Though, PlexRBAC is not designed for authentication but it provides Basic authentication and all administration APIs are protected with the authentication. By default, it uses an account "super_admin" with password "changeme", which you can modify with configurations. 
 
+REST APIs
+
+Following are APIs defined in PlexRBAC:
+Domains
+
+    * GET /api/security/domains – returns list of all domains in JSON format.
+    * GET /api/security/domains/{domain-id} – returns details of given domain in JSON format.
+    * PUT /api/security/domains/{domain-id} with body of domain details in JSON format.
+    * DELETE /api/security/domains – deletes all domains.
+    * DELETE /api/security/domains/{domain-id} – deletes domain identified by domain-id. 
+
+Subjects
+
+    * GET /api/security/subjects/{domain-id} – returns list of all subjects in domain identified by domain-id in JSON format.
+    * GET /api/security/subjects/{domain-id}/{id} – returns details of given subject identified by id in given domain.
+    * PUT /api/security/subjects/{domain-id}/{id} with body of subject details in JSON format.
+    * DELETE /api/security/subjects/{domain-id} – deletes all subjects in given domain.
+    * DELETE /api/security/subjects/{domain-id}/{id} – deletes subject identified by id. 
+
+Roles
+
+    * GET /api/security/roles/{domain-id} – returns list of all roles in domain identified by domain-id in JSON format.
+    * GET /api/security/roles/{domain-id}/{id} – returns details of given role identified by id in given domain.
+    * PUT /api/security/roles/{domain-id}/{id} with body of role details in JSON format.
+    * DELETE /api/security/roles/{domain-id} – deletes all roles in given domain.
+    * DELETE /api/security/roles/{domain-id}/{id} – deletes role identified by id. 
+
+Permissions
+
+    * GET /api/security/permissions/{domain-id} – returns list of all permissions in domain identified by domain-id in JSON format.
+    * GET /api/security/permissions/{domain-id}/{id} – returns details of given permission identified by id in given domain.
+    * POST /api/security/permissions/{domain-id} with body of permission details in JSON format. Note that this API uses POST instead of PUT as the id will be assigned by the server.
+    * DELETE /api/security/permissions/{domain-id} – deletes all permissions in given domain.
+    * DELETE /api/security/permissions/{domain-id}/{id} – deletes permission identified by id. 
+
+Mapping of Roles and Permissions
+
+    * PUT /api/security/role_perms/{domain-id}/{role-id} – adds permissions identified by permissionIds that stores list of permission-ids in JSON format. Note that permissionIds is passed as a form parameter.
+    * DELETE /api/security/role_perms/{domain-id}/{role-id} – removes permissions identified by permissionIds that stores list of permission-ids in JSON format. Note that permissionIds is passed as a form parameter. 
+
+Mapping of Subjects and Roles
+
+    * PUT /api/security/subject_roles/{domain-id}/{subject-id} – adds roles identified by rolenames that stores list of role-ids in JSON format. Note that rolenames is passed as a form parameter.
+    * DELETE /api/security/subject_roles/{domain-id}/{subject-id} – removes roles identified by rolenames that stores list of role-ids in JSON format. Note that rolenames is passed as a form parameter. 
+
+Authorization
+
+    * GET /api/security/authorize/{domain-id} – with query parameter of operation and target. 
+
 == Example ==
 Let's start with a banking example where a bank-object can be account, general-ledger-report or ledger-posting-rules and account is further grouped into customer account or loan account, e.g.
 
