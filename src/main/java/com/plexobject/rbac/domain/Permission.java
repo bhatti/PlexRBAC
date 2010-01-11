@@ -1,11 +1,11 @@
 package com.plexobject.rbac.domain;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -39,7 +39,7 @@ public class Permission extends PersistentObject implements Validatable,
     private String expression;
 
     @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = Role.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
-    Set<String> roleIDs = new HashSet<String>();
+    Set<String> roleIds = new HashSet<String>();
 
     // for JPA
     Permission() {
@@ -56,6 +56,7 @@ public class Permission extends PersistentObject implements Validatable,
         this.id = id;
     }
 
+    @XmlElement
     public Integer getId() {
         return id;
     }
@@ -139,27 +140,27 @@ public class Permission extends PersistentObject implements Validatable,
     }
 
     @XmlTransient
-    public Set<String> getRoleIDs() {
-        return Collections.unmodifiableSet(roleIDs);
+    public Set<String> getRoleIds() {
+        return new HashSet<String>(roleIds);
     }
 
-    public void setRoleIDs(Set<String> roleIDs) {
-        firePropertyChange("roleIDs", this.roleIDs, roleIDs);
+    public void setRoleIds(Set<String> roleIds) {
+        firePropertyChange("roleIds", this.roleIds, roleIds);
 
-        this.roleIDs.clear();
-        this.roleIDs.addAll(roleIDs);
+        this.roleIds.clear();
+        this.roleIds.addAll(roleIds);
     }
 
     public void addRole(Role role) {
-        Set<String> old = getRoleIDs();
-        this.roleIDs.add(role.getId());
-        firePropertyChange("roleIDs", old, this.roleIDs);
+        Set<String> old = getRoleIds();
+        this.roleIds.add(role.getId());
+        firePropertyChange("roleIds", old, this.roleIds);
     }
 
     public void removeRole(Role role) {
-        Set<String> old = getRoleIDs();
-        this.roleIDs.remove(role.getId());
-        firePropertyChange("roleIDs", old, this.roleIDs);
+        Set<String> old = getRoleIds();
+        this.roleIds.remove(role.getId());
+        firePropertyChange("roleIds", old, this.roleIds);
     }
 
     /**
@@ -192,7 +193,7 @@ public class Permission extends PersistentObject implements Validatable,
     public String toString() {
         return new ToStringBuilder(this).append("id", this.id).append(
                 "operation", this.operation).append("target", target).append(
-                "expression", this.expression).append("roleIDs", this.roleIDs)
+                "expression", this.expression).append("roleIds", this.roleIds)
                 .toString();
     }
 

@@ -19,7 +19,7 @@ public class SubjectRepositoryImpl extends BaseRepositoryImpl<Subject, String>
         if (subject == null) {
             throw new IllegalArgumentException("subject is not specified");
         }
-        if (super.findByID(subject.getId()) == null) {
+        if (super.findById(subject.getId()) == null) {
             save(subject);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Created subject " + subject);
@@ -29,29 +29,29 @@ public class SubjectRepositoryImpl extends BaseRepositoryImpl<Subject, String>
     }
 
     @Override
-    public boolean remove(final String subjectname) throws PersistenceException {
-        if (GenericValidator.isBlankOrNull(subjectname)) {
-            throw new IllegalArgumentException("subjectname is not specified");
+    public boolean remove(final String subjectName) throws PersistenceException {
+        if (GenericValidator.isBlankOrNull(subjectName)) {
+            throw new IllegalArgumentException("subjectName is not specified");
         }
-        if (Subject.SUPER_ADMIN.getId().equals(subjectname)) {
-            throw new IllegalStateException(subjectname + " cannot be removed");
+        if (Subject.SUPER_ADMIN.getId().equals(subjectName)) {
+            throw new IllegalStateException(subjectName + " cannot be removed");
         }
-        return super.remove(subjectname);
+        return super.remove(subjectName);
     }
 
     @Override
-    public Subject authenticate(String subjectname, String credentials)
+    public Subject authenticate(String subjectName, String credentials)
             throws SecurityException {
-        Subject subject = findByID(subjectname);
+        Subject subject = findById(subjectName);
         if (subject == null) {
-            throw new SecurityException("Failed to find subject " + subjectname
+            throw new SecurityException("Failed to find subject " + subjectName
                     + " in " + store.getStoreName() + " domain");
         }
         if (PasswordUtils.getHash(credentials).equals(subject.getCredentials())) {
             return subject;
         }
         
-        throw new SecurityException("Credentials mismatch for subject " + subjectname);
+        throw new SecurityException("Credentials mismatch for subject " + subjectName);
 
     }
 }

@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
@@ -42,13 +43,20 @@ public class PagedList<T, ID> implements List<T> {
     /**
      * @return the start of the key
      */
+    @XmlElement
     public ID getFirstKey() {
         return firstKey;
+    }
+
+    @XmlElement
+    public Object[] getItems() {
+        return toArray();
     }
 
     /**
      * @return the limit
      */
+    @XmlElement
     public int getLimit() {
         return limit;
     }
@@ -56,6 +64,7 @@ public class PagedList<T, ID> implements List<T> {
     /**
      * @return the last key that will be passed to the next request
      */
+    @XmlElement
     public ID getLastKey() {
         return lastKey;
     }
@@ -183,11 +192,6 @@ public class PagedList<T, ID> implements List<T> {
         return list.subList(fromIndex, toIndex);
     }
 
-    @Override
-    public Object[] toArray() {
-        return list.toArray();
-    }
-
     @SuppressWarnings("hiding")
     @Override
     public <T> T[] toArray(T[] a) {
@@ -197,5 +201,10 @@ public class PagedList<T, ID> implements List<T> {
     @Override
     public String toString() {
         return list.toString();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return list.toArray();
     }
 }

@@ -5,5 +5,5 @@ import javax.ws.rs.core.UriInfo;
 
 public interface AuthorizationService {
     Response authorize(final UriInfo ui, final String domain,
-            final String subjectname, final String operation, final String target);
+            final String operation, final String target);
 }

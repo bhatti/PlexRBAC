@@ -21,7 +21,7 @@ import com.plexobject.rbac.utils.CurrentRequest;
 
 public class PermissionManagerTest {
     private static final String USER_NAME = "shahbhat";
-    private static final String APP_NAME = "appname";
+    private static final String APP_NAME = "pappname";
     private static final String TEST_DB_DIR = "test_db_dir_perms";
     private RepositoryFactory repositoryFactory;
     private PermissionManager permissionManager;
@@ -41,7 +41,7 @@ public class PermissionManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        // ((RepositoryFactoryImpl) repositoryFactory).close("appname");
+        ((RepositoryFactoryImpl) repositoryFactory).close(APP_NAME);
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentRequest.endRequest();
     }

@@ -37,8 +37,12 @@
                   autowire="byType">
                   <property name="repositoryFactory" ref="repositoryFactory" />
               </bean>
-              <bean id="securityAdminService"
-                  class="com.plexobject.rbac.service.impl.SecurityAdminServiceImpl" autowire="byType">
+              <bean id="rolePermissionsService"
+                  class="com.plexobject.rbac.service.impl.RolePermissionsServiceImpl" autowire="byType">
+                  <property name="repositoryFactory" ref="repositoryFactory" />
+              </bean>
+              <bean id="subjectRolesService"
+                  class="com.plexobject.rbac.service.impl.SubjectRolesServiceImpl" autowire="byType">
                   <property name="repositoryFactory" ref="repositoryFactory" />
               </bean>
               <bean

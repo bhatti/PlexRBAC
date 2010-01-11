@@ -3,7 +3,7 @@ package com.plexobject.rbac.repository;
 import com.plexobject.rbac.domain.Identifiable;
 
 public interface BaseRepository<T extends Identifiable<ID>, ID> {
-    T findByID(ID id) throws PersistenceException;
+    T findById(ID id) throws PersistenceException;
 
     T save(T object) throws PersistenceException;
 

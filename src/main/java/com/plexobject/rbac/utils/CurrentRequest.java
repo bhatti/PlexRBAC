@@ -2,23 +2,23 @@ package com.plexobject.rbac.utils;
 
 public class CurrentRequest {
     private static final ThreadLocal<String> domain = new ThreadLocal<String>();
-    private static final ThreadLocal<String> subjectname = new ThreadLocal<String>();
+    private static final ThreadLocal<String> subjectName = new ThreadLocal<String>();
     private static final ThreadLocal<String> ipAddress = new ThreadLocal<String>();
 
-    public static void startRequest(final String domain, final String subjectname,
+    public static void startRequest(final String domain, final String subjectName,
             final String ipAddress) {
         CurrentRequest.domain.set(domain);
-        CurrentRequest.subjectname.set(subjectname);
+        CurrentRequest.subjectName.set(subjectName);
         CurrentRequest.ipAddress.set(ipAddress);
     }
 
-    public static void setSubjectname(String subjectname) {
-        CurrentRequest.subjectname.set(subjectname);
+    public static void setSubjectName(String subjectName) {
+        CurrentRequest.subjectName.set(subjectName);
     }
 
     public static void endRequest() {
         CurrentRequest.domain.set(null);
-        CurrentRequest.subjectname.set(null);
+        CurrentRequest.subjectName.set(null);
         CurrentRequest.ipAddress.set(null);
     }
 
@@ -26,8 +26,8 @@ public class CurrentRequest {
         return domain.get();
     }
 
-    public static String getSubjectname() {
-        return subjectname.get();
+    public static String getSubjectName() {
+        return subjectName.get();
     }
 
     public static String getIPAddress() {

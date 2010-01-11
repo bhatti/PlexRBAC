@@ -12,22 +12,34 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>AuthenticationFilter</filter-name>
-                <url-pattern>/api/security/*</url-pattern>
-       </filter-mapping>
+		<url-pattern>/api/security/*</url-pattern>
+	</filter-mapping>
 
 
+	<filter>
+		<filter-name>DomainOwnerFilter</filter-name>
+		<filter-class>com.plexobject.rbac.web.filter.DomainOwnerFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>DomainOwnerFilter</filter-name>
+		<url-pattern>/api/security/*</url-pattern>
+	</filter-mapping>
 
-
-
+	<filter-mapping>
+		<filter-name>AuthenticationFilter</filter-name>
+		<url-pattern>/api/authorize/*</url-pattern>
+	</filter-mapping>
 
 	<servlet>
 		<servlet-name>RBAC</servlet-name>
-                <!--<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>-->
+		<!--
+			<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+		-->
 		<servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
-                <init-param>
-                        <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-                        <param-value>com.sun.jersey.api.core.PackagesResourceConfig</param-value>
-                </init-param>
+		<init-param>
+			<param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
+			<param-value>com.sun.jersey.api.core.PackagesResourceConfig</param-value>
+		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
 			<param-value>com.plexobject.rbac.service.impl</param-value>

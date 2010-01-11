@@ -36,7 +36,7 @@ public class WebUtils {
             .getInstance().getProperty("session_cookie_domain");
 
     public static NewCookie createSessionCookie(final String domain,
-            final String subjectname) throws NoSuchAlgorithmException,
+            final String subjectName) throws NoSuchAlgorithmException,
             NoSuchProviderException, NoSuchPaddingException,
             InvalidKeyException, ShortBufferException,
             IllegalBlockSizeException, BadPaddingException,
@@ -44,14 +44,14 @@ public class WebUtils {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain not specified");
         }
-        if (GenericValidator.isBlankOrNull(subjectname)) {
-            throw new IllegalArgumentException("subjectname not specified");
+        if (GenericValidator.isBlankOrNull(subjectName)) {
+            throw new IllegalArgumentException("subjectName not specified");
         }
         long expiresAt = System.currentTimeMillis()
                 + (SESSION_EXPIRATION_IN_MINUTES * 60 * 1000);
-        String session = createSession(domain, subjectname, expiresAt);
+        String session = createSession(domain, subjectName, expiresAt);
         return new NewCookie(SESSION, session, "/", SESSION_COOKIE_DOMAIN,
-                domain + ":" + subjectname, SESSION_EXPIRATION_IN_MINUTES * 60,
+                domain + ":" + subjectName, SESSION_EXPIRATION_IN_MINUTES * 60,
                 SECURED_SESSION);
     }
 
@@ -92,12 +92,12 @@ public class WebUtils {
     }
 
     private static String createSession(final String domain,
-            final String subjectname, long expiresAt)
+            final String subjectName, long expiresAt)
             throws NoSuchAlgorithmException, NoSuchProviderException,
             NoSuchPaddingException, InvalidKeyException, ShortBufferException,
             IllegalBlockSizeException, BadPaddingException,
             InvalidAlgorithmParameterException, UnsupportedEncodingException {
-        String payload = domain + ":" + subjectname + ":" + expiresAt;
+        String payload = domain + ":" + subjectName + ":" + expiresAt;
         String ecnrypted = PasswordUtils.encrypt(payload);
         return PasswordUtils.byteToBase64(ecnrypted.getBytes());
     }

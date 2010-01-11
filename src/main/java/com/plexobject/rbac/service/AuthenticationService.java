@@ -3,5 +3,5 @@ package com.plexobject.rbac.service;
 import javax.ws.rs.core.Response;
 
 public interface AuthenticationService {
-    Response authenticate(String domain, String subjectname, String credentials);
+    Response authenticate(String domain, String subjectName, String credentials);
 }

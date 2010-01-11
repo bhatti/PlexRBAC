@@ -52,15 +52,15 @@ public class AuthenticationServiceImpl implements AuthenticationService,
     @Path("/{domain}")
     @Override
     public Response authenticate(@PathParam("domain") String domain,
-            @FormParam("subjectname") String subjectname,
+            @FormParam("subjectName") String subjectName,
             @FormParam("credentials") String credentials) {
         if (GenericValidator.isBlankOrNull(domain)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (GenericValidator.isBlankOrNull(subjectname)) {
+        if (GenericValidator.isBlankOrNull(subjectName)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("subjectname not specified").build();
+                    "text/plain").entity("subjectName not specified").build();
         }
 
         if (GenericValidator.isBlankOrNull(credentials)) {
@@ -71,11 +71,11 @@ public class AuthenticationServiceImpl implements AuthenticationService,
         try {
 
             Subject subject = repositoryFactory.getSubjectRepository(domain)
-                    .authenticate(subjectname, credentials);
+                    .authenticate(subjectName, credentials);
             if (subject != null) {
                 mbean.incrementRequests();
                 final NewCookie cookie = WebUtils.createSessionCookie(domain,
-                        subjectname);
+                        subjectName);
                 return Response.status(RestClient.OK_CREATED).cookie(cookie)
                         .entity(cookie.getValue()).build();
             } else {

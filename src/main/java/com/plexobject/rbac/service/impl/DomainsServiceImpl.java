@@ -116,7 +116,7 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
         }
 
         try {
-            Domain domain = repositoryFactory.getDomainRepository().findByID(
+            Domain domain = repositoryFactory.getDomainRepository().findById(
                     domainName);
 
             return Response.status(RestClient.OK).entity(domain).build();
@@ -145,7 +145,6 @@ public class DomainsServiceImpl implements DomainsService, InitializingBean {
         try {
             Collection<Domain> domains = repositoryFactory
                     .getDomainRepository().findAll(lastKey, limit);
-            LOGGER.info("got domains " + domains);
             return Response.status(RestClient.OK).type(
                     MediaType.APPLICATION_JSON_TYPE).entity(
                     domains.toArray(new Domain[domains.size()])).build();

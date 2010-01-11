@@ -130,6 +130,11 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     }
 
     @Override
+    public SubjectRepository getDefaultSubjectRepository() {
+        return getSubjectRepository(Domain.DEFAULT_DOMAIN_NAME);
+    }
+
+    @Override
     public SecurityRepository getSecurityRepository() {
         SecurityRepository repository = securityRepositories
                 .get(Domain.DEFAULT_DOMAIN_NAME);

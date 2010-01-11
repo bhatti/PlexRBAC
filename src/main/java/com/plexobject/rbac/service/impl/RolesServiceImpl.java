@@ -117,7 +117,7 @@ public class RolesServiceImpl implements RolesService, InitializingBean {
                     "text/plain").entity("rolename not specified").build();
         }
         try {
-            Role role = repositoryFactory.getRoleRepository(domain).findByID(
+            Role role = repositoryFactory.getRoleRepository(domain).findById(
                     rolename);
 
             return Response.status(RestClient.OK).entity(role).build();

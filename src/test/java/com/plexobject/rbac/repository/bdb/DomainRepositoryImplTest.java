@@ -39,6 +39,8 @@ public class DomainRepositoryImplTest {
         CurrentRequest.startRequest(DOMAIN, USERNAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
         repository = repositoryFactory.getDomainRepository();
+        repositoryFactory.getDefaultSubjectRepository().getOrCreateSubject(
+                new Subject(USERNAME, "pass"));
     }
 
     @After
@@ -53,11 +55,12 @@ public class DomainRepositoryImplTest {
 
     @Test
     public void testRemove() {
-        final String subjectname = "subject " + System.currentTimeMillis();
+        final String subjectName = "subject " + System.currentTimeMillis();
+
         for (int i = 0; i < 10; i++) {
-            repositoryFactory.getSubjectRepository("name" + i).getOrCreateSubject(
-                    new Subject(USERNAME, "pass"));
-            Domain app = new Domain("name" + i, subjectname);
+            repositoryFactory.getSubjectRepository("name" + i)
+                    .getOrCreateSubject(new Subject(USERNAME, "pass"));
+            Domain app = new Domain("name" + i, subjectName);
             repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
@@ -72,11 +75,11 @@ public class DomainRepositoryImplTest {
             Collection<Domain> all = repository.findAll(null, -1);
             Assert.assertEquals(1, all.size()); // default domain
 
-            final String subjectname = "subject " + System.currentTimeMillis();
+            final String subjectName = "subject " + System.currentTimeMillis();
             for (int i = 0; i < 10; i++) {
                 repositoryFactory.getSubjectRepository("name" + i)
                         .getOrCreateSubject(new Subject(USERNAME, "pass"));
-                Domain app = new Domain("name" + i, subjectname);
+                Domain app = new Domain("name" + i, subjectName);
                 repository.save(app);
             }
             all = repository.findAll(null, 100);
@@ -92,15 +95,15 @@ public class DomainRepositoryImplTest {
 
     @Test
     public void testFindByName() {
-        final String subjectname = "subject " + System.currentTimeMillis();
+        final String subjectName = "subject " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
-            repositoryFactory.getSubjectRepository("name" + i).getOrCreateSubject(
-                    new Subject(USERNAME, "pass"));
-            Domain app = new Domain("name" + i, subjectname);
+            repositoryFactory.getSubjectRepository("name" + i)
+                    .getOrCreateSubject(new Subject(USERNAME, "pass"));
+            Domain app = new Domain("name" + i, subjectName);
             repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
-            Domain app = repository.findByID("name" + i);
+            Domain app = repository.findById("name" + i);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("app " + app);
             }
@@ -109,16 +112,16 @@ public class DomainRepositoryImplTest {
     }
 
     @Test
-    public void testFindByID() {
-        final String subjectname = "subject " + System.currentTimeMillis();
+    public void testFindById() {
+        final String subjectName = "subject " + System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
-            repositoryFactory.getSubjectRepository("name" + i).getOrCreateSubject(
-                    new Subject(USERNAME, "pass"));
-            Domain app = new Domain("name" + i, subjectname);
+            repositoryFactory.getSubjectRepository("name" + i)
+                    .getOrCreateSubject(new Subject(USERNAME, "pass"));
+            Domain app = new Domain("name" + i, subjectName);
             repository.save(app);
         }
         for (int i = 0; i < 10; i++) {
-            Domain app = repository.findByID("name" + i);
+            Domain app = repository.findById("name" + i);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("app " + app);
             }

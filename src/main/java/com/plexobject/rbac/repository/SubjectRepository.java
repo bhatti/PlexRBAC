@@ -13,11 +13,11 @@ public interface SubjectRepository extends BaseRepository<Subject, String> {
     /**
      * Verifies login
      * 
-     * @param subjectname
+     * @param subjectName
      * @param credentials
      * @return
      * @throws SecurityException
      */
-    Subject authenticate(String subjectname, String credentials)
+    Subject authenticate(String subjectName, String credentials)
             throws SecurityException;
 }

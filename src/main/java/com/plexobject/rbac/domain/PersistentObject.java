@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.commons.lang.time.DateUtils;
+
 import com.sleepycat.persist.model.Persistent;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
@@ -12,6 +14,11 @@ import com.sleepycat.persist.model.SecondaryKey;
 public abstract class PersistentObject extends BaseDomain {
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private Date createdAt = new Date();
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
+    private Date deletedAt = DateUtils.addYears(new Date(), 50); // by -default
+                                                                 // all objects
+                                                                 // expires in
+                                                                 // 50 years
     private String createdBy;
     private String createdIPAddress;
     private Date updatedAt = new Date();
@@ -33,6 +40,20 @@ public abstract class PersistentObject extends BaseDomain {
     }
 
     @XmlTransient
+    public Date getDeletedAt() {
+        return deletedAt != null ? new Date(deletedAt.getTime()) : null;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        if (deletedAt == null) {
+            throw new IllegalArgumentException("deletedAt not specified");
+        }
+        firePropertyChange("deletedAt", this.deletedAt, deletedAt);
+
+        this.deletedAt = new Date(deletedAt.getTime());
+    }
+
+    @XmlTransient
     public String getCreatedBy() {
         return createdBy;
     }
@@ -46,6 +67,7 @@ public abstract class PersistentObject extends BaseDomain {
         this.createdBy = createdBy;
     }
 
+    @XmlTransient
     public String getCreatedIPAddress() {
         return createdIPAddress;
     }
@@ -59,6 +81,7 @@ public abstract class PersistentObject extends BaseDomain {
         }
     }
 
+    @XmlTransient
     public Date getUpdatedAt() {
         return updatedAt != null ? new Date(updatedAt.getTime()) : null;
     }
@@ -72,6 +95,7 @@ public abstract class PersistentObject extends BaseDomain {
         this.updatedAt = new Date(updatedAt.getTime());
     }
 
+    @XmlTransient
     public String getUpdatedBy() {
         return updatedBy;
     }
@@ -85,6 +109,7 @@ public abstract class PersistentObject extends BaseDomain {
         this.updatedBy = updatedBy;
     }
 
+    @XmlTransient
     public String getUpdatedIPAddress() {
         return updatedIPAddress;
     }

@@ -19,16 +19,27 @@ import com.sleepycat.persist.SecondaryIndex;
 
 public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
         implements RoleRepository {
-    private SecondaryIndex<String, String, Role> subjectnameIndex;
+    private SecondaryIndex<String, String, Role> subjectNameIndex;
+    private boolean createdAnonymous;
 
     public RoleRepositoryImpl(final EntityStore store) {
         super(store);
         try {
-            subjectnameIndex = store.getSecondaryIndex(primaryIndex, String.class,
-                    "subjectIDs");
+            subjectNameIndex = store.getSecondaryIndex(primaryIndex,
+                    String.class, "subjectIds");
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
         }
+    }
+
+    @Override
+    public Role save(Role role) throws PersistenceException {
+        if (!createdAnonymous && role != null
+                && role.getParentIds().contains(Role.ANONYMOUS.getId())) {
+            getOrCreateRole(Role.ANONYMOUS.getId());
+            createdAnonymous = true;
+        }
+        return super.save(role);
     }
 
     @Override
@@ -36,7 +47,7 @@ public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
         if (GenericValidator.isBlankOrNull(rolename)) {
             throw new IllegalArgumentException("rolename is not specified");
         }
-        Role role = super.findByID(rolename);
+        Role role = super.findById(rolename);
         if (role == null) {
             role = new Role(rolename);
             save(role);
@@ -48,13 +59,13 @@ public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
     }
 
     @Override
-    public Collection<Role> getRolesForSubject(String subjectname) {
+    public Collection<Role> getRolesForSubject(String subjectName) {
         final Timing timer = Metric.newTiming(getClass().getName()
                 + ".getRolesForSubject");
         List<Role> roles = new ArrayList<Role>();
         EntityCursor<Role> cursor = null;
         try {
-            cursor = subjectnameIndex.subIndex(subjectname).entities();
+            cursor = subjectNameIndex.subIndex(subjectName).entities();
             Iterator<Role> it = cursor.iterator();
             while (it.hasNext()) {
                 Role next = it.next();

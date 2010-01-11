@@ -1,11 +1,11 @@
 package com.plexobject.rbac.domain;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -34,7 +34,7 @@ public class Domain extends PersistentObject implements Validatable,
     private String description;
     // @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity =
     // Subject.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
-    Set<String> ownerSubjectnames = new HashSet<String>();
+    Set<String> ownerSubjectNames = new HashSet<String>();
 
     // for JPA
     Domain() {
@@ -60,29 +60,30 @@ public class Domain extends PersistentObject implements Validatable,
         this.id = id;
     }
 
+    @XmlElement
     public String getId() {
         return id;
     }
 
-    public Set<String> getOwnerSubjectnames() {
-        return Collections.unmodifiableSet(ownerSubjectnames);
+    public Set<String> getOwnerSubjectNames() {
+        return new HashSet<String>(ownerSubjectNames);
     }
 
-    public void setOwnerSubjectnames(final Set<String> ownerSubjectnames) {
-        firePropertyChange("ownerSubjectnames", this.ownerSubjectnames,
-                ownerSubjectnames);
+    public void setOwnerSubjectNames(final Set<String> ownerSubjectNames) {
+        firePropertyChange("ownerSubjectNames", this.ownerSubjectNames,
+                ownerSubjectNames);
 
-        this.ownerSubjectnames.clear();
-        this.ownerSubjectnames.addAll(ownerSubjectnames);
+        this.ownerSubjectNames.clear();
+        this.ownerSubjectNames.addAll(ownerSubjectNames);
     }
 
-    public void addOwner(final String subjectname) {
-        if (GenericValidator.isBlankOrNull(subjectname)) {
-            throw new IllegalArgumentException("subjectname is not specified");
+    public void addOwner(final String subjectName) {
+        if (GenericValidator.isBlankOrNull(subjectName)) {
+            throw new IllegalArgumentException("subjectName is not specified");
         }
-        Set<String> old = getOwnerSubjectnames();
-        this.ownerSubjectnames.add(subjectname);
-        firePropertyChange("ownerSubjectnames", old, this.ownerSubjectnames);
+        Set<String> old = getOwnerSubjectNames();
+        this.ownerSubjectNames.add(subjectName);
+        firePropertyChange("ownerSubjectNames", old, this.ownerSubjectNames);
 
     }
 
@@ -100,13 +101,13 @@ public class Domain extends PersistentObject implements Validatable,
         removeOwner(subject.getId());
     }
 
-    public void removeOwner(final String subjectname) {
-        if (GenericValidator.isBlankOrNull(subjectname)) {
-            throw new IllegalArgumentException("subjectname is not specified");
+    public void removeOwner(final String subjectName) {
+        if (GenericValidator.isBlankOrNull(subjectName)) {
+            throw new IllegalArgumentException("subjectName is not specified");
         }
-        Set<String> old = getOwnerSubjectnames();
-        this.ownerSubjectnames.remove(subjectname);
-        firePropertyChange("ownerSubjectnames", old, this.ownerSubjectnames);
+        Set<String> old = getOwnerSubjectNames();
+        this.ownerSubjectNames.remove(subjectName);
+        firePropertyChange("ownerSubjectNames", old, this.ownerSubjectNames);
     }
 
     /**
@@ -136,7 +137,7 @@ public class Domain extends PersistentObject implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("name", this.id).append(
-                "owners", this.ownerSubjectnames).toString();
+                "owners", this.ownerSubjectNames).toString();
     }
 
     @Override

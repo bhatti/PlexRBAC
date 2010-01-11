@@ -1,11 +1,11 @@
 package com.plexobject.rbac.domain;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -25,17 +25,16 @@ import com.sleepycat.persist.model.SecondaryKey;
 public class Role extends PersistentObject implements Validatable,
         Identifiable<String> {
     public static final Role ANONYMOUS = new Role("anonymous");
-    public static final Role DOMAIN_OWNER = new Role("domain_owner");
     public static final Role SUPER_ADMIN = new Role("super_admin");
 
     @PrimaryKey
     private String id;
 
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE, relatedEntity = Role.class)
-    String parentRoleID;
+    @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = Role.class)
+    Set<String> parentIds = new HashSet<String>();
 
     @SecondaryKey(relate = Relationship.MANY_TO_MANY, relatedEntity = Subject.class, onRelatedEntityDelete = DeleteAction.NULLIFY)
-    Set<String> subjectIDs = new HashSet<String>();
+    Set<String> subjectIds = new HashSet<String>();
 
     Role() {
     }
@@ -47,10 +46,18 @@ public class Role extends PersistentObject implements Validatable,
     public Role(String id, Role parent) {
         setId(id);
         if (parent != null) {
-            setParentRoleID(parent.getId());
+            addParentId(parent.getId());
         }
     }
 
+    public Role(String id, Set<String> parentIds) {
+        setId(id);
+        if (parentIds != null) {
+            setParentIds(parentIds);
+        }
+    }
+
+    @XmlElement
     public String getId() {
         return id;
     }
@@ -60,28 +67,28 @@ public class Role extends PersistentObject implements Validatable,
     }
 
     @XmlTransient
-    public Set<String> getSubjectIDs() {
-        return Collections.unmodifiableSet(subjectIDs);
+    public Set<String> getSubjectIds() {
+        return new HashSet<String>(subjectIds);
     }
 
-    public void setSubjectIDs(Set<String> subjectIDs) {
-        firePropertyChange("subjectIDs", this.subjectIDs, subjectIDs);
+    public void setSubjectIds(Set<String> subjectIds) {
+        firePropertyChange("subjectIds", this.subjectIds, subjectIds);
 
-        this.subjectIDs.clear();
-        this.subjectIDs.addAll(subjectIDs);
+        this.subjectIds.clear();
+        this.subjectIds.addAll(subjectIds);
     }
 
-    public void addSubject(String subjectname) {
-        Set<String> old = getSubjectIDs();
-        this.subjectIDs.add(subjectname);
-        firePropertyChange("subjectIDs", old, this.subjectIDs);
+    public void addSubject(String subjectName) {
+        Set<String> old = getSubjectIds();
+        this.subjectIds.add(subjectName);
+        firePropertyChange("subjectIds", old, this.subjectIds);
 
     }
 
-    public void removeSubject(String subjectname) {
-        Set<String> old = getSubjectIDs();
-        this.subjectIDs.remove(subjectname);
-        firePropertyChange("subjectIDs", old, this.subjectIDs);
+    public void removeSubject(String subjectName) {
+        Set<String> old = getSubjectIds();
+        this.subjectIds.remove(subjectName);
+        firePropertyChange("subjectIds", old, this.subjectIds);
     }
 
     public void addSubject(Subject subject) {
@@ -92,18 +99,41 @@ public class Role extends PersistentObject implements Validatable,
         removeSubject(subject.getId());
     }
 
-    public String getParentRoleID() {
-        return parentRoleID;
+    @XmlElement
+    public Set<String> getParentIds() {
+        return new HashSet<String>(parentIds);
     }
 
-    public boolean hasParentRoleID() {
-        return !GenericValidator.isBlankOrNull(parentRoleID);
+    public boolean hasParentIds() {
+        return parentIds != null && parentIds.size() > 0;
     }
 
-    public void setParentRoleID(String parentRoleID) {
-        firePropertyChange("parentRoleID", this.parentRoleID, parentRoleID);
+    public void setParentIds(Set<String> parentIds) {
+        firePropertyChange("parentIds", this.parentIds, parentIds);
 
-        this.parentRoleID = parentRoleID;
+        this.parentIds.clear();
+        this.parentIds.addAll(parentIds);
+    }
+
+    public void addParentId(String parentId) {
+        Set<String> old = getParentIds();
+        this.parentIds.add(parentId);
+        firePropertyChange("parentIds", old, this.parentIds);
+
+    }
+
+    public void removeParentId(String parentId) {
+        Set<String> old = getParentIds();
+        this.parentIds.remove(parentId);
+        firePropertyChange("parentIds", old, this.parentIds);
+    }
+
+    public void addParentId(Role parent) {
+        addParentId(parent.getId());
+    }
+
+    public void removeParentId(Role parent) {
+        removeParentId(parent.getId());
     }
 
     /**
@@ -133,7 +163,7 @@ public class Role extends PersistentObject implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("rolename", this.id).append(
-                "subjectIDs", this.subjectIDs).toString();
+                "subjectIds", this.subjectIds).toString();
     }
 
     @Override
@@ -141,6 +171,10 @@ public class Role extends PersistentObject implements Validatable,
         final Map<String, String> errorsByField = new HashMap<String, String>();
         if (GenericValidator.isBlankOrNull(id)) {
             errorsByField.put("id", "rolename is not specified");
+        }
+        if ((parentIds == null || parentIds.size() == 0)
+                && !ANONYMOUS.getId().equals(id)) {
+            addParentId(ANONYMOUS.getId());
         }
         if (errorsByField.size() > 0) {
             throw new ValidationException(errorsByField);

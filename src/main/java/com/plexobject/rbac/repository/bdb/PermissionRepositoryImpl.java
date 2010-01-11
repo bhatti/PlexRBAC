@@ -27,7 +27,7 @@ public class PermissionRepositoryImpl extends
         this.roleRepository = new RoleRepositoryImpl(entityStore);
         try {
             rolenameIndex = entityStore.getSecondaryIndex(primaryIndex,
-                    String.class, "roleIDs");
+                    String.class, "roleIds");
         } catch (DatabaseException e) {
             throw new PersistenceException(e);
         }
@@ -61,9 +61,11 @@ public class PermissionRepositoryImpl extends
                 Permission next = it.next();
                 permissions.add(next);
             }
-            if (role.hasParentRoleID()) {
-                Role parent = roleRepository.findByID(role.getParentRoleID());
-                loadPermissionsForRole(parent, permissions);
+            if (role.hasParentIds()) {
+                for (String parentId : role.getParentIds()) {
+                    Role parent = roleRepository.findById(parentId);
+                    loadPermissionsForRole(parent, permissions);
+                }
             }
         } finally {
             if (cursor != null) {

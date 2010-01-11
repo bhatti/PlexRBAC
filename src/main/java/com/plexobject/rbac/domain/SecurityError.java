@@ -3,6 +3,8 @@ package com.plexobject.rbac.domain;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.sleepycat.persist.model.Entity;
@@ -16,7 +18,7 @@ public class SecurityError extends PersistentObject implements Validatable,
     @PrimaryKey(sequence = "application_seq")
     private Integer id;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
-    private String subjectname;
+    private String subjectName;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String operation;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
@@ -27,9 +29,9 @@ public class SecurityError extends PersistentObject implements Validatable,
     SecurityError() {
     }
 
-    public SecurityError(final String subjectname, final String operation,
+    public SecurityError(final String subjectName, final String operation,
             final String target, final Map<String, String> subjectContext) {
-        setSubjectname(subjectname);
+        setSubjectName(subjectName);
         setOperation(operation);
         setTarget(target);
         setSubjectContext(subjectContext);
@@ -39,6 +41,7 @@ public class SecurityError extends PersistentObject implements Validatable,
         this.id = id;
     }
 
+    @XmlElement
     public Integer getId() {
         return id;
     }
@@ -54,12 +57,12 @@ public class SecurityError extends PersistentObject implements Validatable,
         this.subjectContext = subjectContext;
     }
 
-    void setSubjectname(String subjectname) {
-        this.subjectname = subjectname;
+    void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
     }
 
-    public String getSubjectname() {
-        return subjectname;
+    public String getSubjectName() {
+        return subjectName;
     }
 
     void setOperation(String operation) {
@@ -83,8 +86,8 @@ public class SecurityError extends PersistentObject implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("id", id).append("subjectname",
-                subjectname).append("context", subjectContext).toString();
+        return new ToStringBuilder(this).append("id", id).append("subjectName",
+                subjectName).append("context", subjectContext).toString();
     }
 
     @Override

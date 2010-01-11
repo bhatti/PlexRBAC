@@ -37,7 +37,7 @@ public class JAXBContextResolver implements ContextResolver<JAXBContext> {
         MappedBuilder config = JSONConfiguration.mapped(); // natural
         config.rootUnwrapping(true);
         config.arrays("domain");
-        //config.nonStrings("totalCount");
+        // config.nonStrings("totalCount");
         // this.context = new JSONJAXBContext(JSONConfiguration.mappedJettison()
         // .build(), "com.plexobject.rbac.domain.");
 

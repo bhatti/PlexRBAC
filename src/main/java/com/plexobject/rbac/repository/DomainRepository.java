@@ -14,9 +14,9 @@ public interface DomainRepository extends BaseRepository<Domain, String> {
     /**
      * 
      * @param domain
-     * @param subjectname
+     * @param subjectName
      * @return
      */
-    boolean isSubjectOwner(String domain, String subjectname);
+    boolean isSubjectOwner(String domain, String subjectName);
 
 }

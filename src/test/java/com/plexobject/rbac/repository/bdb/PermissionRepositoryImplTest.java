@@ -110,7 +110,7 @@ public class PermissionRepositoryImplTest {
     }
 
     @Test
-    public void testFindByID() {
+    public void testFindById() {
     }
 
     @Test

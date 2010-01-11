@@ -60,4 +60,10 @@ public interface RepositoryFactory {
      * @return repository of subjects for given domain
      */
     SubjectRepository getSubjectRepository(String domain);
+
+    /**
+     * 
+     * @return
+     */
+    SubjectRepository getDefaultSubjectRepository();
 }

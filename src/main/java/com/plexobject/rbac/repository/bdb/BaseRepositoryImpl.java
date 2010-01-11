@@ -85,9 +85,9 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
     }
 
     @Override
-    public T findByID(ID id) throws PersistenceException {
+    public T findById(ID id) throws PersistenceException {
         final Timing timer = Metric.newTiming(getClass().getName()
-                + ".findByID");
+                + ".findById");
         try {
             return primaryIndex.get(id);
         } catch (DatabaseException e) {
@@ -124,12 +124,12 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
                 PersistentObject auditable = (PersistentObject) object;
                 if (auditable.getCreatedBy() == null) {
                     auditable.setCreatedAt(new Date());
-                    auditable.setCreatedBy(CurrentRequest.getSubjectname());
+                    auditable.setCreatedBy(CurrentRequest.getSubjectName());
                     auditable.setCreatedIPAddress(CurrentRequest
                             .getIPAddress());
                 }
                 auditable.setUpdatedAt(new Date());
-                auditable.setUpdatedBy(CurrentRequest.getSubjectname());
+                auditable.setUpdatedBy(CurrentRequest.getSubjectName());
                 auditable
                         .setUpdatedIPAddress(CurrentRequest.getIPAddress());
             }

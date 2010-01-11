@@ -31,9 +31,10 @@ import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
 import com.plexobject.rbac.security.PermissionManager;
 import com.plexobject.rbac.security.PermissionRequest;
 import com.plexobject.rbac.service.AuthorizationService;
+import com.plexobject.rbac.utils.CurrentRequest;
 import com.sun.jersey.spi.inject.Inject;
 
-@Path("/security/auth")
+@Path("/authorize")
 @Component("authorizationService")
 @Scope("singleton")
 public class AuthorizationServiceImpl implements AuthorizationService,
@@ -58,16 +59,11 @@ public class AuthorizationServiceImpl implements AuthorizationService,
     @Override
     public Response authorize(@Context UriInfo ui,
             @PathParam("domain") String domain,
-            @QueryParam("subjectname") String subjectname,
             @QueryParam("operation") String operation,
             @QueryParam("target") String target) {
         if (GenericValidator.isBlankOrNull(domain)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
-        }
-        if (GenericValidator.isBlankOrNull(subjectname)) {
-            return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("subjectname not specified").build();
         }
 
         if (GenericValidator.isBlankOrNull(operation)) {
@@ -79,7 +75,8 @@ public class AuthorizationServiceImpl implements AuthorizationService,
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("target not specified").build();
         }
-        MultivaluedMap<String, String> mmSubjectContext = ui.getQueryParameters();
+        MultivaluedMap<String, String> mmSubjectContext = ui
+                .getQueryParameters();
 
         try {
             final Map<String, String> subjectContext = new HashMap<String, String>();
@@ -87,19 +84,19 @@ public class AuthorizationServiceImpl implements AuthorizationService,
                 subjectContext.put(e.getKey(), e.getValue().get(0));
             }
 
-            PermissionRequest request = new PermissionRequest(domain, subjectname,
-                    operation, target, subjectContext);
+            PermissionRequest request = new PermissionRequest(domain,
+                    CurrentRequest.getSubjectName(), operation, target,
+                    subjectContext);
             permissionManager.check(request);
             mbean.incrementRequests();
 
-            return Response.status(RestClient.OK_CREATED).entity(
-                    "permission granted").build();
+            return Response.status(RestClient.OK).entity("granted").build();
         } catch (Exception e) {
             LOGGER.error("permission failed", e);
             mbean.incrementError();
 
             return Response.status(RestClient.CLIENT_ERROR_UNAUTHORIZED).type(
-                    "text/plain").entity("permission failed\n").build();
+                    "text/plain").entity("denied").build();
         }
     }
 

@@ -28,6 +28,7 @@ import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.service.SubjectsService;
+import com.plexobject.rbac.utils.PasswordUtils;
 import com.sun.jersey.spi.inject.Inject;
 
 @Path("/security/subjects")
@@ -50,33 +51,33 @@ public class SubjectsServiceImpl implements SubjectsService, InitializingBean {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
-    @Path("/{domain}/{subjectname}")
+    @Path("/{domain}/{subjectName}")
     @Override
     public Response delete(@PathParam("domain") String domain,
-            @PathParam("subjectname") String subjectname) {
+            @PathParam("subjectName") String subjectName) {
         if (domain == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (subjectname == null) {
+        if (subjectName == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("subjectname not specified").build();
+                    "text/plain").entity("subjectName not specified").build();
         }
         try {
-            repositoryFactory.getSubjectRepository(domain).remove(subjectname);
+            repositoryFactory.getSubjectRepository(domain).remove(subjectName);
 
-            return Response.status(RestClient.OK).entity(subjectname).build();
+            return Response.status(RestClient.OK).entity(subjectName).build();
         } catch (ValidationException e) {
             mbean.incrementError();
 
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity(e.toString()).build();
         } catch (Exception e) {
-            LOGGER.error("failed to delete subjectname " + subjectname, e);
+            LOGGER.error("failed to delete subjectName " + subjectName, e);
             mbean.incrementError();
             return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
                     "text/plain").entity(
-                    "failed to delete subjectname " + subjectname + "\n")
+                    "failed to delete subjectName " + subjectName + "\n")
                     .build();
 
         }
@@ -110,29 +111,29 @@ public class SubjectsServiceImpl implements SubjectsService, InitializingBean {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes( { MediaType.WILDCARD })
-    @Path("/{domain}/{subjectname}")
+    @Path("/{domain}/{subjectName}")
     @Override
     public Response get(@PathParam("domain") String domain,
-            @PathParam("subjectname") String subjectname) {
+            @PathParam("subjectName") String subjectName) {
         if (domain == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
         }
-        if (subjectname == null) {
+        if (subjectName == null) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
-                    "text/plain").entity("subjectname not specified").build();
+                    "text/plain").entity("subjectName not specified").build();
         }
         try {
             Subject subject = repositoryFactory.getSubjectRepository(domain)
-                    .findByID(subjectname);
+                    .findById(subjectName);
 
             return Response.status(RestClient.OK).entity(subject).build();
         } catch (Exception e) {
-            LOGGER.error("failed to get subject " + subjectname, e);
+            LOGGER.error("failed to get subject " + subjectName, e);
             mbean.incrementError();
             return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
                     "text/plain").entity(
-                    "failed to get subject " + subjectname + "\n").build();
+                    "failed to get subject " + subjectName + "\n").build();
 
         }
     }
@@ -179,6 +180,8 @@ public class SubjectsServiceImpl implements SubjectsService, InitializingBean {
         }
         try {
             subject.validate();
+            subject.setCredentials(PasswordUtils.getHash(subject
+                    .getCredentials()));
             repositoryFactory.getSubjectRepository(domain).save(subject);
 
             return Response.status(RestClient.OK_CREATED).entity(subject)

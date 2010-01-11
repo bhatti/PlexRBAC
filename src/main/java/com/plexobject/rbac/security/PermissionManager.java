@@ -52,11 +52,11 @@ public class PermissionManager implements InitializingBean {
         Collection<Role> roles = null;
 
         // by default subject gets anonymous role
-        if (GenericValidator.isBlankOrNull(request.getSubjectname())) {
+        if (GenericValidator.isBlankOrNull(request.getSubjectName())) {
             roles = Arrays.asList(Role.ANONYMOUS);
         } else {
             roles = repositoryFactory.getRoleRepository(request.getDomain())
-                    .getRolesForSubject(request.getSubjectname());
+                    .getRolesForSubject(request.getSubjectName());
         }
         Collection<Permission> all = repositoryFactory.getPermissionRepository(
                 request.getDomain()).getPermissionsForRoles(roles);
@@ -79,20 +79,20 @@ public class PermissionManager implements InitializingBean {
             if (STORE_ERRORS_IN_DB) {
                 repositoryFactory.getSecurityErrorRepository(
                         request.getDomain()).save(
-                        new SecurityError(request.getSubjectname(), request
+                        new SecurityError(request.getSubjectName(), request
                                 .getOperation(), request.getTarget(), request
                                 .getSubjectContext()));
             } else {
                 LOGGER.warn("Permission failed for " + request);
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to save securit error for subjectname "
+            LOGGER.error("Failed to save securit error for subjectName "
                     + request, e);
         }
-        // throw new SecurityException(request.getSubjectname(), request
+        // throw new SecurityException(request.getSubjectName(), request
         // .getOperation(), request.getTarget(), request.getSubjectContext());
         throw new SecurityException("permissions " + all, request
-                .getSubjectname(), request.getOperation(), request.getTarget(),
+                .getSubjectName(), request.getOperation(), request.getTarget(),
                 request.getSubjectContext());
 
     }

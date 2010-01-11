@@ -132,7 +132,7 @@ public class PermissionsServiceImpl implements PermissionsService,
         }
         try {
             Permission permission = repositoryFactory.getPermissionRepository(
-                    domain).findByID(id);
+                    domain).findById(id);
 
             return Response.status(RestClient.OK).entity(permission).build();
         } catch (Exception e) {

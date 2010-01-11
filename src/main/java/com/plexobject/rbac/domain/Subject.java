@@ -3,6 +3,7 @@ package com.plexobject.rbac.domain;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -16,8 +17,8 @@ import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
 /**
- * This class defines a simple subject class Note: This project does not deal with
- * authentication and recommends openid solutions for it (such as RPX)
+ * This class defines a simple subject class Note: This project does not deal
+ * with authentication and recommends openid solutions for it (such as RPX)
  * 
  * @author bhatti_shahzad
  * 
@@ -26,9 +27,10 @@ import com.sleepycat.persist.model.PrimaryKey;
 @XmlRootElement
 public class Subject extends PersistentObject implements Validatable,
         Identifiable<String> {
-    public static final Subject SUPER_ADMIN = new Subject(Configuration.getInstance()
-            .getProperty("super_admin_subjectname", "super_admin"), PasswordUtils
-            .getHash(Configuration.getInstance().getProperty(
+    public static final Subject SUPER_ADMIN = new Subject(Configuration
+            .getInstance()
+            .getProperty("super_admin_subjectName", "super_admin"),
+            PasswordUtils.getHash(Configuration.getInstance().getProperty(
                     "super_admin_credentials", "changeme")));
     @PrimaryKey
     private String id;
@@ -38,13 +40,14 @@ public class Subject extends PersistentObject implements Validatable,
     Subject() {
     }
 
+    @XmlElement
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         if (GenericValidator.isBlankOrNull(id)) {
-            throw new IllegalArgumentException("subjectname not specified");
+            throw new IllegalArgumentException("subjectName not specified");
         }
 
         this.id = id;
@@ -89,14 +92,15 @@ public class Subject extends PersistentObject implements Validatable,
      */
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("subjectname", this.id).toString();
+        return new ToStringBuilder(this).append("subjectName", this.id)
+                .toString();
     }
 
     @Override
     public void validate() throws ValidationException {
         final Map<String, String> errorsByField = new HashMap<String, String>();
         if (GenericValidator.isBlankOrNull(id)) {
-            errorsByField.put("id", "subjectname is not specified");
+            errorsByField.put("id", "subjectName is not specified");
         }
 
         if (errorsByField.size() > 0) {
