@@ -105,7 +105,7 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
         }
         Domain domain = super.findById(name);
         if (domain == null) {
-            save(new Domain(name, name));
+            domain = save(new Domain(name, name));
         }
         return domain;
     }

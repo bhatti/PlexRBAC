@@ -48,7 +48,7 @@ public class WebUtils {
             throw new IllegalArgumentException("subjectName not specified");
         }
         long expiresAt = System.currentTimeMillis()
-                + (SESSION_EXPIRATION_IN_MINUTES * 60 * 1000);
+                + (SESSION_EXPIRATION_IN_MINUTES * 60L * 1000L);
         String session = createSession(domain, subjectName, expiresAt);
         return new NewCookie(SESSION, session, "/", SESSION_COOKIE_DOMAIN,
                 domain + ":" + subjectName, SESSION_EXPIRATION_IN_MINUTES * 60,
@@ -107,7 +107,7 @@ public class WebUtils {
             NoSuchPaddingException, InvalidKeyException, ShortBufferException,
             IllegalBlockSizeException, BadPaddingException,
             InvalidAlgorithmParameterException, InvalidKeySpecException {
-        if (!GenericValidator.isBlankOrNull(b64Session)) { 
+        if (!GenericValidator.isBlankOrNull(b64Session)) {
             final String encryptedSession = new String(PasswordUtils
                     .base64ToByte(b64Session));
             final String session = PasswordUtils.decrypt(encryptedSession);

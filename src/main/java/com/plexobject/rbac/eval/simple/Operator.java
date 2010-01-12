@@ -33,6 +33,7 @@ public enum Operator {
                     LOGGER.error("failed to parse " + first + " and " + second,
                             e);
                 }
+                break;
             case STRING:
                 return second.compareTo(first) < 0;
             }
@@ -55,6 +56,7 @@ public enum Operator {
                     LOGGER.error("failed to parse " + first + " and " + second,
                             e);
                 }
+                break;
             case STRING:
                 return second.compareTo(first) <= 0;
             }
@@ -77,6 +79,7 @@ public enum Operator {
                     LOGGER.error("failed to parse " + first + " and " + second,
                             e);
                 }
+                break;
             case STRING:
                 return second.compareTo(first) > 0;
             }
@@ -99,6 +102,7 @@ public enum Operator {
                     LOGGER.error("failed to parse " + first + " and " + second,
                             e);
                 }
+                break;
             case STRING:
                 return second.compareTo(first) >= 0;
             }
@@ -142,6 +146,7 @@ public enum Operator {
                                 + second, e);
                     }
                 }
+                break;
             case STRING:
                 return second.compareTo(firstParts[0]) >= 0
                         && second.compareTo(firstParts[1]) <= 0;

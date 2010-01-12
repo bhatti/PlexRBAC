@@ -40,20 +40,24 @@ public class Role extends PersistentObject implements Validatable,
     }
 
     public Role(String id) {
-        setId(id);
+        this(id, (Role) null);
     }
 
     public Role(String id, Role parent) {
         setId(id);
         if (parent != null) {
             addParentId(parent.getId());
+        } else {
+            addParentId(ANONYMOUS.getId());
         }
     }
 
     public Role(String id, Set<String> parentIds) {
         setId(id);
-        if (parentIds != null) {
+        if (parentIds != null && parentIds.size() > 0) {
             setParentIds(parentIds);
+        } else {
+            addParentId(ANONYMOUS.getId());
         }
     }
 
@@ -163,7 +167,8 @@ public class Role extends PersistentObject implements Validatable,
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("rolename", this.id).append(
-                "subjectIds", this.subjectIds).toString();
+                "subjectIds", this.subjectIds).append("parentIds",
+                this.parentIds).toString();
     }
 
     @Override

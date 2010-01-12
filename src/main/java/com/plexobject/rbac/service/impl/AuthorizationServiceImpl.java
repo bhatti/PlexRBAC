@@ -61,6 +61,9 @@ public class AuthorizationServiceImpl implements AuthorizationService,
             @PathParam("domain") String domain,
             @QueryParam("operation") String operation,
             @QueryParam("target") String target) {
+        if (ui == null) {
+            throw new IllegalArgumentException("null uriinfo");
+        }
         if (GenericValidator.isBlankOrNull(domain)) {
             return Response.status(RestClient.CLIENT_ERROR_BAD_REQUEST).type(
                     "text/plain").entity("domain not specified").build();
@@ -77,7 +80,9 @@ public class AuthorizationServiceImpl implements AuthorizationService,
         }
         MultivaluedMap<String, String> mmSubjectContext = ui
                 .getQueryParameters();
-
+        if (mmSubjectContext == null) {
+            throw new IllegalArgumentException("null query parameters");
+        }
         try {
             final Map<String, String> subjectContext = new HashMap<String, String>();
             for (Entry<String, List<String>> e : mmSubjectContext.entrySet()) {
@@ -91,11 +96,19 @@ public class AuthorizationServiceImpl implements AuthorizationService,
             mbean.incrementRequests();
 
             return Response.status(RestClient.OK).entity("granted").build();
-        } catch (Exception e) {
-            LOGGER.error("permission failed", e);
+        } catch (SecurityException e) {
+            LOGGER.error("permission failed when accessing " + domain + "/"
+                    + operation + "/" + target + ": " + e.toString());
             mbean.incrementError();
 
             return Response.status(RestClient.CLIENT_ERROR_UNAUTHORIZED).type(
+                    "text/plain").entity("denied").build();
+        } catch (Exception e) {
+            LOGGER.error("permission failed unexpectedly while accessing "
+                    + domain + "/" + operation + "/" + target, e);
+            mbean.incrementError();
+
+            return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
                     "text/plain").entity("denied").build();
         }
     }

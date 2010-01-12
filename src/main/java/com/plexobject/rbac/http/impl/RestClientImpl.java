@@ -55,9 +55,9 @@ public class RestClientImpl implements RestClient {
         httpClient.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
         httpClient.getParams().setSoTimeout(CONNECTION_TIMEOUT_MILLIS);
         httpClient.getParams().setParameter("http.socket.timeout",
-                new Integer(CONNECTION_TIMEOUT_MILLIS));
+                Integer.valueOf(CONNECTION_TIMEOUT_MILLIS));
         httpClient.getParams().setParameter("http.connection.timeout",
-                new Integer(CONNECTION_TIMEOUT_MILLIS));
+                Integer.valueOf(CONNECTION_TIMEOUT_MILLIS));
 
         if (!GenericValidator.isBlankOrNull(subjectName)
                 && !GenericValidator.isBlankOrNull(credentials)) {

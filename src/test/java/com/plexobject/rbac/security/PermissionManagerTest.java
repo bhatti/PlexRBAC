@@ -33,7 +33,7 @@ public class PermissionManagerTest {
         CurrentRequest.startRequest(APP_NAME, USER_NAME, "127.0.0.1");
         repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
 
-        permissionManager = new PermissionManager(repositoryFactory,
+        permissionManager = new PermissionManagerImpl(repositoryFactory,
                 new JavascriptEvaluator());
         addPermissions();
 

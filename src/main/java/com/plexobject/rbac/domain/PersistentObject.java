@@ -16,9 +16,9 @@ public abstract class PersistentObject extends BaseDomain {
     private Date createdAt = new Date();
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private Date deletedAt = DateUtils.addYears(new Date(), 50); // by -default
-                                                                 // all objects
-                                                                 // expires in
-                                                                 // 50 years
+    // all objects
+    // expires in
+    // 50 years
     private String createdBy;
     private String createdIPAddress;
     private Date updatedAt = new Date();
@@ -73,7 +73,8 @@ public abstract class PersistentObject extends BaseDomain {
     }
 
     public void setCreatedIPAddress(String createdIPAddress) {
-        if (createdIPAddress != this.createdIPAddress) {
+        if (createdIPAddress != null
+                && !createdIPAddress.equals(this.createdIPAddress)) {
             firePropertyChange("createdIPAddress", this.createdIPAddress,
                     createdIPAddress);
 
@@ -115,7 +116,8 @@ public abstract class PersistentObject extends BaseDomain {
     }
 
     public void setUpdatedIPAddress(String updatedIPAddress) {
-        if (updatedIPAddress != this.updatedIPAddress) {
+        if (updatedIPAddress != null
+                && !updatedIPAddress.equals(this.updatedIPAddress)) {
             firePropertyChange("updatedIPAddress", this.updatedIPAddress,
                     updatedIPAddress);
 

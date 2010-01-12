@@ -78,9 +78,6 @@ public class Permission extends PersistentObject implements Validatable,
      * @return
      */
     public boolean impliesOperation(final String op, final String tgt) {
-        if (operation == op && target == tgt) {
-            return true;
-        }
         if (GenericValidator.isBlankOrNull(op)) {
             return false;
         }

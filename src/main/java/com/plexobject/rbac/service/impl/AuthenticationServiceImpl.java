@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.plexobject.rbac.ServiceFactory;
-import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.http.RestClient;
 import com.plexobject.rbac.jmx.JMXRegistrar;
 import com.plexobject.rbac.jmx.impl.ServiceJMXBeanImpl;
@@ -69,24 +68,24 @@ public class AuthenticationServiceImpl implements AuthenticationService,
         }
 
         try {
-
-            Subject subject = repositoryFactory.getSubjectRepository(domain)
-                    .authenticate(subjectName, credentials);
-            if (subject != null) {
-                mbean.incrementRequests();
-                final NewCookie cookie = WebUtils.createSessionCookie(domain,
-                        subjectName);
-                return Response.status(RestClient.OK_CREATED).cookie(cookie)
-                        .entity(cookie.getValue()).build();
-            } else {
-                return Response.status(RestClient.CLIENT_ERROR_UNAUTHORIZED)
-                        .type("text/plain").entity("login error\n").build();
-            }
-        } catch (Exception e) {
-            LOGGER.error("failed to login", e);
+            repositoryFactory.getSubjectRepository(domain).authenticate(
+                    subjectName, credentials);
+            mbean.incrementRequests();
+            final NewCookie cookie = WebUtils.createSessionCookie(domain,
+                    subjectName);
+            return Response.status(RestClient.OK).cookie(cookie).type(
+                    "text/plain").entity(cookie.getValue()).build();
+        } catch (SecurityException e) {
+            LOGGER.error("failed to login " + domain + "/" + subjectName + ": "
+                    + e);
             mbean.incrementError();
 
             return Response.status(RestClient.CLIENT_ERROR_UNAUTHORIZED).type(
+                    "text/plain").entity("login error\n").build();
+        } catch (Exception e) {
+            LOGGER.error("failed to login", e);
+            mbean.incrementError();
+            return Response.status(RestClient.SERVER_INTERNAL_ERROR).type(
                     "text/plain").entity("login error\n").build();
         }
     }

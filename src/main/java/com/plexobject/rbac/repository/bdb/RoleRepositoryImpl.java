@@ -20,7 +20,6 @@ import com.sleepycat.persist.SecondaryIndex;
 public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
         implements RoleRepository {
     private SecondaryIndex<String, String, Role> subjectNameIndex;
-    private boolean createdAnonymous;
 
     public RoleRepositoryImpl(final EntityStore store) {
         super(store);
@@ -34,10 +33,9 @@ public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
 
     @Override
     public Role save(Role role) throws PersistenceException {
-        if (!createdAnonymous && role != null
+        if (role != null
                 && role.getParentIds().contains(Role.ANONYMOUS.getId())) {
             getOrCreateRole(Role.ANONYMOUS.getId());
-            createdAnonymous = true;
         }
         return super.save(role);
     }
