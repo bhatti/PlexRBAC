@@ -1,6 +1,7 @@
 package com.plexobject.rbac.security;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -11,7 +12,7 @@ public class PermissionRequest {
     private final String subjectName;
     private final String operation;
     private final String target;
-    private final Map<String, String> subjectContext;
+    private final Map<String, String> subjectContext = new TreeMap<String, String>();
 
     public PermissionRequest(final String domain, final String subjectName,
             final String operation, final String target,
@@ -20,7 +21,9 @@ public class PermissionRequest {
         this.subjectName = subjectName;
         this.operation = operation;
         this.target = target;
-        this.subjectContext = subjectContext;
+        if (subjectContext != null) {
+            this.subjectContext.putAll(subjectContext);
+        }
     }
 
     public String getDomain() {
@@ -76,7 +79,8 @@ public class PermissionRequest {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(786529047, 1924536713).append(domain)
-                .append(subjectName).append(operation).append(target).toHashCode();
+                .append(subjectName).append(operation).append(target)
+                .toHashCode();
     }
 
     /**

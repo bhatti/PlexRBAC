@@ -47,7 +47,7 @@ public class Role extends PersistentObject implements Validatable,
         setId(id);
         if (parent != null) {
             addParentId(parent.getId());
-        } else {
+        } else if (ANONYMOUS != null) {
             addParentId(ANONYMOUS.getId());
         }
     }

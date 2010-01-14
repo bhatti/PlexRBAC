@@ -199,35 +199,51 @@ public class AuthorizationServiceImplTest {
 
     @Test
     public final void testAuthorize() throws Exception {
-        ((AuthorizationServiceImpl) service).afterPropertiesSet();
-        String domain = "mine";
-        String operation = "(read|write|delete)";
-        String target = "database";
-        String expr = "";
-        Role role = new Role("accountant");
+        PermissionManager mgr = EasyMock.createMock(PermissionManager.class);
+        ((AuthorizationServiceImpl) service).setPermissionManager(mgr);
+        String domain = "mydomain";
+        String operation = "myoperation";
+        String target = "mytarget";
         UriInfo ui = new TestUriInfo();
-        Subject user = new Subject(USER_NAME, "");
-        Domain d = ServiceFactory.getDefaultFactory().getDomainRepository()
-                .getOrCreateDomain(domain);
-        d.addOwner(USER_NAME);
-        ServiceFactory.getDefaultFactory().getDomainRepository().save(d);
-        ServiceFactory.getDefaultFactory().getSubjectRepository(domain).save(
-                user);
-        ServiceFactory.getDefaultFactory().getRoleRepository(domain).save(role);
-        Permission perm = new Permission(operation, target, expr);
-
-        ServiceFactory.getDefaultFactory().getPermissionRepository(domain)
-                .save(perm);
-        ServiceFactory.getDefaultFactory().getSecurityRepository()
-                .addRolesToSubject(domain, user.getId(),
-                        Arrays.asList(role.getId()));
-        ServiceFactory.getDefaultFactory().getSecurityRepository()
-                .addPermissionsToRole(domain, role.getId(),
-                        Arrays.asList(perm.getId()));
+        PermissionRequest request = new PermissionRequest(domain, "shahbhat",
+                operation, target, null);
+        mgr.check(request);
+        EasyMock.expectLastCall();
+        EasyMock.replay(mgr);
         Response response = service.authorize(ui, domain, operation, target);
+        assertEquals("granted", response.getEntity());
 
         assertEquals(200, response.getStatus());
-        assertEquals("denied", response.getEntity());
+        EasyMock.verify(mgr);
+
+        // String domain = "mine";
+        // String operation = "(read|write|delete)";
+        // String target = "database";
+        // String expr = "";
+        // Role role = new Role("accountant");
+        // UriInfo ui = new TestUriInfo();
+        // Subject user = new Subject(USER_NAME, "");
+        // Domain d = ServiceFactory.getDefaultFactory().getDomainRepository()
+        // .getOrCreateDomain(domain);
+        // d.addOwner(USER_NAME);
+        // ServiceFactory.getDefaultFactory().getDomainRepository().save(d);
+        // ServiceFactory.getDefaultFactory().getSubjectRepository(domain).save(
+        // user);
+        // ServiceFactory.getDefaultFactory().getRoleRepository(domain).save(role);
+        // Permission perm = new Permission(operation, target, expr);
+        //
+        // ServiceFactory.getDefaultFactory().getPermissionRepository(domain)
+        // .save(perm);
+        // ServiceFactory.getDefaultFactory().getSecurityRepository()
+        // .addRolesToSubject(domain, user.getId(),
+        // Arrays.asList(role.getId()));
+        // ServiceFactory.getDefaultFactory().getSecurityRepository()
+        // .addPermissionsToRole(domain, role.getId(),
+        // Arrays.asList(perm.getId()));
+        // Response response = service.authorize(ui, domain, operation, target);
+        //
+        // assertEquals(200, response.getStatus());
+        // assertEquals("denied", response.getEntity());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -281,17 +297,17 @@ public class AuthorizationServiceImplTest {
     public final void testMockFailed() throws Exception {
         PermissionManager mgr = EasyMock.createMock(PermissionManager.class);
         ((AuthorizationServiceImpl) service).setPermissionManager(mgr);
-        String domain = "xx";
-        String operation = "xx";
-        String target = "xx";
+        String domain = "mydomain";
+        String operation = "myoperation";
+        String target = "mytarget";
         UriInfo ui = new TestUriInfo();
-        PermissionRequest request = new PermissionRequest(domain,
-                CurrentRequest.getSubjectName(), operation, target, null);
+        PermissionRequest request = new PermissionRequest(domain, "shahbhat",
+                operation, target, null);
         mgr.check(request);
-        EasyMock.expectLastCall();
+        EasyMock.expectLastCall().andThrow(new RuntimeException());
         EasyMock.replay(mgr);
         Response response = service.authorize(ui, domain, operation, target);
-        assertEquals("target not specified", response.getEntity());
+        assertEquals("denied", response.getEntity());
 
         assertEquals(500, response.getStatus());
         EasyMock.verify(mgr);
