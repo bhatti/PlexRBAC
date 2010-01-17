@@ -20,17 +20,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.plexobject.rbac.ServiceFactory;
-import com.plexobject.rbac.domain.Domain;
-import com.plexobject.rbac.domain.Permission;
-import com.plexobject.rbac.domain.Role;
-import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.security.PermissionManager;
 import com.plexobject.rbac.security.PermissionRequest;
 import com.plexobject.rbac.service.AuthorizationService;
 import com.plexobject.rbac.utils.CurrentRequest;
 
 public class AuthorizationServiceImplTest {
+    @SuppressWarnings("unused")
     private static final Logger LOGGER = Logger
             .getLogger(AuthorizationServiceImplTest.class);
     private static final String USER_NAME = "shahbhat";
