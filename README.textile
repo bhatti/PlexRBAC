@@ -889,7 +889,6 @@ which is denied:
 
 
 
-<!--
 h2. References
 http://csrc.nist.gov/groups/SNS/rbac/documents/design_implementation/Intro_role_based_access.htm
 http://hissa.nist.gov/rbac/poole/ir5820/ir5820s31.htm
@@ -899,4 +898,3 @@ http://www.coresecuritypatterns.com/patterns.htm
 http://cwiki.apache.org/confluence/display/SHIRO/Index
 http://www.secs.oakland.edu/~kim2/papers/FASE04.pdf
 // perl -pi -e 's/yy/xx/g' // `find src/ -name "*.java"`
--->
