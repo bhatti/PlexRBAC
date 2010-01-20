@@ -1,21 +1,21 @@
-﻿== Overview ==
+﻿h2. Overview
 This project is based on my experience with a number of home built solutions for RBAC and standard J2EE solutions. However, it adds instance based security or context based security that adds dynamic access control. The role based security consists of following components:
-=== Domain ===
+h3. Domain
 Though, domain is strictly not part of role based security but RBAC provides segregation of security policies by domains, where a domain can represent a security realm or an application.
-=== Subject ===
+h3. Subject
 The subject represents users who are defined in an application.
-=== Role ===
+h3. Role
 A role represents job title or function. A subject or user belongs to one or more roles. One of key feature of PlexRBAC is that roles support inheritance where a role can have one or more roles. This helps define security policies that follow "don't repeat yourself" or DRY.
-=== Permission ===
+h3. Permission
 A permission consists of two sub parts: operation and target, where operation is a "verb" that describes action and target represents "object" that is acted upon. All permissions are assigned to roles. In PlexRBAC, permissions also contains an expression which is evaluated to check dynamic security. PlexRBAC allows Javascript based expressions and provides access to runtime request parameters. Finally, PlexRBAC offers <b>regular expressions</b> for both operations and target, so you can define operations like "(read|write|create|delete)" or "read*", etc.
 
 Following diagram shows the relationship between these components:
 <img src="http://www.gliffy.com/pubdoc/1951045/M.jpg">
 
-== System Layers == 
+h2. System Layers
 
 PlexRBAC consists of following layers
-=== Business Domain Layer ===
+h3. Business Domain Layer
 
 This layer defines core classes that are part of the RBAC based security domain such as:
 
@@ -25,7 +25,7 @@ This layer defines core classes that are part of the RBAC based security domain 
     * Permission – A permission is composed of operation, target and an expression that is used for dynamic or instance based security.
     * SecurityError – Upon a permission failure, you can choose to store them in the database using SecurityError. 
 
-=== Repository Layer ===
+h3. Repository Layer
 
 This layer is responsible for accessing or storing above objects in the database. PlexRBAC uses Berkley DB for persistence and each domain is stored as a separate database, which allows you to segregate permissions and roles for distinct domains. Following are list of repositories supported by PlexRBAC:
 
@@ -37,13 +37,13 @@ This layer is responsible for accessing or storing above objects in the database
     * SecurityMappingRepository – provides APIs to map permissions with roles and to map subject with roles.
     * RepositoryFactory – provides factory methods to create above repositories. 
 
-=== Security Layer ===
+h3. Security Layer
 
 This class defines PermissionManager for authorizing permissions.
-=== Evaluation Layer ===
+h3. Evaluation Layer
 
 This layer proivdes evaluation engine for instance based security.
-=== Service Layer ===
+h3. Service Layer
 
 This layer defines REST services such as:
 
@@ -56,31 +56,31 @@ This layer defines REST services such as:
     * RolePermissionService – this service provides REST APIs for mapping permissions with roles.
     * SubjectRolesService – this service provides REST APIs for mapping subjects with roles. 
 
-=== JMX Layer ===
+h3. JMX Layer
 
 This layer defines JMX helper classes for managing services and configuration remotely.
-=== Caching Layer ===
+h3. Caching Layer
 
 This layer provides caching security permissions to improve performance.
-=== Metrics Layer ===
+h3. Metrics Layer
 
 This layer provides performance measurement classes such as Timing class to measure method invocation benchmarks.
-=== Utility Layer ===
+h3. Utility Layer
 
 This layer provides helper classes.
-=== Web Layer ===
+h3. Web Layer
 
 This layer provides filters for enforcing authentication and authorization when accessing REST APIs.
-== Java Example == 
+h2. Java Example
 Let's start with a banking example where a bank-object can be account, general-ledger-report or ledger-posting-rules and account is further grouped into customer account or loan account. Further, Let’s assume there are five roles: Teller, Customer-Service-Representative (CSR), Account, AccountingManager and LoanOfficer, where 
     * A teller can modify customer deposit accounts — but only if customer and teller live in same region
     * A customer service representative can create or delete customer deposit accounts — but only if customer and teller live in same region
-    * An accountant can create general ledger reports — but only if year is == current year
-    * An accounting manager can modify ledger-posting rules — but only if year is == current year
+    * An accountant can create general ledger reports — but only if year is h2. current year
+    * An accounting manager can modify ledger-posting rules — but only if year is h2. current year
     * A loan officer can create and modify loan accounts – but only if account balance is < 10000 
 
 In addition, following classes will be used to add domain specific security:
-{{{
+@code@
   1
   2 class User {
 
@@ -182,39 +182,39 @@ In addition, following classes will be used to add domain specific security:
  81 }
  82
  83
-}}}
+
  
 
-=== Bootstrapping ===
+h3. Bootstrapping
 
 Let’s create handle to repository-factory as:
-{{{
+@code@
  1
  2     private static final String TEST_DB_DIR = "test_db_dir_perms";
 
  3     RepositoryFactory repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
-}}} 
+ 
 
 And instance of permission manager as:
-{{{
+@code@
  1 PermissionManager permissionManager = new PermissionManagerImpl(repositoryFactory,
 
  2             new JavascriptEvaluator());
-}}} 
+ 
 
-=== Creating a domain ===
+h3. Creating a domain
 
 Now, let’s create a domain for banking:
-{{{
+@code@
  1     private static final String BANKING = "banking";
 
  2     repositoryFactory.getDomainRepository().save(new Domain(BANKING, ""));
-}}} 
+ 
 
-=== Creating Users ===
+h3. Creating Users
 
 Next step is to create users for the domain or application so let’s define accounts for tom, cassy, ali, mike and larry, i.e.,
-{{{
+@code@
  1         final SubjectRepository subjectRepo = repositoryFactory
 
  2                 .getSubjectRepository(BANKING);
@@ -225,12 +225,12 @@ Next step is to create users for the domain or application so let’s define acc
  6         Subject mike = subjectRepo.save(new Subject("mike", "pass"));
 
  7         Subject larry = subjectRepo.save(new Subject("larry", "pass"));
-}}} 
+ 
 
-=== Creating Roles ===
+h3. Creating Roles
 
 Now, we will create roles for Teller, CSR, Accountant, AccountManager and LoanManager:
-{{{
+@code@
   1         final RoleRepository roleRepo = repositoryFactory
 
   2                 .getRoleRepository(BANKING);
@@ -245,12 +245,12 @@ Now, we will create roles for Teller, CSR, Accountant, AccountManager and LoanMa
   9         Role loanOfficer = roleRepo
 
  10                 .save(new Role("LoanOfficer", accountantMgr));
-}}} 
+ 
 
-=== Creating Permissions ===
+h3. Creating Permissions
 
 We can then create new permissions and save them in the database as follows:
-{{{
+@code@
   1         final PermissionRepository permRepo = repositoryFactory
 
   2                 .getPermissionRepository(BANKING);
@@ -270,23 +270,23 @@ We can then create new permissions and save them in the database as follows:
 
  13
  14         Permission rdLedger = permRepo.save(new Permission("(read|create)",
- 15                 "GeneralLedger", "year == new Date().getFullYear()")); // 5
+ 15                 "GeneralLedger", "year h2. new Date().getFullYear()")); // 5
 
  16
  17         Permission rGlpr = permRepo
  18                 .save(new Permission("read", "GeneralLedgerPostingRules",
- 19                         "year == new Date().getFullYear()")); // 6
+ 19                         "year h2. new Date().getFullYear()")); // 6
 
  20
  21         Permission cmdGlpr = permRepo.save(new Permission(
  22                 "(create|modify|delete)", "GeneralLedgerPostingRules",
- 23                 "year == new Date().getFullYear()")); // 7
-}}} 
+ 23                 "year h2. new Date().getFullYear()")); // 7
+ 
 
-=== Mapping Subjects/Permissions to Roles ===
+h3. Mapping Subjects/Permissions to Roles
 
 Now we will map subjects to roles as follows:
-{{{
+@code@
  1         final SecurityMappingRepository smr = repositoryFactory
 
  2                 .getSecurityMappingRepository(BANKING);
@@ -298,10 +298,10 @@ Now we will map subjects to roles as follows:
 
  8         smr.addRolesToSubject(mike, accountantMgr);
  9         smr.addRolesToSubject(larry, loanOfficer);
-}}} 
+ 
 
 Then we will map permissions to roles as follows:
-{{{
+@code@
  1         smr.addPermissionsToRole(teller, ruDeposit);
  2         smr.addPermissionsToRole(csr, cdDeposit);
 
@@ -310,12 +310,12 @@ Then we will map permissions to roles as follows:
  5         smr.addPermissionsToRole(accountantMgr, cdLoan);
  6         smr.addPermissionsToRole(accountantMgr, rGlpr);
  7         smr.addPermissionsToRole(loanOfficer, cmdGlpr);
-}}}
 
-=== Authorization ===
+
+h3. Authorization
 
 Now the fun part of authorization, let’s check if user “tom” can view deposit-accounts, e.g.
-{{{
+@code@
   1    public static Map<String, Object> toMap(final Object... keyValues) {
 
   2         Map<String, Object> map = new HashMap<String, Object>();
@@ -337,12 +337,12 @@ Now the fun part of authorization, let’s check if user “tom” can view depo
  14     }
  15
  16
-}}} 
+ 
 
 Note that above test method builds a PermissionRequest that encapsulates domain, subject, operation, target and context and then calls check method of SecurityManager, which throws SecurityException if permission fails.
 
 Then we check if tom, the teller can delete deposit-account, e.g.
-{{{
+@code@
  1     @Test(expected = SecurityException.class)
 
  2     public void testDeleteByTeller() {
@@ -353,12 +353,12 @@ Then we check if tom, the teller can delete deposit-account, e.g.
  6                         "west"), "customer", new Customer("zak", "west"))));
 
  7     }
-}}} 
+ 
 
 Which would throw security exception.
 
 Now let’s check if cassy, the CSR can delete deposit-account, e.g.
-{{{
+@code@
  1     @Test
  2     public void testDeleteByCsr() {
 
@@ -368,10 +368,10 @@ Now let’s check if cassy, the CSR can delete deposit-account, e.g.
 
  6                         new Employee("cassy", "west"), "customer",
  7                         new Customer("zak", "west"))));
-}}} 
+ 
 
 Which works as CSR have permissions for deleting deposit-account. Now, let’s check if ali, the accountant can view general-ledger, e.g.
-{{{
+@code@
  1    @Test
  2     public void testReadLedgerByAccountant() {
 
@@ -381,10 +381,10 @@ Which works as CSR have permissions for deleting deposit-account. Now, let’s c
 
  6                         new Account("zak", 500))));
  7     }
-}}} 
+ 
 
 Which works as expected. Next we check if ali can delete general-ledger:
-{{{
+@code@
  1     @Test(expected = SecurityException.class)
 
  2     public void testDeleteLedgerByAccountant() {
@@ -395,10 +395,10 @@ Which works as expected. Next we check if ali can delete general-ledger:
  6                         new Account("zak", 500))));
  7     }
 
-}}} 
+ 
 
 Which would fail as only account-manager can delete. Next we check if mike, the account-manager can create general-ledger, e.g.
-{{{
+@code@
  1     @Test
  2     public void testCreateLedgerByAccountantManager() {
 
@@ -409,10 +409,10 @@ Which would fail as only account-manager can delete. Next we check if mike, the 
  6                         "account", new Account("zak", 500))));
  7     }
  8
-}}} 
+ 
 
 Which works as expected. Now we check if mike can create posting-rules of general-ledger, e.g.
-{{{
+@code@
  1     @Test(expected = SecurityException.class)
 
  2     public void testPostLedgingRulesByAccountantManager() {
@@ -424,10 +424,10 @@ Which works as expected. Now we check if mike can create posting-rules of genera
 
  7     }
  8
-}}} 
+ 
 
 Which fails authorization. Then we check if larry, the loan officer can create posting-rules of general-ledger, e.g.
-{{{
+@code@
  1     @Test
  2     public void testPostLedgingRulesByLoanManager() {
 
@@ -438,10 +438,10 @@ Which fails authorization. Then we check if larry, the loan officer can create p
  6                         2010, "account", new Account("zak", 500))));
  7     }
  8
-}}} 
+ 
 
 Which works as expected. Now, let’s check the same permission but with different year, e.g.
-{{{
+@code@
  1     @Test(expected = SecurityException.class)
 
  2     public void testPostLedgingRulesByLoanManagerWithExceededAmount() {
@@ -452,32 +452,32 @@ Which works as expected. Now, let’s check the same permission but with differe
  6                         2011)));
  7     }
  8
-}}} 
+ 
 
 Which fails as year doesn’t match.
 
 
-== Downloading the Source Code==
+h2. Downloading the Source Code==
 <a href="http://github.com/bhatti/PlexRBAC">PlexRBAC</a> depends on Java 1.6+ and Maven 2.0+. You can download the project using git:
-{{{
+@code@
 git clone git@github.com:bhatti/PlexRBAC.git
-}}}
-== Building ==
+
+h2. Building
 Type mvn command to build, e.g.
-{{{
+@code@
 mvn
-}}}
 
 
-== Building REST services, deploying them into Jetty and starting Jetty ==
+
+h2. Building REST services, deploying them into Jetty and starting Jetty
 Then you can start the REST based web service within Jetty by typing:
-{{{
+@code@
 mvn jetty:run-war
-}}}
+
 
 The service will listen on port 8080 and you can test it with curl.
 
-== Authentication ==
+h2. Authentication
 Though, PlexRBAC is not designed for authentication but it provides Basic authentication and all administration APIs are protected with the authentication. By default, it uses an account "super_admin" with password "changeme", which you can modify with configurations. 
 
 REST APIs
@@ -529,7 +529,7 @@ Authorization
 
     * GET /api/security/authorize/{domain-id} – with query parameter of operation and target. 
 
-== REST Example ==
+h2. REST Example
 Let's start with a banking example where a bank-object can be account, general-ledger-report or ledger-posting-rules and account is further grouped into customer account or loan account, e.g.
 
 <img src="http://www.gliffy.com/pubdoc/1951059/M.jpg">
@@ -543,247 +543,246 @@ Let's assume there are five roles: Teller, Customer-Service-Representative (CSR)
 <li>A loan officer can create and modify loan accounts.
 </ul>
 
-=== Creating a domain ===
+h3. Creating a domain
 The first thing is to create a security domain for your application. As we are dealing with banking domain, let's call our domain "banking". 
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/domains/banking" -d '{"id":"banking"}'
-}}}
+
 It will return response:
-{{{
+@code@
 {"id":"banking","ownerSubjectNames":"super_admin"}
-}}}
+
 The first thing to note that we are passing user and password using Basic authentication as all accesses to administration APIs require login. Now, you can find out available domains via
-{{{
+@code@
 curl -v --user "super_admin:changeme" "http://localhost:8080/api/security/domains"
-}}}
+
 which would return something like:
-{{{
+@code@
 [{"id":"banking","ownerSubjectNames":"super_admin"},{"description":"default","id":"default","ownerSubjectNames":"super_admin"}]
-}}}
 
 
-=== Creating Users ===
+
+h3. Creating Users
 Next step is to create users for the domain or application so let's define accounts for tom, cassy, ali, mike and larry, i.e.,
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subjects/banking" -d '{"id":"tom","credentials":"pass"}'
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subjects/banking" -d '{"id":"cassy","credentials":"pass"}'
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subjects/banking" -d '{"id":"ali","credentials":"pass"}'
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subjects/banking" -d '{"id":"mike","credentials":"pass"}'
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subjects/banking" -d '{"id":"larry","credentials":"pass"}'
-}}}
+
 Note that each user is identified by an id or username and credentials.
 
-=== Creating Roles ===
+h3. Creating Roles
 As I mentioned, a role represents job title or responsibilities and each role can have one or more parents. By default, PlexRBAC defines an "anonymous" role, which is used for users who are not logged in and all user-defined roles extend "anonymous" role.
 
 First, we create a role for bank employee called "Employee":
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/roles/banking" -d '{"id":"Employee"}'
-}}}
+
 which returns
-{{{
+@code@
 {"id":"Employee","parentIds":["anonymous"]}
-}}}
+
 As you can see the "Employee" role is created with parent of "anonymous". Next, we create "Teller" role:
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/roles/banking" -d '{"id":"Teller","parentIds":["Employee"]}'
-}}}
+
 which returns:
-{{{
+@code@
 {"id":"Teller","parentIds":["Employee"]}
-}}}
+
 Then we create role for customer-service-representative called "CSR" that is extended by Teller e.g.
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/roles/banking" -d '{"id":"CSR","parentIds":["Teller"]}' 
-}}}
+
 which returns:
-{{{
+@code@
 {"id":"CSR","parentIds":["Teller"]}
-}}}
+
 Then we create role for "Accountant":
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/roles/banking" -d '{"id":"Accountant","parentIds":["Employee"]}' 
-}}}
+
 which returns:
-{{{
+@code@
 {"id":"Accountant","parentIds":["Employee"]}
-}}}
+
 Then we create role for "AccountingManager", which is extended by "Accountant", e.g.
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/roles/banking" -d '{"id":"AccountingManager","parentIds":["Accountant"]}' 
-}}}
+
 which returns:
-{{{
+@code@
 {"id":"AccountingManager","parentIds":["Accountant"]}
-}}}
+
 Finally, we create role for "LoanOfficer", e.g.
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/roles/banking" -d '{"id":"LoanOfficer","parentIds":["Employee"]}' 
-}}}
+
 which returns:
-{{{
+@code@
 {"id":"LoanOfficer","parentIds":["Employee"]}
-}}}
 
-=== Creating Permissions ===
+
+h3. Creating Permissions
 As described above, a permission is composed of operation, target and expression, where an operation and target can be any regular expression and expression can be any Javascript expression. However following permissions don't define any expressions for simplicity. First, we create a permission to create or delete deposit-account, e.g.
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(create|delete)","target":"DepositAccount","expression":""}' 
-}}}
-which returns:
-{{{
-{"expression":"","id":"1","operation":"(create|delete)","target":"DepositAccount"}
-}}}
-Each permission is automatically assigned a unique numeric id. Next, we create permission to read or modify deposit-account, e.g.
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|modify)","target":"DepositAccount","expression":""}' 
-}}}
-which returns:
-{{{
-{"expression":"","id":"2","operation":"(read|modify)","target":"DepositAccount"}
-}}}
-Then, we create a permission to create or delete loan-account
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(create|delete)","target":"LoanAccount","expression":""}' 
-}}}
-which returns:
-{{{
-{"expression":"","id":"3","operation":"(create|delete)","target":"LoanAccount"}
-}}}
-Then we create a permission to read or modify loan-account, e.g.
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|modify)","target":"LoanAccount","expression":""}' 
-}}}
-which returns:
-{{{
-{"expression":"","id":"4","operation":"(read|modify)","target":"LoanAccount"}
-}}}
-Then we create role to view and create general-ledger, e.g.
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|create)","target":"GeneralLedger","expression":""}' 
-}}}
-which returns:
-{{{
-{"expression":"","id":"5","operation":"(read|create)","target":"GeneralLedger"}
-}}}
-Finally, we create permission for modifying posting rules of general-ledger, e.g.
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|create|modify|delete)","target":"GeneralLedgerPostingRules","expression":""}' 
-}}}
-which returns:
-{{{
-{"expression":"","id":"6","operation":"(read|create|modify|delete)","target":"GeneralLedgerPostingRules"}
-}}}
 
-=== Mapping Permissions to Roles ===
+which returns:
+@code@
+{"expression":"","id":"1","operation":"(create|delete)","target":"DepositAccount"}
+
+Each permission is automatically assigned a unique numeric id. Next, we create permission to read or modify deposit-account, e.g.
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|modify)","target":"DepositAccount","expression":""}' 
+
+which returns:
+@code@
+{"expression":"","id":"2","operation":"(read|modify)","target":"DepositAccount"}
+
+Then, we create a permission to create or delete loan-account
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(create|delete)","target":"LoanAccount","expression":""}' 
+
+which returns:
+@code@
+{"expression":"","id":"3","operation":"(create|delete)","target":"LoanAccount"}
+
+Then we create a permission to read or modify loan-account, e.g.
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|modify)","target":"LoanAccount","expression":""}' 
+
+which returns:
+@code@
+{"expression":"","id":"4","operation":"(read|modify)","target":"LoanAccount"}
+
+Then we create role to view and create general-ledger, e.g.
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|create)","target":"GeneralLedger","expression":""}' 
+
+which returns:
+@code@
+{"expression":"","id":"5","operation":"(read|create)","target":"GeneralLedger"}
+
+Finally, we create permission for modifying posting rules of general-ledger, e.g.
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X POST "http://localhost:8080/api/security/permissions/banking" -d '{"operation":"(read|create|modify|delete)","target":"GeneralLedgerPostingRules","expression":""}' 
+
+which returns:
+@code@
+{"expression":"","id":"6","operation":"(read|create|modify|delete)","target":"GeneralLedgerPostingRules"}
+
+
+h3. Mapping Permissions to Roles
 Next task is to map permissions to roles. First we assign permission to view or modify customer deposit accounts:
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/role_perms/banking/Teller" -d 'permissionIds=["2"]'
-}}}
+
 which returns all permission-ids for given role, e.g.
-{{{
+@code@
 ["2"]
-}}}
+
 Then we assign permission to view, create, modify or delete customer deposit accounts:
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/role_perms/banking/CSR" -d 'permissionIds=["1"]'
-}}}
+
 Then we assign permissions to create general ledger to accountant:
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/role_perms/banking/Accountant" -d 'permissionIds=["5"]'
-}}}
+
 
 Then we assign permission to modify ledger-posting rules to accounting manager:
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/role_perms/banking/AccountingManager" -d 'permissionIds=["6"]' 
-}}}
 
 
-=== Mapping Users to Roles ===
+
+h3. Mapping Users to Roles
 A role is associated with one or more permissions and each user is assigned one or more role. First, we assign subject "tom" to Teller role:
-{{{
+@code@
 curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/tom" -d 'rolenames=["Teller"]'
-}}}
-which returns list of all roles for given subject or user, e.g.
-{{{
-["Teller"]
-}}}
-Then we assign subject "cassy" to CSR role:
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/cassy" -d 'rolenames=["CSR"]'
-}}}
-Next we assign subject "ali" to role of Accountant:
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/ali" -d 'rolenames=["Accountant"]'
-}}}
-Then we assign role AccountingManager to "mike":
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/mike" -d 'rolenames=["AccountingManager"]'
-}}}
-Finally we assign subject "larry" to LoanOfficer role:
-{{{
-curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/larry" -d 'rolenames=["LoanOfficer"]'
-}}}
 
-=== Authorization ===
+which returns list of all roles for given subject or user, e.g.
+@code@
+["Teller"]
+
+Then we assign subject "cassy" to CSR role:
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/cassy" -d 'rolenames=["CSR"]'
+
+Next we assign subject "ali" to role of Accountant:
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/ali" -d 'rolenames=["Accountant"]'
+
+Then we assign role AccountingManager to "mike":
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/mike" -d 'rolenames=["AccountingManager"]'
+
+Finally we assign subject "larry" to LoanOfficer role:
+@code@
+curl -H "Content-Type: application/json" --user "default:super_admin:changeme" -X PUT "http://localhost:8080/api/security/subject_roles/banking/larry" -d 'rolenames=["LoanOfficer"]'
+
+
+h3. Authorization
 Now we are ready to validate authorization based on above security policies. For example, let's check if user "tom" can view deposit-accounts, e.g.
-{{{
+@code@
 curl -v --user "banking:tom:pass" "http://localhost:8080/api/authorize/banking?operation=read&target=DepositAccount"
-}}}
+
 On successful authorization, the API returns 200 http responose-code and on failure it returns 401 http response-code, e.g.
-{{{
+@code@
 < HTTP/1.1 200 OK
-}}}
+
 
 Then we check if tom, the teller can delete deposit-account, e.g.
-{{{
+@code@
 curl -v --user "banking:tom:pass" "http://localhost:8080/api/authorize/banking?operation=delete&target=DepositAccount"
-}}}
+
 which returns http-response-code 401, e.g.
-{{{
+@code@
 < HTTP/1.1 401 Unauthorized
-}}}
+
 Then we create if cassy, the CSR can delete deposit-account, e.g.
-{{{
+@code@
 curl -v --user "banking:cassy:pass" "http://localhost:8080/api/authorize/banking?operation=delete&target=DepositAccount"
-}}}
+
 which returns:
-{{{
+@code@
 < HTTP/1.1 200 OK
-}}}
+
 Then we check if ali, the accountant can view general-ledger, e.g.
-{{{
+@code@
 curl -v --user "banking:ali:pass" "http://localhost:8080/api/authorize/banking?operation=read&target=GeneralLedger"
-}}}
+
 which returns:
-{{{
+@code@
 < HTTP/1.1 200 OK
-}}}
+
 Next we check if mike, the accounting-manager can create general-ledger, e.g.
-{{{
+@code@
 curl -v --user "banking:mike:pass" "http://localhost:8080/api/authorize/banking?operation=create&target=GeneralLedger"
-}}}
+
 which returns:
-{{{
+@code@
 < HTTP/1.1 200 OK
-}}}
+
 Then we check if larry, the loan officer can create posting-rules of general-ledger, e.g.
-{{{
+@code@
 curl -v --user "banking:mike:pass" "http://localhost:8080/api/authorize/banking?operation=create&target=GeneralLedgerPostingRules"
-}}}
+
 which returns:
-{{{
+@code@
 < HTTP/1.1 200 OK
-}}}
+
 
 Next, ali tries to create posting rules via
-{{{
+@code@
 curl -v --user "banking:ali:pass" "http://localhost:8080/api/authorize/banking?operation=create&target=GeneralLedgerPostingRules"
-}}}
+
 which is denied:
-{{{
+@code@
 < HTTP/1.1 401 Unauthorized
-}}}
 
 
 
@@ -805,7 +804,8 @@ which is denied:
 
 
 
-== References ==
+
+h2. References
 http://csrc.nist.gov/groups/SNS/rbac/documents/design_implementation/Intro_role_based_access.htm
 http://hissa.nist.gov/rbac/poole/ir5820/ir5820s31.htm
 http://www.developer.com/article.php/10915_3841046_3/Real-World-REST-Using-Jersey-AJAX-and-JSON.htm
