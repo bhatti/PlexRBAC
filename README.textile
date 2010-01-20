@@ -1,12 +1,23 @@
+h1. Introduction to PlexRBAC
+
 ﻿h2. Overview
+
 This project is based on my experience with a number of home built solutions for RBAC and standard J2EE solutions. However, it adds instance based security or context based security that adds dynamic access control. The role based security consists of following components:
+
 h3. Domain
+
 Though, domain is strictly not part of role based security but RBAC provides segregation of security policies by domains, where a domain can represent a security realm or an application.
+
 h3. Subject
+
 The subject represents users who are defined in an application.
+
 h3. Role
+
 A role represents job title or function. A subject or user belongs to one or more roles. One of key feature of PlexRBAC is that roles support inheritance where a role can have one or more roles. This helps define security policies that follow "don't repeat yourself" or DRY.
+
 h3. Permission
+
 A permission consists of two sub parts: operation and target, where operation is a "verb" that describes action and target represents "object" that is acted upon. All permissions are assigned to roles. In PlexRBAC, permissions also contains an expression which is evaluated to check dynamic security. PlexRBAC allows Javascript based expressions and provides access to runtime request parameters. Finally, PlexRBAC offers <b>regular expressions</b> for both operations and target, so you can define operations like "(read|write|create|delete)" or "read*", etc.
 
 Following diagram shows the relationship between these components:
