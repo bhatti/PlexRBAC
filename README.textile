@@ -347,7 +347,7 @@ Now the fun part of authorization, let’s check if user “tom” can view depo
   6         return map;
   7     }
 
-  8     @Test
+  8     #Test
   9     public void testReadDepositByTeller() {
  10         initDatabase();
  11         permissionManager.check(new PermissionRequest(BANKING, "tom", "read",
@@ -364,7 +364,7 @@ Note that above test method builds a PermissionRequest that encapsulates domain,
 
 Then we check if tom, the teller can delete deposit-account, e.g.
 @
- 1     @Test(expected = SecurityException.class)
+ 1     #Test(expected = SecurityException.class)
 
  2     public void testDeleteByTeller() {
  3         initDatabase();
@@ -380,7 +380,7 @@ Which would throw security exception.
 
 Now let’s check if cassy, the CSR can delete deposit-account, e.g.
 @
- 1     @Test
+ 1     #Test
  2     public void testDeleteByCsr() {
 
  3         initDatabase();
@@ -393,7 +393,7 @@ Now let’s check if cassy, the CSR can delete deposit-account, e.g.
 
 Which works as CSR have permissions for deleting deposit-account. Now, let’s check if ali, the accountant can view general-ledger, e.g.
 @
- 1    @Test
+ 1    #Test
  2     public void testReadLedgerByAccountant() {
 
  3         initDatabase();
@@ -406,7 +406,7 @@ Which works as CSR have permissions for deleting deposit-account. Now, let’s c
 
 Which works as expected. Next we check if ali can delete general-ledger:
 @
- 1     @Test(expected = SecurityException.class)
+ 1     #Test(expected = SecurityException.class)
 
  2     public void testDeleteLedgerByAccountant() {
  3         initDatabase();
@@ -420,7 +420,7 @@ Which works as expected. Next we check if ali can delete general-ledger:
 
 Which would fail as only account-manager can delete. Next we check if mike, the account-manager can create general-ledger, e.g.
 @
- 1     @Test
+ 1     #Test
  2     public void testCreateLedgerByAccountantManager() {
 
  3         initDatabase();
@@ -434,7 +434,7 @@ Which would fail as only account-manager can delete. Next we check if mike, the 
 
 Which works as expected. Now we check if mike can create posting-rules of general-ledger, e.g.
 @
- 1     @Test(expected = SecurityException.class)
+ 1     #Test(expected = SecurityException.class)
 
  2     public void testPostLedgingRulesByAccountantManager() {
  3         initDatabase();
@@ -449,7 +449,7 @@ Which works as expected. Now we check if mike can create posting-rules of genera
 
 Which fails authorization. Then we check if larry, the loan officer can create posting-rules of general-ledger, e.g.
 @
- 1     @Test
+ 1     #Test
  2     public void testPostLedgingRulesByLoanManager() {
 
  3         initDatabase();
@@ -463,7 +463,7 @@ Which fails authorization. Then we check if larry, the loan officer can create p
 
 Which works as expected. Now, let’s check the same permission but with different year, e.g.
 @
- 1     @Test(expected = SecurityException.class)
+ 1     #Test(expected = SecurityException.class)
 
  2     public void testPostLedgingRulesByLoanManagerWithExceededAmount() {
  3         initDatabase();
