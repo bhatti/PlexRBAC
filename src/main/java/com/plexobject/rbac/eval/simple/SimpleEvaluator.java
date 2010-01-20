@@ -12,10 +12,10 @@ public class SimpleEvaluator implements PredicateEvaluator {
             .getLogger(SimpleEvaluator.class);
 
     @Override
-    public boolean evaluate(String rawExpr, Map<String, String> args) {
+    public boolean evaluate(String rawExpr, Map<String, Object> args) {
         Collection<Expression> exprs = Expression.parse(rawExpr);
         for (Expression expr : exprs) {
-            String value = args.get(expr.getName());
+            String value = args.get(expr.getName()).toString();
             if (!expr.evaluate(value)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Expression " + expr + " failed against "

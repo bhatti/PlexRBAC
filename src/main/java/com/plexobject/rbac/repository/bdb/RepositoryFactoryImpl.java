@@ -14,7 +14,7 @@ import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.repository.RoleRepository;
 import com.plexobject.rbac.repository.SecurityErrorRepository;
-import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.SecurityMappingRepository;
 import com.plexobject.rbac.repository.SubjectRepository;
 import com.sleepycat.je.DatabaseException;
 
@@ -29,7 +29,7 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     private Map<String, SecurityErrorRepository> securityErrorRepositories = new HashMap<String, SecurityErrorRepository>();
     private Map<String, SubjectRepository> subjectRepositories = new HashMap<String, SubjectRepository>();
     private Map<String, RoleRepository> roleRepositories = new HashMap<String, RoleRepository>();
-    private Map<String, SecurityRepository> securityRepositories = new HashMap<String, SecurityRepository>();
+    private Map<String, SecurityMappingRepository> securityRepositories = new HashMap<String, SecurityMappingRepository>();
 
     //
     public RepositoryFactoryImpl(final DatabaseStore databaseStore) {
@@ -135,12 +135,12 @@ public class RepositoryFactoryImpl implements RepositoryFactory {
     }
 
     @Override
-    public SecurityRepository getSecurityRepository() {
-        SecurityRepository repository = securityRepositories
-                .get(Domain.DEFAULT_DOMAIN_NAME);
+    public SecurityMappingRepository getSecurityMappingRepository(
+            final String domain) {
+        SecurityMappingRepository repository = securityRepositories.get(domain);
         if (repository == null) {
-            repository = new SecurityRepositoryImpl(this);
-            securityRepositories.put(Domain.DEFAULT_DOMAIN_NAME, repository);
+            repository = new SecurityMappingRepositoryImpl(domain, this);
+            securityRepositories.put(domain, repository);
         }
         return repository;
     }

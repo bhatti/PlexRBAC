@@ -18,13 +18,13 @@ public class JavascriptEvaluator implements PredicateEvaluator {
     private ScriptEngineManager manager = new ScriptEngineManager();
 
     @Override
-    public boolean evaluate(String expression, Map<String, String> args) {
+    public boolean evaluate(String expression, Map<String, Object> args) {
         ScriptEngine engine = manager.getEngineByName("JavaScript");
         ScriptContext newContext = new SimpleScriptContext();
         Bindings engineScope = newContext
                 .getBindings(ScriptContext.ENGINE_SCOPE);
 
-        for (Map.Entry<String, String> e : args.entrySet()) {
+        for (Map.Entry<String, Object> e : args.entrySet()) {
             engineScope.put(e.getKey(), e.getValue());
         }
         Object response = null;

@@ -50,9 +50,13 @@ public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
             return super.findById(rolename);
         } catch (NotFoundException e) {
             Role role = new Role(rolename);
-            save(role);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Created role " + role);
+            if (role.getId().equals(Role.ANONYMOUS.getId())) {
+                super.save(role);
+            } else {
+                save(role);
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("**** getOrCreateRole created role!!! " + role);
             }
             return role;
         }

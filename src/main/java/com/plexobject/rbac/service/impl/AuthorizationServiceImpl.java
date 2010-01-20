@@ -84,7 +84,7 @@ public class AuthorizationServiceImpl implements AuthorizationService,
             throw new IllegalArgumentException("null query parameters");
         }
         try {
-            final Map<String, String> subjectContext = new HashMap<String, String>();
+            final Map<String, Object> subjectContext = new HashMap<String, Object>();
             for (Entry<String, List<String>> e : mmSubjectContext.entrySet()) {
                 subjectContext.put(e.getKey(), e.getValue().get(0));
             }

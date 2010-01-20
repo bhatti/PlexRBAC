@@ -44,8 +44,8 @@ public class AuthenticationFilter implements Filter {
 
         @Override
         public boolean isUserInRole(String role) {
-            return repositoryFactory.getSecurityRepository().isSubjectInRole(
-                    domain, subjectName, role);
+            return repositoryFactory.getSecurityMappingRepository(domain)
+                    .isSubjectInRole(subjectName, role);
         }
 
         @Override

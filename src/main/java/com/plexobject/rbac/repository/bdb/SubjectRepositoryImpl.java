@@ -3,6 +3,7 @@ package com.plexobject.rbac.repository.bdb;
 import org.apache.commons.validator.GenericValidator;
 
 import com.plexobject.rbac.domain.Subject;
+import com.plexobject.rbac.repository.NotFoundException;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.SubjectRepository;
 import com.plexobject.rbac.utils.PasswordUtils;
@@ -19,13 +20,11 @@ public class SubjectRepositoryImpl extends BaseRepositoryImpl<Subject, String>
         if (subject == null) {
             throw new IllegalArgumentException("subject is not specified");
         }
-        if (super.findById(subject.getId()) == null) {
-            save(subject);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Created subject " + subject);
-            }
+        try {
+            return super.findById(subject.getId());
+        } catch (NotFoundException e) {
+            return save(subject);
         }
-        return subject;
     }
 
     @Override
@@ -50,8 +49,9 @@ public class SubjectRepositoryImpl extends BaseRepositoryImpl<Subject, String>
         if (PasswordUtils.getHash(credentials).equals(subject.getCredentials())) {
             return subject;
         }
-        
-        throw new SecurityException("Credentials mismatch for subject " + subjectName);
+
+        throw new SecurityException("Credentials mismatch for subject "
+                + subjectName);
 
     }
 }

@@ -13,20 +13,45 @@ import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.repository.RoleRepository;
-import com.plexobject.rbac.repository.SecurityRepository;
+import com.plexobject.rbac.repository.SecurityMappingRepository;
+import com.plexobject.rbac.utils.IDUtils;
 
-public class SecurityRepositoryImpl implements SecurityRepository {
+public class SecurityMappingRepositoryImpl implements SecurityMappingRepository {
     private static final Logger LOGGER = Logger
-            .getLogger(SecurityRepositoryImpl.class);
+            .getLogger(SecurityMappingRepositoryImpl.class);
     private final RepositoryFactory repositoryFactory;
+    private final String domain;
 
-    public SecurityRepositoryImpl(final RepositoryFactory repositoryFactory) {
+    public SecurityMappingRepositoryImpl(final String domain,
+            final RepositoryFactory repositoryFactory) {
+        if (GenericValidator.isBlankOrNull(domain)) {
+            throw new IllegalArgumentException("domain is not specified");
+        }
+        if (repositoryFactory == null) {
+            throw new IllegalArgumentException(
+                    "repositoryFactory is not specified");
+        }
+        this.domain = domain;
         this.repositoryFactory = repositoryFactory;
     }
 
     @Override
-    public Collection<Permission> addPermissionsToRole(final String domain,
-            final String rolename, final Collection<Integer> permissionIds) {
+    public Collection<Permission> addPermissionsToRole(Role role,
+            Collection<Permission> permissions) {
+        return addPermissionsToRole(role.getId(), IDUtils
+                .getIdsAsIntegers(permissions));
+    }
+
+    @Override
+    public Collection<Permission> addPermissionsToRole(Role role,
+            Permission... permissions) {
+        return addPermissionsToRole(role.getId(), IDUtils
+                .getIdsAsIntegers(Arrays.asList(permissions)));
+    }
+
+    @Override
+    public Collection<Permission> addPermissionsToRole(final String rolename,
+            final Collection<Integer> permissionIds) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
@@ -53,8 +78,20 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public Collection<Role> addRolesToSubject(final String domain,
-            final String subjectName, final Collection<String> rolenames) {
+    public Collection<Role> addRolesToSubject(Subject subject,
+            Collection<Role> roles) {
+        return addRolesToSubject(subject.getId(), IDUtils.getIdsAsString(roles));
+    }
+
+    @Override
+    public Collection<Role> addRolesToSubject(Subject subject, Role... roles) {
+        return addRolesToSubject(subject.getId(), IDUtils.getIdsAsString(Arrays
+                .asList(roles)));
+    }
+
+    @Override
+    public Collection<Role> addRolesToSubject(final String subjectName,
+            final Collection<String> rolenames) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
@@ -81,7 +118,21 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public Collection<Permission> removePermissionsToRole(final String domain,
+    public Collection<Permission> removePermissionsToRole(Role role,
+            Collection<Permission> permissions) {
+        return removePermissionsToRole(role.getId(), IDUtils
+                .getIdsAsIntegers(permissions));
+    }
+
+    @Override
+    public Collection<Permission> removePermissionsToRole(Role role,
+            Permission... permissions) {
+        return removePermissionsToRole(role.getId(), IDUtils
+                .getIdsAsIntegers(Arrays.asList(permissions)));
+    }
+
+    @Override
+    public Collection<Permission> removePermissionsToRole(
             final String rolename, final Collection<Integer> permissionIds) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
@@ -110,8 +161,21 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public Collection<Role> removeRolesToSubject(final String domain,
-            final String subjectName, final Collection<String> rolenames) {
+    public Collection<Role> removeRolesToSubject(Subject subject,
+            Collection<Role> roles) {
+        return removeRolesToSubject(subject.getId(), IDUtils
+                .getIdsAsString(roles));
+    }
+
+    @Override
+    public Collection<Role> removeRolesToSubject(Subject subject, Role... roles) {
+        return removeRolesToSubject(subject.getId(), IDUtils
+                .getIdsAsString(Arrays.asList(roles)));
+    }
+
+    @Override
+    public Collection<Role> removeRolesToSubject(final String subjectName,
+            final Collection<String> rolenames) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }
@@ -137,8 +201,8 @@ public class SecurityRepositoryImpl implements SecurityRepository {
     }
 
     @Override
-    public boolean isSubjectInRole(final String domain,
-            final String subjectName, final String rolename) {
+    public boolean isSubjectInRole(final String subjectName,
+            final String rolename) {
         if (GenericValidator.isBlankOrNull(domain)) {
             throw new IllegalArgumentException("domain is not specified");
         }

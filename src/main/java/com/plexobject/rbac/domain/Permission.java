@@ -29,7 +29,7 @@ import com.sleepycat.persist.model.SecondaryKey;
 @XmlRootElement
 public class Permission extends PersistentObject implements Validatable,
         Identifiable<Integer> {
-    
+
     @PrimaryKey(sequence = "permission_seq")
     private Integer id;
 
@@ -78,7 +78,7 @@ public class Permission extends PersistentObject implements Validatable,
      * @param action
      * @return
      */
-    public boolean impliesOperation(final String op, final String tgt) {
+    public boolean implies(final String op, final String tgt) {
         if (GenericValidator.isBlankOrNull(op)) {
             return false;
         }
@@ -208,6 +208,4 @@ public class Permission extends PersistentObject implements Validatable,
             throw new ValidationException(errorsByField);
         }
     }
-    
-    
 }

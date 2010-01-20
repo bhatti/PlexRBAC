@@ -20,6 +20,10 @@ import com.sun.jersey.spi.inject.Inject;
 @Component("permissionManager")
 public class PermissionManagerImpl implements InitializingBean,
         PermissionManager {
+    enum EvaluationResult {
+        NONE, SUCCEEDED, FAILED
+    }
+
     private static final Logger LOGGER = Logger
             .getLogger(PermissionManagerImpl.class);
     private static final boolean STORE_ERRORS_IN_DB = Configuration
@@ -68,21 +72,40 @@ public class PermissionManagerImpl implements InitializingBean,
         }
         Collection<Permission> all = repositoryFactory.getPermissionRepository(
                 request.getDomain()).getPermissionsForRoles(roles);
-        for (Permission permission : all) {
-            if (permission.impliesOperation(request.getOperation(), request
-                    .getTarget())) {
+        boolean granted = false;
+        EvaluationResult evaluationResult = null;
+        Permission failedPermission = null;
 
+        for (Permission permission : all) {
+            if (permission.implies(request.getOperation(), request.getTarget())) {
                 if (GenericValidator.isBlankOrNull(permission.getExpression())) {
-                    return;
+                    granted = true;
+                    evaluationResult = EvaluationResult.NONE;
+                    break;
                 } else {
                     if (evaluator.evaluate(permission.getExpression(), request
                             .getSubjectContext())) {
-                        return;
+                        granted = true;
+                        evaluationResult = EvaluationResult.SUCCEEDED;
+                        break;
+                    } else {
+                        evaluationResult = EvaluationResult.FAILED;
+                        failedPermission = permission;
                     }
                 }
             }
         }
+        if (granted) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(request.getSubjectName() + " granted access "
+                        + request.getOperation() + " for "
+                        + request.getTarget() + " using "
+                        + request.getSubjectContext() + ", permissions " + all);
+            }
+            return;
+        }
 
+        // access denied
         try {
             if (STORE_ERRORS_IN_DB) {
                 repositoryFactory.getSecurityErrorRepository(
@@ -99,9 +122,11 @@ public class PermissionManagerImpl implements InitializingBean,
         }
 
         throw new SecurityException(request.getSubjectName()
-                + " illegally accessing " + request.getOperation() + " for "
-                + request.getTarget() + " using " + request.getSubjectContext()
-                + ", permissions " + all);
+                + " illegally accessing '" + request.getOperation() + "' on '"
+                + request.getTarget() + "' evaluation result '"
+                + evaluationResult + "', context "
+                + request.getSubjectContext() + ", failed permission "
+                + failedPermission + ", all permissions " + all);
 
     }
 

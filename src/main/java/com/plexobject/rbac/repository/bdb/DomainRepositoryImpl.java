@@ -5,6 +5,7 @@ import org.apache.commons.validator.GenericValidator;
 import com.plexobject.rbac.domain.Domain;
 import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.repository.DomainRepository;
+import com.plexobject.rbac.repository.NotFoundException;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RepositoryFactory;
 import com.plexobject.rbac.utils.CurrentRequest;
@@ -103,11 +104,11 @@ public class DomainRepositoryImpl extends BaseRepositoryImpl<Domain, String>
         if (GenericValidator.isBlankOrNull(name)) {
             throw new IllegalArgumentException("domain name is not specified");
         }
-        Domain domain = super.findById(name);
-        if (domain == null) {
-            domain = save(new Domain(name, name));
+        try {
+            return super.findById(name);
+        } catch (NotFoundException e) {
+            return save(new Domain(name, name));
         }
-        return domain;
     }
 
     @Override

@@ -81,12 +81,12 @@ public class RolePermissionsServiceImpl implements RolePermissionsService,
             }
 
             Collection<Permission> perms = repositoryFactory
-                    .getSecurityRepository().addPermissionsToRole(domain, role,
-                            ids);
+                    .getSecurityMappingRepository(domain).addPermissionsToRole(
+                            role, ids);
             mbean.incrementRequests();
 
-            return Response.status(RestClient.OK_CREATED).entity(IDUtils.getIds(perms))
-                    .build();
+            return Response.status(RestClient.OK_CREATED).entity(
+                    IDUtils.getIdsAsString(perms)).build();
         } catch (Exception e) {
             LOGGER.error("failed to add permissions", e);
             mbean.incrementError();
@@ -127,12 +127,12 @@ public class RolePermissionsServiceImpl implements RolePermissionsService,
                 ids.add(Integer.valueOf(jsonIds.getString(i)));
             }
             Collection<Permission> perms = repositoryFactory
-                    .getSecurityRepository().removePermissionsToRole(domain,
-                            role, ids);
+                    .getSecurityMappingRepository(domain)
+                    .removePermissionsToRole(role, ids);
             mbean.incrementRequests();
 
             return Response.status(RestClient.OK_CREATED).entity(
-                    IDUtils.getIds(perms)).build();
+                    IDUtils.getIdsAsString(perms)).build();
         } catch (Exception e) {
             LOGGER.error("failed to remove permissions", e);
             mbean.incrementError();

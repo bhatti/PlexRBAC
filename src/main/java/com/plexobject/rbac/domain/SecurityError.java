@@ -1,5 +1,6 @@
 package com.plexobject.rbac.domain;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,14 +24,14 @@ public class SecurityError extends PersistentObject implements Validatable,
     private String operation;
     @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     private String target;
-    private Map<String, String> subjectContext;
+    private Map<String, String> subjectContext = new HashMap<String, String>();
 
     // for JPA
     SecurityError() {
     }
 
     public SecurityError(final String subjectName, final String operation,
-            final String target, final Map<String, String> subjectContext) {
+            final String target, final Map<String, Object> subjectContext) {
         setSubjectName(subjectName);
         setOperation(operation);
         setTarget(target);
@@ -47,14 +48,18 @@ public class SecurityError extends PersistentObject implements Validatable,
     }
 
     public Map<String, String> getSubjectContext() {
-        return subjectContext;
+        return Collections.unmodifiableMap(subjectContext);
     }
 
-    void setSubjectContext(final Map<String, String> subjectContext) {
+    void setSubjectContext(final Map<String, Object> subjectContext) {
         if (subjectContext == null) {
             throw new IllegalArgumentException("subject context not specified");
         }
-        this.subjectContext = subjectContext;
+        //
+        this.subjectContext.clear();
+        for (Map.Entry<String, Object> e : subjectContext.entrySet()) {
+            this.subjectContext.put(e.getKey(), e.getValue().toString());
+        }
     }
 
     void setSubjectName(String subjectName) {

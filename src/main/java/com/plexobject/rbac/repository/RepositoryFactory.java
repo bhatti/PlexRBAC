@@ -13,7 +13,7 @@ public interface RepositoryFactory {
      * 
      * @return instance of security repository
      */
-    SecurityRepository getSecurityRepository();
+    SecurityMappingRepository getSecurityMappingRepository(String domain);
 
     /**
      * 

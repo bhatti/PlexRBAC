@@ -158,8 +158,8 @@ public class DatabaseStore {
         if (store != null) {
             try {
                 store.close();
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("Closed database " + domain);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Closed database " + domain);
                 }
             } catch (IllegalStateException e) {
                 // already closed

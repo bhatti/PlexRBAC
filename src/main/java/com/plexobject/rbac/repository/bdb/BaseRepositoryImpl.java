@@ -90,7 +90,12 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         final Timing timer = Metric.newTiming(getClass().getName()
                 + ".findById");
         try {
-            return primaryIndex.get(id);
+            T t = primaryIndex.get(id);
+            if (t == null) {
+                throw new NotFoundException("Failed to find " + id + " in "
+                        + store.getStoreName());
+            }
+            return t;
         } catch (DatabaseException e) {
             throw new NotFoundException("Failed to find " + id + " in "
                     + store.getStoreName(), e);
@@ -126,13 +131,12 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
                 if (auditable.getCreatedBy() == null) {
                     auditable.setCreatedAt(new Date());
                     auditable.setCreatedBy(CurrentRequest.getSubjectName());
-                    auditable.setCreatedIPAddress(CurrentRequest
-                            .getIPAddress());
+                    auditable
+                            .setCreatedIPAddress(CurrentRequest.getIPAddress());
                 }
                 auditable.setUpdatedAt(new Date());
                 auditable.setUpdatedBy(CurrentRequest.getSubjectName());
-                auditable
-                        .setUpdatedIPAddress(CurrentRequest.getIPAddress());
+                auditable.setUpdatedIPAddress(CurrentRequest.getIPAddress());
             }
             T old = primaryIndex.put(object);
             if (LOGGER.isDebugEnabled()) {

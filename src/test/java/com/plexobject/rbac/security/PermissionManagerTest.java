@@ -1,9 +1,6 @@
 package com.plexobject.rbac.security;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -15,9 +12,14 @@ import com.plexobject.rbac.domain.Permission;
 import com.plexobject.rbac.domain.Role;
 import com.plexobject.rbac.domain.Subject;
 import com.plexobject.rbac.eval.js.JavascriptEvaluator;
+import com.plexobject.rbac.repository.PermissionRepository;
 import com.plexobject.rbac.repository.RepositoryFactory;
+import com.plexobject.rbac.repository.RoleRepository;
+import com.plexobject.rbac.repository.SecurityMappingRepository;
+import com.plexobject.rbac.repository.SubjectRepository;
 import com.plexobject.rbac.repository.bdb.RepositoryFactoryImpl;
 import com.plexobject.rbac.utils.CurrentRequest;
+import com.plexobject.rbac.utils.IDUtils;
 
 public class PermissionManagerTest {
     private static final String USER_NAME = "shahbhat";
@@ -27,6 +29,83 @@ public class PermissionManagerTest {
     private static final String TEST_DB_DIR = "test_db_dir_perms";
     private RepositoryFactory repositoryFactory;
     private PermissionManager permissionManager;
+
+    static class User {
+        private String id;
+        private String region;
+
+        User() {
+        }
+
+        public User(String id, String region) {
+            this.id = id;
+            this.region = region;
+        }
+
+        public void setRegion(String region) {
+            this.region = region;
+        }
+
+        public String getRegion() {
+            return region;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getId() {
+            return id;
+        }
+    }
+
+    static class Customer extends User {
+        public Customer(String id, String region) {
+            super(id, region);
+        }
+    }
+
+    static class Employee extends User {
+        public Employee(String id, String region) {
+            super(id, region);
+        }
+    }
+
+    static class Account {
+        private String id;
+        private double balance;
+
+        Account() {
+        }
+
+        public Account(String id, double balance) {
+            this.id = id;
+            this.balance = balance;
+        }
+
+        /**
+         * @return the id
+         */
+        public String getId() {
+            return id;
+        }
+
+        /**
+         * @param id
+         *            the id to set
+         */
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public void setBalance(double balance) {
+            this.balance = balance;
+        }
+
+        public double getBalance() {
+            return balance;
+        }
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -43,7 +122,9 @@ public class PermissionManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        ((RepositoryFactoryImpl) repositoryFactory).close(APP_NAME);
+        if (repositoryFactory != null) {
+            ((RepositoryFactoryImpl) repositoryFactory).close(APP_NAME);
+        }
         FileUtils.deleteDirectory(new File(TEST_DB_DIR));
         CurrentRequest.endRequest();
     }
@@ -51,96 +132,102 @@ public class PermissionManagerTest {
     @Test
     public void testCheck() {
         permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
-                "read", "database", toMap("amount", "100", "dept", "sales")));
+                "read", "database", IDUtils.toMap("amount", "100", "dept",
+                        "sales")));
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadOperation() {
         permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
-                "xread", "database", toMap("amount", "100", "dept", "sales")));
+                "xread", "database", IDUtils.toMap("amount", "100", "dept",
+                        "sales")));
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadDept() {
         permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
-                "write", "database", toMap("amount", "100", "dept", "xsales")));
+                "write", "database", IDUtils.toMap("amount", "100", "dept",
+                        "xsales")));
     }
 
     @Test(expected = SecurityException.class)
     public void testCheckBadAmount() {
         permissionManager.check(new PermissionRequest(APP_NAME, USER_NAME,
-                "write", "database", toMap("amount", "1000", "dept", "sales")));
+                "write", "database", IDUtils.toMap("amount", "1000", "dept",
+                        "sales")));
     }
 
     @Test
     public void testReadDepositByTeller() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "tom", "read",
-                "DepositAccount", toMap()));
+                "DepositAccount", IDUtils.toMap("employee", new Employee("tom",
+                        "west"), "customer", new Customer("zak", "west"))));
     }
 
     @Test(expected = SecurityException.class)
     public void testDeleteByTeller() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "tom", "delete",
-                "DepositAccount", toMap()));
+                "DepositAccount", IDUtils.toMap("employee", new Employee("tom",
+                        "west"), "customer", new Customer("zak", "west"))));
     }
 
     @Test
     public void testDeleteByCsr() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "cassy",
-                "delete", "DepositAccount", toMap()));
+                "delete", "DepositAccount", IDUtils.toMap("employee",
+                        new Employee("cassy", "west"), "customer",
+                        new Customer("zak", "west"))));
     }
 
     @Test
     public void testReadLedgerByAccountant() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "ali", "read",
-                "GeneralLedger", toMap()));
+                "GeneralLedger", IDUtils.toMap("year", 2009, "account",
+                        new Account("zak", 500))));
     }
 
     @Test
     public void testReadLedgerByAccountantManager() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "mike", "read",
-                "GeneralLedger", toMap()));
+                "GeneralLedger", IDUtils.toMap("year", 2009, "account",
+                        new Account("zak", 500))));
     }
 
     @Test(expected = SecurityException.class)
-    public void testCreateLedgerByAccountant() {
+    public void testDeleteLedgerByAccountant() {
         initDatabase();
-        permissionManager.check(new PermissionRequest(BANKING, "ali", "create",
-                "GeneralLedger", toMap()));
+        permissionManager.check(new PermissionRequest(BANKING, "ali", "delete",
+                "GeneralLedger", IDUtils.toMap("year", 2009, "account",
+                        new Account("zak", 500))));
     }
 
     @Test
     public void testCreateLedgerByAccountantManager() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "mike",
-                "create", "GeneralLedger", toMap()));
+                "create", "GeneralLedger", IDUtils.toMap("year", 2009,
+                        "account", new Account("zak", 500))));
     }
 
     @Test(expected = SecurityException.class)
     public void testPostLedgingRulesByAccountantManager() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "mike",
-                "create", "GeneralLedgerPostingRules", toMap()));
+                "create", "GeneralLedgerPostingRules", IDUtils.toMap("year",
+                        2009, "account", new Account("zak", 500))));
     }
 
     @Test
     public void testPostLedgingRulesByLoanManager() {
         initDatabase();
         permissionManager.check(new PermissionRequest(BANKING, "larry",
-                "create", "GeneralLedgerPostingRules", toMap()));
-    }
-
-    private static Map<String, String> toMap(final String... keyValues) {
-        Map<String, String> map = new HashMap<String, String>();
-        for (int i = 0; i < keyValues.length - 1; i += 2) {
-            map.put(keyValues[i], keyValues[i + 1]);
-        }
-        return map;
+                "create", "GeneralLedgerPostingRules", IDUtils.toMap("year",
+                        2009, "account", new Account("zak", 500))));
     }
 
     private void initDatabase() {
@@ -148,123 +235,112 @@ public class PermissionManagerTest {
         repositoryFactory.getDomainRepository().save(new Domain(BANKING, ""));
 
         // creating users
-        Subject tom = repositoryFactory.getSubjectRepository(BANKING).save(
-                new Subject("tom", "pass"));
-        Subject cassy = repositoryFactory.getSubjectRepository(BANKING).save(
-                new Subject("cassy", "pass"));
-        Subject ali = repositoryFactory.getSubjectRepository(BANKING).save(
-                new Subject("ali", "pass"));
-        Subject mike = repositoryFactory.getSubjectRepository(BANKING).save(
-                new Subject("mike", "pass"));
-        Subject larry = repositoryFactory.getSubjectRepository(BANKING).save(
-                new Subject("larry", "pass"));
+        final SubjectRepository subjectRepo = repositoryFactory
+                .getSubjectRepository(BANKING);
+        Subject tom = subjectRepo.save(new Subject("tom", "pass"));
+        Subject cassy = subjectRepo.save(new Subject("cassy", "pass"));
+        Subject ali = subjectRepo.save(new Subject("ali", "pass"));
+        Subject mike = subjectRepo.save(new Subject("mike", "pass"));
+        Subject larry = subjectRepo.save(new Subject("larry", "pass"));
 
-        Role employee = new Role("Employee");
-        repositoryFactory.getRoleRepository(BANKING).save(employee);
-
-        Role teller = new Role("Teller", employee);
-        repositoryFactory.getRoleRepository(BANKING).save(teller);
-        Role csr = new Role("CSR", teller);
-        repositoryFactory.getRoleRepository(BANKING).save(csr);
-        Role accountant = new Role("Accountant", employee);
-        repositoryFactory.getRoleRepository(BANKING).save(accountant);
-        Role accountantMgr = new Role("AccountingManager", accountant);
-        repositoryFactory.getRoleRepository(BANKING).save(accountantMgr);
-        Role loanOfficer = new Role("LoanOfficer", accountantMgr);
-        repositoryFactory.getRoleRepository(BANKING).save(loanOfficer);
+        //
+        final RoleRepository roleRepo = repositoryFactory
+                .getRoleRepository(BANKING);
+        Role employee = roleRepo.save(new Role("Employee"));
+        Role teller = roleRepo.save(new Role("Teller", employee));
+        Role csr = roleRepo.save(new Role("CSR", teller));
+        Role accountant = roleRepo.save(new Role("Accountant", employee));
+        Role accountantMgr = roleRepo.save(new Role("AccountingManager",
+                accountant));
+        Role loanOfficer = roleRepo
+                .save(new Role("LoanOfficer", accountantMgr));
 
         // creating permissions
-        Permission cdDeposit = new Permission("(create|delete)",
-                "DepositAccount", ""); // 1
-        repositoryFactory.getPermissionRepository(BANKING).save(cdDeposit);
-        Permission ruDeposit = new Permission("(read|modify)",
-                "DepositAccount", ""); // 2
-        repositoryFactory.getPermissionRepository(BANKING).save(ruDeposit);
+        final PermissionRepository permRepo = repositoryFactory
+                .getPermissionRepository(BANKING);
+        Permission cdDeposit = permRepo.save(new Permission("(create|delete)",
+                "DepositAccount",
+                "employee.getRegion().equals(customer.getRegion())")); // 1
+        Permission ruDeposit = permRepo.save(new Permission("(read|modify)",
+                "DepositAccount",
+                "employee.getRegion().equals(customer.getRegion())")); // 2
+        Permission cdLoan = permRepo.save(new Permission("(create|delete)",
+                "LoanAccount", "account.getBalance() < 10000")); // 3
+        Permission ruLoan = permRepo.save(new Permission("(read|modify)",
+                "LoanAccount", "account.getBalance() < 10000")); // 4
 
-        Permission cdLoan = new Permission("(create|delete)", "LoanAccount", ""); // 3
-        repositoryFactory.getPermissionRepository(BANKING).save(cdLoan);
-        Permission ruLoan = new Permission("(read|modify)", "LoanAccount", ""); // 4
-        repositoryFactory.getPermissionRepository(BANKING).save(ruLoan);
+        Permission rdLedger = permRepo.save(new Permission("(read|create)",
+                "GeneralLedger", "year <= new Date().getFullYear()")); // 5
 
-        Permission rdLedger = new Permission("(read|create)", "GeneralLedger",
-                ""); // 5
-        repositoryFactory.getPermissionRepository(BANKING).save(rdLedger);
+        Permission rGlpr = permRepo
+                .save(new Permission("read", "GeneralLedgerPostingRules",
+                        "year <= new Date().getFullYear()")); // 6
 
-        Permission glpr = new Permission("(read|create|modify|delete)",
-                "GeneralLedgerPostingRules", ""); // 6
-        repositoryFactory.getPermissionRepository(BANKING).save(glpr);
+        Permission cmdGlpr = permRepo.save(new Permission(
+                "(create|modify|delete)", "GeneralLedgerPostingRules",
+                "year <= new Date().getFullYear()")); // 7
 
         // Mapping Permissions to Roles
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(BANKING,
-                teller.getId(), Arrays.asList(ruDeposit.getId()));
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(BANKING,
-                csr.getId(), Arrays.asList(cdDeposit.getId()));
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(BANKING,
-                csr.getId(), Arrays.asList(cdDeposit.getId()));
+        final SecurityMappingRepository smr = repositoryFactory
+                .getSecurityMappingRepository(BANKING);
+        smr.addPermissionsToRole(teller, ruDeposit);
+        smr.addPermissionsToRole(csr, cdDeposit);
+        smr.addPermissionsToRole(accountant, rdLedger);
+        smr.addPermissionsToRole(accountant, ruLoan);
+        smr.addPermissionsToRole(accountantMgr, cdLoan);
 
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(BANKING,
-                accountantMgr.getId(), Arrays.asList(glpr.getId()));
+        smr.addPermissionsToRole(accountantMgr, rGlpr);
+
+        smr.addPermissionsToRole(loanOfficer, cmdGlpr);
 
         // Mapping Users to Roles
-        repositoryFactory.getSecurityRepository().addRolesToSubject(BANKING,
-                tom.getId(), Arrays.asList(teller.getId()));
-        repositoryFactory.getSecurityRepository().addRolesToSubject(BANKING,
-                cassy.getId(), Arrays.asList(csr.getId()));
-        repositoryFactory.getSecurityRepository().addRolesToSubject(BANKING,
-                ali.getId(), Arrays.asList(accountant.getId()));
-        repositoryFactory.getSecurityRepository().addRolesToSubject(BANKING,
-                mike.getId(), Arrays.asList(accountantMgr.getId()));
-        repositoryFactory.getSecurityRepository().addRolesToSubject(BANKING,
-                larry.getId(), Arrays.asList(loanOfficer.getId()));
+        smr.addRolesToSubject(tom, teller);
+        smr.addRolesToSubject(cassy, csr);
+        smr.addRolesToSubject(ali, accountant);
+        smr.addRolesToSubject(mike, accountantMgr);
+        smr.addRolesToSubject(larry, loanOfficer);
     }
 
     private void addPermissions() {
-
         //
+        final SubjectRepository subjectRepo = repositoryFactory
+                .getSubjectRepository(APP_NAME);
         Subject shahbhat = new Subject(USER_NAME, "credentials");
-        repositoryFactory.getSubjectRepository(APP_NAME).save(shahbhat);
+        subjectRepo.save(shahbhat);
 
         Subject bhatsha = new Subject("bhatsha", "credentials");
-        repositoryFactory.getSubjectRepository(APP_NAME).save(bhatsha);
+        subjectRepo.save(bhatsha);
 
         repositoryFactory.getDomainRepository().save(new Domain(APP_NAME, ""));
 
         //
-        Role normal = new Role("normal");
-        repositoryFactory.getRoleRepository(APP_NAME).save(normal);
-
-        Role admin = new Role("admin", normal);
-        repositoryFactory.getRoleRepository(APP_NAME).save(admin);
-
-        Permission read = new Permission("read", "database", null);
-        repositoryFactory.getPermissionRepository(APP_NAME).save(read);
-
-        Permission wild = new Permission("*", "*", "");
-        repositoryFactory.getPermissionRepository(APP_NAME).save(wild);
-
-        Permission crud = new Permission("(read|write|update|delete)",
-                "database", "amount <= 500 && dept == 'sales'");
-        repositoryFactory.getPermissionRepository(APP_NAME).save(crud);
-
-        Permission print = new Permission("print", "database",
-                "company == 'plexobjects'");
-        repositoryFactory.getPermissionRepository(APP_NAME).save(print);
+        final RoleRepository roleRepo = repositoryFactory
+                .getRoleRepository(APP_NAME);
+        Role normal = roleRepo.save(new Role("normal"));
+        Role admin = roleRepo.save(new Role("admin", normal));
 
         //
-        repositoryFactory.getSecurityRepository().addRolesToSubject(APP_NAME,
-                shahbhat.getId(), Arrays.asList("normal"));
+        final PermissionRepository permRepo = repositoryFactory
+                .getPermissionRepository(APP_NAME);
+        Permission read = permRepo
+                .save(new Permission("read", "database", null));
 
-        repositoryFactory.getSecurityRepository().addRolesToSubject(APP_NAME,
-                bhatsha.getId(), Arrays.asList("admin"));
+        Permission wild = permRepo.save(new Permission("*", "*", ""));
 
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(
-                APP_NAME, Role.ANONYMOUS.getId(), Arrays.asList(read.getId()));
+        Permission crud = permRepo.save(new Permission(
+                "(read|write|update|delete)", "database",
+                "amount <= 500 && dept == 'sales'"));
 
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(
-                APP_NAME, normal.getId(),
-                Arrays.asList(print.getId(), crud.getId()));
+        Permission print = permRepo.save(new Permission("print", "database",
+                "company == 'plexobjects'"));
 
-        repositoryFactory.getSecurityRepository().addPermissionsToRole(
-                APP_NAME, admin.getId(), Arrays.asList(wild.getId()));
+        //
+        final SecurityMappingRepository smr = repositoryFactory
+                .getSecurityMappingRepository(APP_NAME);
+        smr.addRolesToSubject(shahbhat, normal);
+        smr.addRolesToSubject(bhatsha, admin);
+        smr.addPermissionsToRole(Role.ANONYMOUS, read);
+        smr.addPermissionsToRole(normal, print, crud);
+        smr.addPermissionsToRole(admin, wild);
     }
 }

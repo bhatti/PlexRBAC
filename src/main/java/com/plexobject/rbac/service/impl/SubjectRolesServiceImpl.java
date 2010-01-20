@@ -78,12 +78,13 @@ public class SubjectRolesServiceImpl implements SubjectRolesService,
             for (int i = 0; i < jsonIds.length(); i++) {
                 ids.add(jsonIds.getString(i));
             }
-            Collection<Role> roles = repositoryFactory.getSecurityRepository()
-                    .addRolesToSubject(domain, subject, ids);
+            Collection<Role> roles = repositoryFactory
+                    .getSecurityMappingRepository(domain).addRolesToSubject(
+                            subject, ids);
             mbean.incrementRequests();
 
-            return Response.status(RestClient.OK_CREATED).entity(IDUtils.getIds(roles))
-                    .build();
+            return Response.status(RestClient.OK_CREATED).entity(
+                    IDUtils.getIdsAsString(roles)).build();
         } catch (Exception e) {
             LOGGER.error("failed to add roles", e);
             mbean.incrementError();
@@ -122,12 +123,13 @@ public class SubjectRolesServiceImpl implements SubjectRolesService,
             for (int i = 0; i < jsonIds.length(); i++) {
                 ids.add(jsonIds.getString(i));
             }
-            Collection<Role> roles = repositoryFactory.getSecurityRepository()
-                    .removeRolesToSubject(domain, subject, ids);
+            Collection<Role> roles = repositoryFactory
+                    .getSecurityMappingRepository(domain).removeRolesToSubject(
+                            subject, ids);
             mbean.incrementRequests();
 
-            return Response.status(RestClient.OK_CREATED).entity(IDUtils.getIds(roles))
-                    .build();
+            return Response.status(RestClient.OK_CREATED).entity(
+                    IDUtils.getIdsAsString(roles)).build();
         } catch (Exception e) {
             LOGGER.error("failed to remove roles", e);
             mbean.incrementError();

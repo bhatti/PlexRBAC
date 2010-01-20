@@ -12,11 +12,11 @@ public class PermissionRequest {
     private final String subjectName;
     private final String operation;
     private final String target;
-    private final Map<String, String> subjectContext = new TreeMap<String, String>();
+    private final Map<String, Object> subjectContext = new TreeMap<String, Object>();
 
     public PermissionRequest(final String domain, final String subjectName,
             final String operation, final String target,
-            final Map<String, String> subjectContext) {
+            final Map<String, Object> subjectContext) {
         this.domain = domain;
         this.subjectName = subjectName;
         this.operation = operation;
@@ -54,7 +54,7 @@ public class PermissionRequest {
     /**
      * @return the subjectContext
      */
-    public Map<String, String> getSubjectContext() {
+    public Map<String, Object> getSubjectContext() {
         return subjectContext;
     }
 
