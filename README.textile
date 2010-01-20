@@ -870,6 +870,8 @@ which is denied:
 
 </pre>
 
+h2. Contribute or Trying
+Let me know if you are interesteed in contributing this project or trying out in your application. 
 
 
 
@@ -887,9 +889,7 @@ which is denied:
 
 
 
-
-
-h2. References
+References
 http://csrc.nist.gov/groups/SNS/rbac/documents/design_implementation/Intro_role_based_access.htm
 http://hissa.nist.gov/rbac/poole/ir5820/ir5820s31.htm
 http://www.developer.com/article.php/10915_3841046_3/Real-World-REST-Using-Jersey-AJAX-and-JSON.htm
