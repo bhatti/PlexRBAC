@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.plexobject.rbac.repository.BaseRepository;
+import com.plexobject.rbac.repository.NotFoundException;
 import com.plexobject.rbac.repository.PagedList;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.domain.PersistentObject;
@@ -91,7 +92,7 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             return primaryIndex.get(id);
         } catch (DatabaseException e) {
-            throw new PersistenceException("Failed to find " + id + " in "
+            throw new NotFoundException("Failed to find " + id + " in "
                     + store.getStoreName(), e);
         } finally {
             timer.stop();
@@ -104,7 +105,7 @@ public class BaseRepositoryImpl<T extends Identifiable<ID>, ID> implements
         try {
             return primaryIndex.delete(id);
         } catch (DatabaseException e) {
-            throw new PersistenceException("Failed to remove " + id + " in "
+            throw new NotFoundException("Failed to remove " + id + " in "
                     + store.getStoreName(), e);
         } finally {
             timer.stop();

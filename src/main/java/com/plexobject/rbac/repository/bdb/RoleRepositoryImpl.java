@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.commons.validator.GenericValidator;
 
+import com.plexobject.rbac.repository.NotFoundException;
 import com.plexobject.rbac.repository.PersistenceException;
 import com.plexobject.rbac.repository.RoleRepository;
 import com.plexobject.rbac.domain.Role;
@@ -45,15 +46,16 @@ public class RoleRepositoryImpl extends BaseRepositoryImpl<Role, String>
         if (GenericValidator.isBlankOrNull(rolename)) {
             throw new IllegalArgumentException("rolename is not specified");
         }
-        Role role = super.findById(rolename);
-        if (role == null) {
-            role = new Role(rolename);
+        try {
+            return super.findById(rolename);
+        } catch (NotFoundException e) {
+            Role role = new Role(rolename);
             save(role);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Created role " + role);
             }
+            return role;
         }
-        return role;
     }
 
     @Override

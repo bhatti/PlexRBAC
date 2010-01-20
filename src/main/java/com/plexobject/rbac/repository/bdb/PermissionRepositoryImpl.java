@@ -64,7 +64,9 @@ public class PermissionRepositoryImpl extends
             if (role.hasParentIds()) {
                 for (String parentId : role.getParentIds()) {
                     Role parent = roleRepository.findById(parentId);
-                    loadPermissionsForRole(parent, permissions);
+                    if (!role.equals(parent)) {
+                        loadPermissionsForRole(parent, permissions);
+                    }
                 }
             }
         } finally {
