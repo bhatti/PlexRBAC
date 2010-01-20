@@ -12,12 +12,464 @@ A permission consists of two sub parts: operation and target, where operation is
 Following diagram shows the relationship between these components:
 <img src="http://www.gliffy.com/pubdoc/1951045/M.jpg">
 
-== Getting Started ==
+== System Layers == 
+
+PlexRBAC consists of following layers
+=== Business Domain Layer ===
+
+This layer defines core classes that are part of the RBAC based security domain such as:
+
+    * Domain – As described previously, the domain allows you to support multiple applications or realms.
+    * Subject – The subject represents users who are defined in an application.
+    * Role – A role represents job title or function.
+    * Permission – A permission is composed of operation, target and an expression that is used for dynamic or instance based security.
+    * SecurityError – Upon a permission failure, you can choose to store them in the database using SecurityError. 
+
+=== Repository Layer ===
+
+This layer is responsible for accessing or storing above objects in the database. PlexRBAC uses Berkley DB for persistence and each domain is stored as a separate database, which allows you to segregate permissions and roles for distinct domains. Following are list of repositories supported by PlexRBAC:
+
+    * DomainRepository – provides database access for Domains.
+    * PermissionRepository – provides database access for Permissions.
+    * SubjectRepository – provides database access for Subjects.
+    * SecurityErrorRepository – provides database access for SecurityErrors.
+    * RoleRepository – provides database access for Roles.
+    * SecurityMappingRepository – provides APIs to map permissions with roles and to map subject with roles.
+    * RepositoryFactory – provides factory methods to create above repositories. 
+
+=== Security Layer ===
+
+This class defines PermissionManager for authorizing permissions.
+=== Evaluation Layer ===
+
+This layer proivdes evaluation engine for instance based security.
+=== Service Layer ===
+
+This layer defines REST services such as:
+
+    * DomainService – this service provides REST APIs for accessing Domains.
+    * PermissionService – this service provides REST APIs for accessing Permissions.
+    * SubjectService – this service provides REST APIs for accessing Subjects.
+    * RoleService – this service provides REST APIs for accessing Roles.
+    * AuthenticationService – this service provides REST APIs for authenticating users.
+    * AuthorizationService – this service provides REST APIs for authorizing permissions.
+    * RolePermissionService – this service provides REST APIs for mapping permissions with roles.
+    * SubjectRolesService – this service provides REST APIs for mapping subjects with roles. 
+
+=== JMX Layer ===
+
+This layer defines JMX helper classes for managing services and configuration remotely.
+=== Caching Layer ===
+
+This layer provides caching security permissions to improve performance.
+=== Metrics Layer ===
+
+This layer provides performance measurement classes such as Timing class to measure method invocation benchmarks.
+=== Utility Layer ===
+
+This layer provides helper classes.
+=== Web Layer ===
+
+This layer provides filters for enforcing authentication and authorization when accessing REST APIs.
+== Java Example == 
+Let's start with a banking example where a bank-object can be account, general-ledger-report or ledger-posting-rules and account is further grouped into customer account or loan account. Further, Let’s assume there are five roles: Teller, Customer-Service-Representative (CSR), Account, AccountingManager and LoanOfficer, where 
+    * A teller can modify customer deposit accounts — but only if customer and teller live in same region
+    * A customer service representative can create or delete customer deposit accounts — but only if customer and teller live in same region
+    * An accountant can create general ledger reports — but only if year is == current year
+    * An accounting manager can modify ledger-posting rules — but only if year is == current year
+    * A loan officer can create and modify loan accounts – but only if account balance is < 10000 
+
+In addition, following classes will be used to add domain specific security:
+{{{
+  1
+  2 class User {
+
+  3
+  4     private String id;
+  5     private String region;
+  6 
+
+  7     User() {
+  8     }
+  9
+ 10     public User(String id, String region) {
+ 11         this.id = id;
+
+ 12         this.region = region;
+ 13     }
+ 14
+ 15     public void setRegion(String region) {
+ 16         this.region = region;
+
+ 17     }
+ 18
+ 19     public String getRegion() {
+ 20         return region;
+ 21     }
+
+ 22
+ 23     public void setId(String id) {
+ 24         this.id = id;
+ 25     }
+ 26 
+
+ 27     public String getId() {
+ 28         return id;
+ 29     }
+ 30 }
+ 31 
+
+ 32 class Customer extends User {
+ 33
+ 34     public Customer(String id, String region) {
+ 35         super(id, region);
+
+ 36     }
+ 37 }
+ 38
+ 39 class Employee extends User {
+ 40 
+
+ 41     public Employee(String id, String region) {
+ 42         super(id, region);
+ 43     }
+ 44 }
+ 45 
+
+ 46 class Account {
+ 47
+ 48     private String id;
+ 49     private double balance;
+
+ 50
+ 51     Account() {
+ 52     }
+ 53
+ 54     public Account(String id, double balance) {
+
+ 55         this.id = id;
+ 56         this.balance = balance;
+ 57     }
+ 58
+ 59     /**
+
+ 60      * @return the id
+ 61      */
+ 62     public String getId() {
+
+ 63         return id;
+ 64     }
+ 65
+ 66     /**
+ 67      * @param id
+
+ 68      *            the id to set
+ 69      */
+ 70     public void setId(String id) {
+
+ 71         this.id = id;
+ 72     }
+ 73
+ 74     public void setBalance(double balance) {
+
+ 75         this.balance = balance;
+ 76     }
+ 77
+ 78     public double getBalance() {
+ 79         return balance;
+
+ 80     }
+ 81 }
+ 82
+ 83
+}}}
+ 
+
+=== Bootstrapping ===
+
+Let’s create handle to repository-factory as:
+{{{
+ 1
+ 2     private static final String TEST_DB_DIR = "test_db_dir_perms";
+
+ 3     RepositoryFactory repositoryFactory = new RepositoryFactoryImpl(TEST_DB_DIR);
+}}} 
+
+And instance of permission manager as:
+{{{
+ 1 PermissionManager permissionManager = new PermissionManagerImpl(repositoryFactory,
+
+ 2             new JavascriptEvaluator());
+}}} 
+
+=== Creating a domain ===
+
+Now, let’s create a domain for banking:
+{{{
+ 1     private static final String BANKING = "banking";
+
+ 2     repositoryFactory.getDomainRepository().save(new Domain(BANKING, ""));
+}}} 
+
+=== Creating Users ===
+
+Next step is to create users for the domain or application so let’s define accounts for tom, cassy, ali, mike and larry, i.e.,
+{{{
+ 1         final SubjectRepository subjectRepo = repositoryFactory
+
+ 2                 .getSubjectRepository(BANKING);
+ 3         Subject tom = subjectRepo.save(new Subject("tom", "pass"));
+ 4         Subject cassy = subjectRepo.save(new Subject("cassy", "pass"));
+
+ 5         Subject ali = subjectRepo.save(new Subject("ali", "pass"));
+ 6         Subject mike = subjectRepo.save(new Subject("mike", "pass"));
+
+ 7         Subject larry = subjectRepo.save(new Subject("larry", "pass"));
+}}} 
+
+=== Creating Roles ===
+
+Now, we will create roles for Teller, CSR, Accountant, AccountManager and LoanManager:
+{{{
+  1         final RoleRepository roleRepo = repositoryFactory
+
+  2                 .getRoleRepository(BANKING);
+  3         Role employee = roleRepo.save(new Role("Employee"));
+  4         Role teller = roleRepo.save(new Role("Teller", employee));
+
+  5         Role csr = roleRepo.save(new Role("CSR", teller));
+  6         Role accountant = roleRepo.save(new Role("Accountant", employee));
+
+  7         Role accountantMgr = roleRepo.save(new Role("AccountingManager",
+  8                 accountant));
+  9         Role loanOfficer = roleRepo
+
+ 10                 .save(new Role("LoanOfficer", accountantMgr));
+}}} 
+
+=== Creating Permissions ===
+
+We can then create new permissions and save them in the database as follows:
+{{{
+  1         final PermissionRepository permRepo = repositoryFactory
+
+  2                 .getPermissionRepository(BANKING);
+  3         Permission cdDeposit = permRepo.save(new Permission("(create|delete)",
+  4                 "DepositAccount",
+
+  5                 "employee.getRegion().equals(customer.getRegion())")); // 1
+  6         Permission ruDeposit = permRepo.save(new Permission("(read|modify)",
+  7                 "DepositAccount",
+
+  8                 "employee.getRegion().equals(customer.getRegion())")); // 2
+  9         Permission cdLoan = permRepo.save(new Permission("(create|delete)",
+ 10                 "LoanAccount", "account.getBalance() < 10000")); // 3
+
+ 11         Permission ruLoan = permRepo.save(new Permission("(read|modify)",
+ 12                 "LoanAccount", "account.getBalance() < 10000")); // 4
+
+ 13
+ 14         Permission rdLedger = permRepo.save(new Permission("(read|create)",
+ 15                 "GeneralLedger", "year == new Date().getFullYear()")); // 5
+
+ 16
+ 17         Permission rGlpr = permRepo
+ 18                 .save(new Permission("read", "GeneralLedgerPostingRules",
+ 19                         "year == new Date().getFullYear()")); // 6
+
+ 20
+ 21         Permission cmdGlpr = permRepo.save(new Permission(
+ 22                 "(create|modify|delete)", "GeneralLedgerPostingRules",
+ 23                 "year == new Date().getFullYear()")); // 7
+}}} 
+
+=== Mapping Subjects/Permissions to Roles ===
+
+Now we will map subjects to roles as follows:
+{{{
+ 1         final SecurityMappingRepository smr = repositoryFactory
+
+ 2                 .getSecurityMappingRepository(BANKING);
+ 3
+ 4         // Mapping Users to Roles
+ 5         smr.addRolesToSubject(tom, teller);
+ 6         smr.addRolesToSubject(cassy, csr);
+ 7         smr.addRolesToSubject(ali, accountant);
+
+ 8         smr.addRolesToSubject(mike, accountantMgr);
+ 9         smr.addRolesToSubject(larry, loanOfficer);
+}}} 
+
+Then we will map permissions to roles as follows:
+{{{
+ 1         smr.addPermissionsToRole(teller, ruDeposit);
+ 2         smr.addPermissionsToRole(csr, cdDeposit);
+
+ 3         smr.addPermissionsToRole(accountant, rdLedger);
+ 4         smr.addPermissionsToRole(accountant, ruLoan);
+ 5         smr.addPermissionsToRole(accountantMgr, cdLoan);
+ 6         smr.addPermissionsToRole(accountantMgr, rGlpr);
+ 7         smr.addPermissionsToRole(loanOfficer, cmdGlpr);
+}}}
+
+=== Authorization ===
+
+Now the fun part of authorization, let’s check if user “tom” can view deposit-accounts, e.g.
+{{{
+  1    public static Map<String, Object> toMap(final Object... keyValues) {
+
+  2         Map<String, Object> map = new HashMap<String, Object>();
+  3         for (int i = 0; i < keyValues.length - 1; i += 2) {
+
+  4             map.put(keyValues[i].toString(), keyValues[i + 1]);
+  5         }
+  6         return map;
+  7     }
+
+  8     @Test
+  9     public void testReadDepositByTeller() {
+ 10         initDatabase();
+ 11         permissionManager.check(new PermissionRequest(BANKING, "tom", "read",
+
+ 12                 "DepositAccount", toMap("employee", new Employee("tom",
+ 13                         "west"), "customer", new Customer("zak", "west"))));
+
+ 14     }
+ 15
+ 16
+}}} 
+
+Note that above test method builds a PermissionRequest that encapsulates domain, subject, operation, target and context and then calls check method of SecurityManager, which throws SecurityException if permission fails.
+
+Then we check if tom, the teller can delete deposit-account, e.g.
+{{{
+ 1     @Test(expected = SecurityException.class)
+
+ 2     public void testDeleteByTeller() {
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "tom", "delete",
+
+ 5                 "DepositAccount", toMap("employee", new Employee("tom",
+ 6                         "west"), "customer", new Customer("zak", "west"))));
+
+ 7     }
+}}} 
+
+Which would throw security exception.
+
+Now let’s check if cassy, the CSR can delete deposit-account, e.g.
+{{{
+ 1     @Test
+ 2     public void testDeleteByCsr() {
+
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "cassy",
+ 5                 "delete", "DepositAccount", toMap("employee",
+
+ 6                         new Employee("cassy", "west"), "customer",
+ 7                         new Customer("zak", "west"))));
+}}} 
+
+Which works as CSR have permissions for deleting deposit-account. Now, let’s check if ali, the accountant can view general-ledger, e.g.
+{{{
+ 1    @Test
+ 2     public void testReadLedgerByAccountant() {
+
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "ali", "read",
+ 5                 "GeneralLedger", toMap("year", 2010, "account",
+
+ 6                         new Account("zak", 500))));
+ 7     }
+}}} 
+
+Which works as expected. Next we check if ali can delete general-ledger:
+{{{
+ 1     @Test(expected = SecurityException.class)
+
+ 2     public void testDeleteLedgerByAccountant() {
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "ali", "delete",
+
+ 5                 "GeneralLedger", toMap("year", 2010, "account",
+ 6                         new Account("zak", 500))));
+ 7     }
+
+}}} 
+
+Which would fail as only account-manager can delete. Next we check if mike, the account-manager can create general-ledger, e.g.
+{{{
+ 1     @Test
+ 2     public void testCreateLedgerByAccountantManager() {
+
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "mike",
+ 5                 "create", "GeneralLedger", toMap("year", 2010,
+
+ 6                         "account", new Account("zak", 500))));
+ 7     }
+ 8
+}}} 
+
+Which works as expected. Now we check if mike can create posting-rules of general-ledger, e.g.
+{{{
+ 1     @Test(expected = SecurityException.class)
+
+ 2     public void testPostLedgingRulesByAccountantManager() {
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "mike",
+
+ 5                 "create", "GeneralLedgerPostingRules", toMap("year",
+ 6                         2010, "account", new Account("zak", 500))));
+
+ 7     }
+ 8
+}}} 
+
+Which fails authorization. Then we check if larry, the loan officer can create posting-rules of general-ledger, e.g.
+{{{
+ 1     @Test
+ 2     public void testPostLedgingRulesByLoanManager() {
+
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "larry",
+ 5                 "create", "GeneralLedgerPostingRules", toMap("year",
+
+ 6                         2010, "account", new Account("zak", 500))));
+ 7     }
+ 8
+}}} 
+
+Which works as expected. Now, let’s check the same permission but with different year, e.g.
+{{{
+ 1     @Test(expected = SecurityException.class)
+
+ 2     public void testPostLedgingRulesByLoanManagerWithExceededAmount() {
+ 3         initDatabase();
+ 4         permissionManager.check(new PermissionRequest(BANKING, "larry",
+
+ 5                 "create", "GeneralLedgerPostingRules", IDUtils.toMap("year",
+ 6                         2011)));
+ 7     }
+ 8
+}}} 
+
+Which fails as year doesn’t match.
+
+
+== Downloading the Source Code==
 <a href="http://github.com/bhatti/PlexRBAC">PlexRBAC</a> depends on Java 1.6+ and Maven 2.0+. You can download the project using git:
 {{{
 git clone git@github.com:bhatti/PlexRBAC.git
 }}}
 == Building ==
+Type mvn command to build, e.g.
+{{{
+mvn
+}}}
+
+
+== Building REST services, deploying them into Jetty and starting Jetty ==
 Then you can start the REST based web service within Jetty by typing:
 {{{
 mvn jetty:run-war
@@ -77,7 +529,7 @@ Authorization
 
     * GET /api/security/authorize/{domain-id} – with query parameter of operation and target. 
 
-== Example ==
+== REST Example ==
 Let's start with a banking example where a bank-object can be account, general-ledger-report or ledger-posting-rules and account is further grouped into customer account or loan account, e.g.
 
 <img src="http://www.gliffy.com/pubdoc/1951059/M.jpg">
