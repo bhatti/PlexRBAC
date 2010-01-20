@@ -31,7 +31,7 @@ h3. Business Domain Layer
 
 This layer defines core classes that are part of the RBAC based security domain such as:
 
-    * Domain – As described previously, the domain allows you to support multiple applications or realms.
+    * Domain – - The domain allows you to support multiple applications or realms.
     * Subject – The subject represents users who are defined in an application.
     * Role – A role represents job title or function.
     * Permission – A permission is composed of operation, target and an expression that is used for dynamic or instance based security.
